@@ -1,0 +1,256 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--nav-height);
+  z-index: 1000;
+  transition: all var(--transition-normal);
+  background: transparent;
+  color: var(--color-bg);
+}
+
+.navbar.scrolled {
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: 0 1px 0 var(--color-border);
+}
+
+.nav-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.nav-right {
+  justify-content: flex-end;
+  gap: 1.5rem;
+}
+
+.nav-center {
+  flex: 1;
+  text-align: center;
+}
+
+.brand-logo {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: currentColor;
+  transition: width var(--transition-fast);
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+.icon-btn {
+  color: inherit;
+  transition: transform var(--transition-fast);
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+}
+
+.cart-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: 0.65rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.mobile-menu-btn {
+  display: none;
+  color: inherit;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: var(--nav-height);
+    left: 0;
+    width: 100%;
+    height: calc(100vh - var(--nav-height));
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4rem;
+    gap: 2rem;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .nav-links.open {
+    transform: translateX(0);
+  }
+
+  .nav-links a {
+    font-size: 1.5rem;
+  }
+}
+
+/* Minimal Inline Search */
+.nav-search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.minimal-search-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  width: 250px;
+  position: relative;
+  transition: width var(--transition-fast);
+}
+
+.minimal-search-icon {
+  color: var(--color-gray);
+  margin-right: 0.5rem;
+}
+
+.minimal-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  outline: none;
+}
+
+.minimal-search-input:focus {
+  outline: none;
+  border: none;
+}
+
+.minimal-search-close {
+  background: none;
+  border: none;
+  color: var(--color-gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.minimal-search-close:hover {
+  color: var(--color-text);
+}
+
+.minimal-search-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.minimal-result-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.minimal-result-item:last-child {
+  border-bottom: none;
+}
+
+.minimal-result-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.minimal-result-item img {
+  width: 40px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.minimal-result-info h4 {
+  font-size: 0.85rem;
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+}
+
+.minimal-result-info p {
+  font-size: 0.8rem;
+  color: var(--color-gray);
+  margin: 0;
+}
+
+.minimal-no-results {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-gray);
+  font-size: 0.875rem;
+}
