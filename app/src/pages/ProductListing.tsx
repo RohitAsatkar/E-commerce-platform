@@ -1,10 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
+import { useState } from 'react';
 
 const ProductListing = () => {
   const { category } = useParams<{ category: string }>();
   const { products, loading } = useProducts();
+  const [sortOption, setSortOption] = useState('Featured');
   
   let displayedProducts = products;
   let title = 'All Products';
@@ -15,8 +17,19 @@ const ProductListing = () => {
       title = 'New Arrivals';
     } else {
       displayedProducts = products.filter(p => p.category === category);
-      title = category.charAt(0).toUpperCase() + category.slice(1);
+      if (category.toLowerCase() === 't-shirts') {
+        title = 'T-Shirts';
+      } else {
+        title = category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      }
     }
+  }
+
+  // Handle user sort selection
+  if (sortOption === 'Price: Low to High') {
+    displayedProducts = [...displayedProducts].sort((a, b) => a.price - b.price);
+  } else if (sortOption === 'Price: High to Low') {
+    displayedProducts = [...displayedProducts].sort((a, b) => b.price - a.price);
   }
 
   if (loading) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Loading products...</div>;
@@ -29,10 +42,14 @@ const ProductListing = () => {
         <div className="flex justify-between items-center mb-8" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
           <p style={{ color: 'var(--color-gray)' }}>{displayedProducts.length} Results</p>
           <div className="flex gap-4">
-            <select style={{ background: 'transparent', border: 'none', fontFamily: 'inherit', color: 'inherit', outline: 'none', cursor: 'pointer' }}>
-              <option>Sort by: Featured</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
+            <select 
+              value={sortOption}
+              onChange={e => setSortOption(e.target.value)}
+              style={{ background: 'transparent', border: 'none', fontFamily: 'inherit', color: 'inherit', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="Featured">Sort by: Featured</option>
+              <option value="Price: Low to High">Price: Low to High</option>
+              <option value="Price: High to Low">Price: High to Low</option>
             </select>
           </div>
         </div>

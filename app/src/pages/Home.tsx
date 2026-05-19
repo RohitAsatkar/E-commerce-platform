@@ -3,9 +3,28 @@ import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
 import './Home.css';
 
+const FEATURED_CATEGORIES = [
+  { name: 'Shirts', slug: 'shirts', image: 'https://images.unsplash.com/photo-1620012253295-c05518e99309?auto=format&fit=crop&q=80&w=400', badge: 'New' },
+  { name: 'T-Shirts', slug: 't-shirts', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Polo', slug: 'polo', image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Jeans', slug: 'jeans', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=400', badge: 'Classic' },
+  { name: 'Trousers', slug: 'trousers', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Linen', slug: 'linen', image: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&q=80&w=400', badge: 'Premium' },
+  { name: 'Cargo Pants', slug: 'cargo-pants', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Joggers', slug: 'joggers', image: 'https://images.unsplash.com/photo-1551854838-212c50b4c184?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Shorts', slug: 'shorts', image: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Overshirts', slug: 'overshirts', image: 'https://images.unsplash.com/photo-1590330297626-d7aff25a0431?auto=format&fit=crop&q=80&w=400', badge: 'Trending' },
+  { name: 'Footwear', slug: 'footwear', image: 'https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&q=80&w=400', badge: 'New Launch' }
+];
+
 const Home = () => {
   const { products } = useProducts();
-  const featuredProducts = products.slice(0, 4);
+  
+  // Show the 4 newest products marked as "New Arrival", falling back to newest overall if needed
+  const newArrivalsList = products.filter(p => p.is_new);
+  const featuredProducts = newArrivalsList.length > 0 
+    ? newArrivalsList.slice(0, 4) 
+    : products.slice(0, 4);
 
   return (
     <div className="home-page">
@@ -18,8 +37,33 @@ const Home = () => {
           <h1 className="hero-title animate-fade-up delay-1">Redefining Elegance</h1>
           <p className="hero-subtitle animate-fade-up delay-2">Discover the new standard of minimalist luxury apparel.</p>
           <div className="hero-actions animate-fade-up delay-3">
-            <Link to="/shop/women" className="btn btn-outline" style={{ color: '#fff', borderColor: '#fff' }}>Shop Women</Link>
-            <Link to="/shop/men" className="btn btn-primary" style={{ backgroundColor: '#fff', color: '#000' }}>Shop Men</Link>
+            <Link to="/shop/men" className="btn btn-outline" style={{ color: '#fff', borderColor: '#fff' }}>Shop Men</Link>
+            <Link to="/shop/accessories" className="btn btn-primary" style={{ backgroundColor: '#fff', color: '#000' }}>Shop Accessories</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Categories Grid Section */}
+      <section className="featured-cat-section">
+        <div className="container">
+          <h2 className="featured-cat-title">Featured Categories</h2>
+          <div className="featured-cat-grid">
+            {FEATURED_CATEGORIES.map(cat => (
+              <Link key={cat.slug} to={`/shop/${cat.slug}`} className="featured-cat-card">
+                <div className="featured-cat-header">
+                  <span className="featured-cat-name">{cat.name}</span>
+                  {cat.badge && (
+                    <span className={`featured-cat-badge ${cat.badge.toLowerCase() === 'new' ? 'new' : ''}`}>
+                      {cat.badge}
+                    </span>
+                  )}
+                </div>
+                <div className="featured-cat-image-wrapper">
+                  <img src={cat.image} alt={cat.name} className="featured-cat-img" />
+                  <div className="featured-cat-shadow" />
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -38,34 +82,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className="section featured-categories">
-        <div className="container">
-          <div className="category-grid">
-            <Link to="/shop/women" className="category-card">
-              <div className="category-image" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=800)' }}></div>
-              <div className="category-content">
-                <h3>Women</h3>
-                <span>Shop Now</span>
-              </div>
-            </Link>
-            <Link to="/shop/men" className="category-card">
-              <div className="category-image" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&q=80&w=800)' }}></div>
-              <div className="category-content">
-                <h3>Men</h3>
-                <span>Shop Now</span>
-              </div>
-            </Link>
-            <Link to="/shop/accessories" className="category-card">
-              <div className="category-image" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800)' }}></div>
-              <div className="category-content">
-                <h3>Accessories</h3>
-                <span>Shop Now</span>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
+
 
       {/* New Arrivals Section */}
       <section className="section new-arrivals">

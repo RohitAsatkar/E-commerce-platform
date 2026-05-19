@@ -42,7 +42,6 @@ const Navbar = () => {
           </button>
           <ul className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
             <li><Link to="/shop/new" onClick={() => setIsMobileMenuOpen(false)}>New Arrivals</Link></li>
-            <li><Link to="/shop/women" onClick={() => setIsMobileMenuOpen(false)}>Women</Link></li>
             <li><Link to="/shop/men" onClick={() => setIsMobileMenuOpen(false)}>Men</Link></li>
             <li><Link to="/story" onClick={() => setIsMobileMenuOpen(false)}>Our Story</Link></li>
           </ul>

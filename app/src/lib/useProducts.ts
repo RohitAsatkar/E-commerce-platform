@@ -34,7 +34,32 @@ export const useProducts = () => {
     if (!fetchPromise) {
       fetchPromise = (async () => {
         const { data } = await supabase.from('products').select('*');
-        return (data as Product[]) || [];
+        if (data) {
+          const sorted = [...data].sort((a: any, b: any) => {
+            // 1. If created_at is available, sort by it descending
+            if (a.created_at && b.created_at) {
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            }
+            
+            // 2. Sort by custom admin ID prefix 'p_' (which contains timestamp)
+            const aIsNewAdmin = a.id?.startsWith('p_');
+            const bIsNewAdmin = b.id?.startsWith('p_');
+            
+            if (aIsNewAdmin && !bIsNewAdmin) return -1;
+            if (!aIsNewAdmin && bIsNewAdmin) return 1;
+            
+            if (aIsNewAdmin && bIsNewAdmin) {
+              const aTime = Number(a.id.split('_')[1]) || 0;
+              const bTime = Number(b.id.split('_')[1]) || 0;
+              return bTime - aTime;
+            }
+            
+            // 3. Fallback to mock ID sorting
+            return a.id.localeCompare(b.id);
+          });
+          return sorted;
+        }
+        return [];
       })();
     }
 
