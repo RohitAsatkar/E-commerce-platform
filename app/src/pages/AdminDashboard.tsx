@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../lib/useProducts';
 import { getProductCurrency } from '../lib/currency';
 import { 
-  Search, Filter, ChevronRight, X, Shield, LogOut, 
+  Search, Filter, X, LogOut, 
   TrendingUp, ShoppingBag, Box, Clock, CheckCircle, 
   AlertCircle, Eye, RefreshCw 
 } from 'lucide-react';
@@ -57,7 +57,6 @@ const AdminDashboard = () => {
   const [savingProduct, setSavingProduct] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [imageMode, setImageMode] = useState<'upload' | 'url'>('upload');
   
   // Login states
@@ -279,9 +278,7 @@ const AdminDashboard = () => {
       let finalImageUrl = productForm.image;
 
       if (imageFile) {
-        setUploadingImage(true);
         finalImageUrl = await uploadImage(imageFile);
-        setUploadingImage(false);
       }
 
       if (!finalImageUrl) {
@@ -325,7 +322,6 @@ const AdminDashboard = () => {
       showToast("Error saving product: " + err.message, 'error');
     } finally {
       setSavingProduct(false);
-      setUploadingImage(false);
     }
   };
 
