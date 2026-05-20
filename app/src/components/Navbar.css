@@ -6,11 +6,6 @@
   height: var(--nav-height);
   z-index: 1000;
   transition: all var(--transition-normal);
-  background: transparent;
-  color: var(--color-bg);
-}
-
-.navbar.scrolled {
   background: var(--color-bg);
   color: var(--color-text);
   box-shadow: 0 1px 0 var(--color-border);

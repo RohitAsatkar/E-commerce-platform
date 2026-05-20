@@ -28,18 +28,29 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-bg" style={{ backgroundImage: 'url(/images/hero.png)' }}></div>
-        <div className="hero-overlay"></div>
-        <div className="container hero-content text-center">
-          <span className="hero-badge animate-fade-up">Fall / Winter Collection</span>
-          <h1 className="hero-title animate-fade-up delay-1">Redefining Elegance</h1>
-          <p className="hero-subtitle animate-fade-up delay-2">Discover the new standard of minimalist luxury apparel.</p>
-          <div className="hero-actions animate-fade-up delay-3">
-            <Link to="/shop/men" className="btn btn-outline" style={{ color: '#fff', borderColor: '#fff' }}>Shop Men</Link>
-            <Link to="/shop/accessories" className="btn btn-primary" style={{ backgroundColor: '#fff', color: '#000' }}>Shop Accessories</Link>
+      {/* Editorial Split Hero Section */}
+      <section className="editorial-hero">
+        <div className="editorial-hero-left">
+          <span className="editorial-hero-tagline animate-fade-up">Fall / Winter Collection</span>
+          <h1 className="editorial-hero-title animate-fade-up delay-1">
+            Aura /<br />
+            The New<br />
+            Minimal
+          </h1>
+          <p className="editorial-hero-subtitle animate-fade-up delay-2">
+            Discover the new standard of minimalist luxury apparel. Crafted for those who appreciate understated elegance and timeless silhouette.
+          </p>
+          <div className="editorial-hero-actions animate-fade-up delay-3">
+            <Link to="/shop/all" className="editorial-btn-primary">View All</Link>
+            <Link to="/shop/accessories" className="editorial-btn-secondary">Shop Accessories</Link>
           </div>
+        </div>
+        <div className="editorial-hero-right">
+          <img 
+            src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200" 
+            alt="Editorial Campaign Model" 
+            className="editorial-hero-image"
+          />
         </div>
       </section>
 
@@ -98,8 +109,10 @@ const Home = () => {
                 <div className="product-image-wrap">
                   <img src={product.image} alt={product.name} className="product-image" />
                   {product.is_new && <span className="badge-new">New</span>}
+                  <div className="product-quick-add">Quick View</div>
                 </div>
                 <div className="product-info">
+                  <span className="product-category">{product.category.toUpperCase().replace('-', ' ')}</span>
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-price">{formatPrice(product)}</p>
                 </div>

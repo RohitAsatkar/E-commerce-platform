@@ -12,9 +12,16 @@ const ProductListing = () => {
   let title = 'All Products';
 
   if (category) {
-    if (category === 'new') {
+    if (category === 'all') {
+      displayedProducts = products;
+      title = 'All Products';
+    } else if (category === 'new') {
       displayedProducts = products.filter(p => p.is_new);
       title = 'New Arrivals';
+    } else if (category === 'men') {
+      const apparelCategories = ['shirts', 't-shirts', 'polo', 'jeans', 'trousers', 'linen', 'cargo-pants', 'joggers', 'shorts', 'overshirts'];
+      displayedProducts = products.filter(p => apparelCategories.includes(p.category));
+      title = "Men's Collection";
     } else {
       displayedProducts = products.filter(p => p.category === category);
       if (category.toLowerCase() === 't-shirts') {

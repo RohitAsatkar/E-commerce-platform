@@ -66,7 +66,7 @@ const Cart = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const currSymbol = cartItems.length > 0 ? getProductCurrency(cartItems[0].product) : '$';
+  const currSymbol = cartItems.length > 0 ? getProductCurrency(cartItems[0].product) : '₹';
 
   if (loading) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Loading...</div>;
 

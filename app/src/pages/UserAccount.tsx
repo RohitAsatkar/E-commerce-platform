@@ -201,7 +201,7 @@ const UserAccount = () => {
                   </div>
                   <div className="stat-card">
                     <ShoppingBag size={22} style={{ color: 'var(--color-accent)' }} />
-                    <div className="stat-value">${totalSpent.toFixed(0)}</div>
+                    <div className="stat-value">₹{totalSpent.toFixed(0)}</div>
                     <div className="stat-label">Total Spent</div>
                   </div>
                   <div className="stat-card">
@@ -250,7 +250,7 @@ const UserAccount = () => {
                             <span className={`order-status-badge ${order.status?.toLowerCase()}`}>{order.status}</span>
                           </div>
                           <div className="order-card-mini-right">
-                            <p className="order-total">${Number(order.total).toFixed(2)}</p>
+                            <p className="order-total">₹{Number(order.total).toFixed(2)}</p>
                           </div>
                         </div>
                       ))}
@@ -293,7 +293,7 @@ const UserAccount = () => {
                           </div>
                           <div className="order-header-right">
                             <span className={`order-status-badge ${order.status?.toLowerCase()}`}>{order.status}</span>
-                            <p className="order-total">${Number(order.total).toFixed(2)}</p>
+                            <p className="order-total">₹{Number(order.total).toFixed(2)}</p>
                             <ChevronRight size={16} className={`order-chevron ${expandedOrder === order.id ? 'rotated' : ''}`} />
                           </div>
                         </button>

@@ -13,13 +13,7 @@ import './AdminDashboard.css';
 
 const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const CURRENCIES = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
 ];
 
 const AdminDashboard = () => {
@@ -50,7 +44,7 @@ const AdminDashboard = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [productForm, setProductForm] = useState({
     name: '', price: 0, category: 'shirts', is_new: false, image: '', description: '',
-    stock: 100, sku: '', tags: '', currency: 'USD'
+    stock: 100, sku: '', tags: '', currency: 'INR'
   });
   const [selectedSizes, setSelectedSizes] = useState<Record<string, { enabled: boolean; priceAdjust: number }>>({
     XS: { enabled: false, priceAdjust: 0 },
@@ -250,7 +244,7 @@ const AdminDashboard = () => {
         name: product.name, price: product.price, category: product.category, is_new: product.is_new,
         image: product.image, description: product.description,
         stock: product.stock ?? 100, sku: product.sku || '', tags: (product.tags || []).join(', '),
-        currency: product.variants?.[0]?.currency || 'USD'
+        currency: product.variants?.[0]?.currency || 'INR'
       });
       setImagePreview(product.image);
       const restored: Record<string, { enabled: boolean; priceAdjust: number }> = {};
@@ -265,7 +259,7 @@ const AdminDashboard = () => {
       setSelectedSizes(restored);
     } else {
       setEditingProduct(null);
-      setProductForm({ name: '', price: 0, category: 'men', is_new: false, image: '', description: '', stock: 100, sku: '', tags: '', currency: 'USD' });
+      setProductForm({ name: '', price: 0, category: 'men', is_new: false, image: '', description: '', stock: 100, sku: '', tags: '', currency: 'INR' });
       setSelectedSizes({
         XS: { enabled: false, priceAdjust: 0 },
         S: { enabled: true, priceAdjust: 0 },
@@ -423,7 +417,7 @@ const AdminDashboard = () => {
                   <span className="admin-stat-label">Total Revenue</span>
                   <TrendingUp size={20} style={{ color: 'var(--color-accent)' }} />
                 </div>
-                <p className="admin-stat-value">${totalRevenue.toFixed(2)}</p>
+                <p className="admin-stat-value">₹{totalRevenue.toFixed(2)}</p>
               </div>
               <div className="admin-stat-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -466,7 +460,7 @@ const AdminDashboard = () => {
                       const customerName = p.first_name ? `${p.first_name} ${p.last_name || ''}` : 'Customer';
                       const firstItem = orderItems.find(item => item.order_id === order.id);
                       const prod = firstItem ? products.find(prod => prod.id === firstItem.product_id) : null;
-                      const currencySymbol = prod ? getProductCurrency(prod) : '$';
+                      const currencySymbol = prod ? getProductCurrency(prod) : '₹';
 
                       return (
                         <tr key={order.id}>
@@ -517,7 +511,7 @@ const AdminDashboard = () => {
                 <tbody>
                   {products.map(p => {
                     const firstVariant = p.variants?.[0];
-                    const symbol = firstVariant?.currency ? CURRENCIES.find(c => c.code === firstVariant.currency)?.symbol : '$';
+                    const symbol = firstVariant?.currency ? CURRENCIES.find(c => c.code === firstVariant.currency)?.symbol : '₹';
                     return (
                       <tr key={p.id}>
                         <td><img src={p.image} alt={p.name} style={{ width: '44px', height: '56px', objectFit: 'cover' }} /></td>
@@ -552,7 +546,7 @@ const AdminDashboard = () => {
                   <span className="admin-stat-label">Total Revenue</span>
                   <TrendingUp size={20} style={{ color: '#16a34a' }} />
                 </div>
-                <p className="admin-stat-value">${totalRevenue.toFixed(2)}</p>
+                <p className="admin-stat-value">₹{totalRevenue.toFixed(2)}</p>
               </div>
               <div className="admin-stat-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -566,7 +560,7 @@ const AdminDashboard = () => {
                   <span className="admin-stat-label">AOV (Avg Value)</span>
                   <Box size={20} style={{ color: 'var(--color-accent)' }} />
                 </div>
-                <p className="admin-stat-value">${avgOrderValue.toFixed(2)}</p>
+                <p className="admin-stat-value">₹{avgOrderValue.toFixed(2)}</p>
               </div>
               <div className="admin-stat-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -661,7 +655,7 @@ const AdminDashboard = () => {
                       const customerName = p.first_name ? `${p.first_name} ${p.last_name || ''}` : 'Customer';
                       const firstItem = orderItems.find(item => item.order_id === order.id);
                       const prod = firstItem ? products.find(prod => prod.id === firstItem.product_id) : null;
-                      const currencySymbol = prod ? getProductCurrency(prod) : '$';
+                      const currencySymbol = prod ? getProductCurrency(prod) : '₹';
 
                       return (
                         <tr key={order.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedOrder(order)}>
@@ -793,7 +787,7 @@ const AdminDashboard = () => {
                   {(() => {
                     const firstItem = orderItems.find(item => item.order_id === selectedOrder.id);
                     const prod = firstItem ? products.find(p => p.id === firstItem.product_id) : null;
-                    return prod ? getProductCurrency(prod) : '$';
+                    return prod ? getProductCurrency(prod) : '₹';
                   })()}{Number(selectedOrder.total).toFixed(2)}
                 </span>
               </div>
@@ -846,7 +840,7 @@ const AdminDashboard = () => {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                   {ALL_SIZES.map(size => {
                     const curr = CURRENCIES.find(c => c.code === productForm.currency);
-                    const sym = curr?.symbol || '$';
+                    const sym = curr?.symbol || '₹';
                     return (
                       <div key={size} style={{ border: `1px solid ${selectedSizes[size]?.enabled ? 'var(--color-text)' : 'var(--color-border)'}`, padding: '0.75rem', minWidth: '110px', backgroundColor: selectedSizes[size]?.enabled ? 'rgba(0,0,0,0.02)' : 'transparent', transition: 'all 0.15s' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: selectedSizes[size]?.enabled ? '600' : '400' }}>

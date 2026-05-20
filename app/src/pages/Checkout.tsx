@@ -53,7 +53,7 @@ const Checkout = () => {
   }, [user, navigate, products, productsLoading]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const currSymbol = cartItems.length > 0 ? getProductCurrency(cartItems[0].product) : '$';
+  const currSymbol = cartItems.length > 0 ? getProductCurrency(cartItems[0].product) : '₹';
 
   const handlePlaceOrder = async (e: FormEvent) => {
     e.preventDefault();
