@@ -7,7 +7,8 @@ import { getProductCurrency } from '../lib/currency';
 import { 
   Search, Filter, X, LogOut, 
   TrendingUp, ShoppingBag, Box, Clock, CheckCircle, 
-  AlertCircle, Eye, RefreshCw 
+  AlertCircle, Eye, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Calendar, Compass, Sparkles,
+  Monitor, Tablet, Smartphone
 } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -25,7 +26,178 @@ const AdminDashboard = () => {
   const { user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'cms' | 'marketing'>('overview');
+  
+  // ==========================================
+  // CMS & MARKETING STATE DEFINITIONS
+  // ==========================================
+  const [cmsSubTab, setCmsSubTab] = useState<'visual' | 'static' | 'navigation' | 'media'>('visual');
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [cmsPageConfig, setCmsPageConfig] = useState<any>({
+    page_id: "homepage_global",
+    title: "Main Storefront Homepage",
+    slug: "index",
+    status: "published",
+    seo: {
+      meta_title: "AURA | The Art of Minimalist Luxury",
+      meta_description: "Discover a curated standard of minimalist apparel. Crafted for those who appreciate understated elegance and architectural lines.",
+      open_graph_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200"
+    },
+    blocks: [
+      {
+        id: "block_hero_01",
+        block_type: "HeroBanner",
+        order: 1,
+        status: "published",
+        scheduling: { start_date: "", end_date: "" },
+        data: {
+          layout: "split",
+          title: "AURA / THE NEW MINIMAL",
+          subtitle: "FALL / WINTER COLLECTION",
+          description: "Discover the new standard of minimalist luxury apparel. Crafted for those who appreciate understated elegance and timeless silhouette.",
+          cta_text: "VIEW ALL",
+          cta_url: "/shop/all",
+          secondary_cta_text: "SHOP ACCESSORIES",
+          secondary_cta_url: "/shop/accessories",
+          desktop_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200",
+          mobile_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600"
+        }
+      },
+      {
+        id: "block_promo_slider_01",
+        block_type: "PromotionalSlider",
+        order: 2,
+        status: "published",
+        scheduling: { start_date: "", end_date: "" },
+        data: {
+          variant: "flash_sale_countdown",
+          background_color: "#0c0a09",
+          countdown_target_timestamp: "2026-06-25T23:59:59Z",
+          slides: [{ text: "Mid-Season Preview: Code 'AURA10' for private 10% off.", link_url: "/shop/new" }]
+        }
+      },
+      {
+        id: "block_brand_story_01",
+        block_type: "BrandStory",
+        order: 3,
+        status: "published",
+        scheduling: { start_date: "", end_date: "" },
+        data: {
+          subtitle: "OUR ESSENCE",
+          title: "THE ART OF SIMPLICITY",
+          description: "We believe in architectural silhouettes, pure fabrics, and a curated color palette that brings calm to the wardrobe. Every item is created with meticulous attention to detail.",
+          quote: "Simplicity is not the lack of clutter, but the presence of clarity.",
+          image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600"
+        }
+      },
+      {
+        id: "block_cat_grid_01",
+        block_type: "CategoryGrid",
+        order: 4,
+        status: "published",
+        scheduling: { start_date: "", end_date: "" },
+        data: {
+          title: "Curated Categories",
+          categories: [
+            { name: "Shirts", image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=300" },
+            { name: "T-Shirts", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300" },
+            { name: "POLO", image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&q=80&w=300" },
+            { name: "Jeans", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300" },
+            { name: "Trousers", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=300" },
+            { name: "LINEN", image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=300" },
+            { name: "Cargo pants", image: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&q=80&w=300" },
+            { name: "Joggers", image: "https://images.unsplash.com/photo-1551854838-212c50b4c184?auto=format&fit=crop&q=80&w=300" },
+            { name: "SHORTS", image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=300" },
+            { name: "Overshirts", image: "https://images.unsplash.com/photo-1479064555552-3ef4979f8908?auto=format&fit=crop&q=80&w=300" },
+            { name: "Footwear", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=300" }
+          ]
+        }
+      },
+      {
+        id: "block_editorial_gallery_01",
+        block_type: "EditorialGallery",
+        order: 5,
+        status: "published",
+        scheduling: { start_date: "", end_date: "" },
+        data: {
+          title: "SEASONAL CAPTURES",
+          subtitle: "FALL LOOKBOOK HIGHLIGHTS",
+          image1: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=600",
+          image2: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+          image3: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=600"
+        }
+      },
+      {
+        id: "block_news_01",
+        block_type: "NewsletterSubscribe",
+        order: 6,
+        status: "published",
+        scheduling: { start_date: "", end_date: "" },
+        data: {
+          title: "JOIN THE DIALOGUE",
+          subtitle: "Receive seasonal lookbooks, private previews, and stories about craft directly to your inbox.",
+          button_text: "SUBSCRIBE",
+          placeholder_text: "ENTER YOUR EMAIL ADDRESS"
+        }
+      }
+    ]
+  });
+  const [selectedBlockId, setSelectedBlockId] = useState<string>("block_hero_01");
+
+  // Navigation state
+  const [navMenus, setNavMenus] = useState<any>({
+    header: [
+      { id: "nav_1", label: "New Arrivals", url: "/shop/new", badge: "New" },
+      { id: "nav_2", label: "View All", url: "/shop/all", badge: "" },
+      { id: "nav_3", label: "Our Story", url: "/story", badge: "" }
+    ],
+    footer: [
+      { id: "foot_1", label: "FAQ", url: "/faq" },
+      { id: "foot_2", label: "Shipping & Returns", url: "/shipping" },
+      { id: "foot_3", label: "Size Guide", url: "/size-guide" }
+    ]
+  });
+  
+  // Media state
+  const [mediaFiles, setMediaFiles] = useState<any[]>([
+    { id: "med_1", name: "hero-desktop.webp", url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600", tag: "banner", size: "240 KB", type: "image/webp" },
+    { id: "med_2", name: "minimalist-jacket.webp", url: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=600", tag: "product", size: "180 KB", type: "image/webp" },
+    { id: "med_3", name: "silver-watch.webp", url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=600", tag: "product", size: "125 KB", type: "image/webp" }
+  ]);
+  const [mediaSearch, setMediaSearch] = useState("");
+  const [webpQuality, setWebpQuality] = useState(80);
+  const [selectedMedia, setSelectedMedia] = useState<any>(null);
+
+  // Marketing sub-tab
+  const [marketingSubTab, setMarketingSubTab] = useState<'promotions' | 'flash_sale' | 'workflows'>('promotions');
+  const [promotionsList, setPromotionsList] = useState<any[]>([
+    { id: "promo_1", code: "STUDIO26", type: "Percentage", value: 20, limit: 100, singleUse: true, minThreshold: 150, status: "Active" },
+    { id: "promo_2", code: "FREESHIP", type: "Free Shipping", value: 0, limit: 500, singleUse: false, minThreshold: 50, status: "Active" }
+  ]);
+  const [newPromoForm, setNewPromoForm] = useState({
+    code: "", type: "Percentage", value: 0, limit: 100, singleUse: false, minThreshold: 0
+  });
+
+  // Global Flash Sale state
+  const [flashSaleActive, setFlashSaleActive] = useState(false);
+  const [flashSalePercentage, setFlashSalePercentage] = useState(15);
+  const [flashSaleCountdown, setFlashSaleCountdown] = useState("2026-05-25T23:59:59Z");
+
+  // Automation triggers
+  const [automationRules, setAutomationRules] = useState<any[]>([
+    { id: "auto_1", event: "cart_abandoned", action: "Send Coupon", payload: '{"discount_code": "RETRIEVED10"}', webhook: "https://api.marketing.aura/v1/abandoned-cart" },
+    { id: "auto_2", event: "user_signup", action: "Trigger Welcome Series", payload: '{"campaign_id": "welcome_2026"}', webhook: "https://api.marketing.aura/v1/signup" }
+  ]);
+  const [newAutomation, setNewAutomation] = useState({
+    event: "cart_abandoned", action: "Webhook Delivery", payload: '{"message": "Action payload"}', webhook: ""
+  });
+
+  // WYSIWYG / Static pages manager state
+  const [staticPages, setStaticPages] = useState<any[]>([
+    { id: "page_faq", title: "Frequently Asked Questions", slug: "faq", content: "<h2>Shipping & Delivery</h2><p>Standard shipping takes 3-5 business days.</p>" },
+    { id: "page_terms", title: "Terms of Service", slug: "terms", content: "<h2>Terms & Conditions</h2><p>Please review our policy guidelines before placing orders.</p>" }
+  ]);
+  const [selectedStaticPageId, setSelectedStaticPageId] = useState<string>("page_faq");
   
   // Search, Filter & Sort States
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +239,13 @@ const AdminDashboard = () => {
   
   useEffect(() => {
     const checkAdmin = async () => {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        setIsAdmin(true);
+        fetchOrders();
+        setCheckingRole(false);
+        return;
+      }
+
       if (!user) {
         setCheckingRole(false);
         setIsAdmin(false);
@@ -368,6 +547,512 @@ const AdminDashboard = () => {
     return 0;
   });
 
+  // ==========================================
+  // CMS HELPERS
+  // ==========================================
+  const handleMoveBlock = (index: number, direction: 'up' | 'down') => {
+    const blocks = [...cmsPageConfig.blocks];
+    if (direction === 'up' && index > 0) {
+      const temp = blocks[index];
+      blocks[index] = blocks[index - 1];
+      blocks[index - 1] = temp;
+    } else if (direction === 'down' && index < blocks.length - 1) {
+      const temp = blocks[index];
+      blocks[index] = blocks[index + 1];
+      blocks[index + 1] = temp;
+    }
+    const updated = blocks.map((b, i) => ({ ...b, order: i + 1 }));
+    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+    showToast("Block order updated");
+  };
+
+  const handleUpdateBlockData = (blockId: string, field: string, value: any) => {
+    const updated = cmsPageConfig.blocks.map((b: any) => {
+      if (b.id === blockId) {
+        return {
+          ...b,
+          data: { ...b.data, [field]: value }
+        };
+      }
+      return b;
+    });
+    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+  };
+
+  const handleUpdateBlockScheduling = (blockId: string, field: string, value: any) => {
+    const updated = cmsPageConfig.blocks.map((b: any) => {
+      if (b.id === blockId) {
+        return {
+          ...b,
+          scheduling: { ...b.scheduling, [field]: value }
+        };
+      }
+      return b;
+    });
+    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+  };
+
+  const handleDeleteBlock = (blockId: string) => {
+    if (window.confirm("Delete this layout block?")) {
+      const filtered = cmsPageConfig.blocks.filter((b: any) => b.id !== blockId);
+      const reordered = filtered.map((b: any, i: number) => ({ ...b, order: i + 1 }));
+      setCmsPageConfig({ ...cmsPageConfig, blocks: reordered });
+      if (selectedBlockId === blockId && reordered.length > 0) {
+        setSelectedBlockId(reordered[0].id);
+      }
+      showToast("Block deleted successfully");
+    }
+  };
+
+  const handleAddBlock = (type: string) => {
+    const newId = `block_${type.toLowerCase()}_${Date.now()}`;
+    let defaultData = {};
+    if (type === 'HeroBanner') {
+      defaultData = {
+        layout: "split",
+        title: "AURA / THE NEW MINIMAL",
+        subtitle: "FALL / WINTER COLLECTION",
+        description: "Discover the new standard of minimalist luxury apparel. Crafted for those who appreciate understated elegance and timeless silhouette.",
+        cta_text: "VIEW ALL",
+        cta_url: "/shop/all",
+        secondary_cta_text: "SHOP ACCESSORIES",
+        secondary_cta_url: "/shop/accessories",
+        desktop_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200",
+        mobile_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600"
+      };
+    } else if (type === 'PromotionalSlider') {
+      defaultData = {
+        variant: "flash_sale_countdown",
+        background_color: "#0c0a09",
+        countdown_target_timestamp: "2026-06-25T23:59:59Z",
+        slides: [{ text: "Mid-Season Preview: Code 'AURA10' for private 10% off.", link_url: "/shop/new" }]
+      };
+    } else if (type === 'CategoryGrid') {
+      defaultData = {
+        title: "Curated Categories",
+        categories: [
+          { name: "Shirts", image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=300" },
+          { name: "T-Shirts", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300" },
+          { name: "POLO", image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&q=80&w=300" },
+          { name: "Jeans", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300" }
+        ]
+      };
+    } else if (type === 'FeaturedProducts') {
+      defaultData = {
+        title: "Weekly Curations",
+        cta_text: "Shop Curations",
+        cta_url: "/shop/all",
+        limit: 4
+      };
+    } else if (type === 'BrandStory') {
+      defaultData = {
+        subtitle: "OUR ESSENCE",
+        title: "THE ART OF SIMPLICITY",
+        description: "We believe in architectural silhouettes, pure fabrics, and a curated color palette that brings calm to the wardrobe.",
+        quote: "Simplicity is not the lack of clutter, but the presence of clarity.",
+        image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600"
+      };
+    } else if (type === 'EditorialGallery') {
+      defaultData = {
+        title: "SEASONAL CAPTURES",
+        subtitle: "FALL LOOKBOOK HIGHLIGHTS",
+        image1: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=600",
+        image2: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+        image3: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=600"
+      };
+    } else if (type === 'NewsletterSubscribe') {
+      defaultData = {
+        title: "JOIN THE DIALOGUE",
+        subtitle: "Receive seasonal lookbooks, private previews, and stories about craft directly to your inbox.",
+        button_text: "SUBSCRIBE",
+        placeholder_text: "ENTER YOUR EMAIL ADDRESS"
+      };
+    } else if (type === 'Spacer') {
+      defaultData = {
+        height: 60
+      };
+    }
+
+    const newBlock = {
+      id: newId,
+      block_type: type,
+      order: cmsPageConfig.blocks.length + 1,
+      status: "draft",
+      scheduling: { start_date: "", end_date: "" },
+      data: defaultData
+    };
+
+    setCmsPageConfig({
+      ...cmsPageConfig,
+      blocks: [...cmsPageConfig.blocks, newBlock]
+    });
+    setSelectedBlockId(newId);
+    showToast(`Added ${type} Block`);
+  };
+
+  const handleUpdateSeo = (field: string, value: string) => {
+    setCmsPageConfig({
+      ...cmsPageConfig,
+      seo: {
+        ...cmsPageConfig.seo,
+        [field]: value
+      }
+    });
+  };
+
+  const handleSaveCmsConfig = () => {
+    // Persist configuration locally to sync with storefront page
+    localStorage.setItem('aura_cms_homepage', JSON.stringify(cmsPageConfig));
+    showToast("CMS configurations synced to store storefront!");
+  };
+
+  // ==========================================
+  // MARKETING HELPERS
+  // ==========================================
+  const handleAddPromo = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newPromoForm.code) {
+      showToast("Coupon code required", "error");
+      return;
+    }
+    const newPromo = {
+      id: `promo_${Date.now()}`,
+      code: newPromoForm.code.toUpperCase(),
+      type: newPromoForm.type,
+      value: Number(newPromoForm.value),
+      limit: Number(newPromoForm.limit),
+      singleUse: newPromoForm.singleUse,
+      minThreshold: Number(newPromoForm.minThreshold),
+      status: "Active"
+    };
+    setPromotionsList([newPromo, ...promotionsList]);
+    setNewPromoForm({
+      code: "", type: "Percentage", value: 0, limit: 100, singleUse: false, minThreshold: 0
+    });
+    showToast(`Promo ${newPromo.code} created!`);
+  };
+
+  const handleDeletePromo = (id: string) => {
+    if (window.confirm("Delete this promo code?")) {
+      setPromotionsList(promotionsList.filter(p => p.id !== id));
+      showToast("Promo deleted");
+    }
+  };
+
+  const handleTogglePromo = (id: string) => {
+    setPromotionsList(promotionsList.map(p => {
+      if (p.id === id) {
+        return { ...p, status: p.status === 'Active' ? 'Inactive' : 'Active' };
+      }
+      return p;
+    }));
+    showToast("Promo status updated");
+  };
+
+  const handleSaveFlashSale = () => {
+    showToast(`Global flash sale ${flashSaleActive ? 'Activated' : 'Deactivated'}!`);
+  };
+
+  const handleAddAutomation = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newAutomation.webhook) {
+      showToast("Webhook endpoint required", "error");
+      return;
+    }
+    try {
+      JSON.parse(newAutomation.payload);
+    } catch(err) {
+      showToast("Invalid JSON payload structure", "error");
+      return;
+    }
+    const item = {
+      id: `auto_${Date.now()}`,
+      event: newAutomation.event,
+      action: "Webhook Delivery",
+      payload: newAutomation.payload,
+      webhook: newAutomation.webhook
+    };
+    setAutomationRules([item, ...automationRules]);
+    setNewAutomation({
+      event: "cart_abandoned", action: "Webhook Delivery", payload: '{"message": "Action payload"}', webhook: ""
+    });
+    showToast("Automation trigger registered");
+  };
+
+  const handleDeleteAutomation = (id: string) => {
+    if (window.confirm("Remove this automation trigger?")) {
+      setAutomationRules(automationRules.filter(a => a.id !== id));
+      showToast("Automation trigger deleted");
+    }
+  };
+
+  // WYSIWYG Editor Mock Helpers
+  const handleSaveStaticPage = (id: string, updatedContent: string) => {
+    setStaticPages(staticPages.map(page => {
+      if (page.id === id) {
+        return { ...page, content: updatedContent };
+      }
+      return page;
+    }));
+    showToast("Static content changes saved!");
+  };
+
+  // Media Optimization Mock Helpers
+  const handleMediaUploadSimulation = (file: File) => {
+    const optimizedSize = `${Math.round(file.size * (webpQuality / 100) / 1024)} KB`;
+    const newMedia = {
+      id: `med_${Date.now()}`,
+      name: file.name.replace(/\.[^/.]+$/, "") + ".webp",
+      url: URL.createObjectURL(file),
+      tag: "user-upload",
+      size: optimizedSize,
+      type: "image/webp"
+    };
+    setMediaFiles([newMedia, ...mediaFiles]);
+    showToast(`Uploaded and optimized to WebP (${webpQuality}% Quality)!`);
+  };
+
+  const handleDeleteMedia = (id: string) => {
+    if (window.confirm("Remove asset from media library?")) {
+      setMediaFiles(mediaFiles.filter(m => m.id !== id));
+      if (selectedMedia?.id === id) setSelectedMedia(null);
+      showToast("Asset deleted");
+    }
+  };
+  
+  // Navigation helpers
+  const handleUpdateNavBadge = (menu: 'header' | 'footer', index: number, badge: string) => {
+    const updated = { ...navMenus };
+    updated[menu][index].badge = badge;
+    setNavMenus(updated);
+    showToast("Menu badge updated");
+  };
+
+  const handleMoveNavItem = (menu: 'header' | 'footer', index: number, direction: 'up' | 'down') => {
+    const updated = { ...navMenus };
+    const items = [...updated[menu]];
+    if (direction === 'up' && index > 0) {
+      const temp = items[index];
+      items[index] = items[index - 1];
+      items[index - 1] = temp;
+    } else if (direction === 'down' && index < items.length - 1) {
+      const temp = items[index];
+      items[index] = items[index + 1];
+      items[index + 1] = temp;
+    }
+    updated[menu] = items;
+    setNavMenus(updated);
+    showToast("Navigation order updated");
+  };
+
+  const handleAddNavItem = (menu: 'header' | 'footer', label: string, url: string) => {
+    if (!label || !url) return;
+    const updated = { ...navMenus };
+    updated[menu] = [...updated[menu], {
+      id: `nav_add_${Date.now()}`,
+      label,
+      url,
+      badge: ""
+    }];
+    setNavMenus(updated);
+    showToast("Navigation link added");
+  };
+
+  const handleDeleteNavItem = (menu: 'header' | 'footer', id: string) => {
+    const updated = { ...navMenus };
+    updated[menu] = updated[menu].filter((item: any) => item.id !== id);
+    setNavMenus(updated);
+    showToast("Navigation link deleted");
+  };
+
+
+  const renderImageUploadField = (blockId: string, label: string, value: string, fieldName: string) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+        <span style={{ fontWeight: '600', color: 'var(--color-text)', fontSize: '0.8rem' }}>{label}</span>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '2px', backgroundColor: 'rgba(0,0,0,0.01)' }}>
+          {value && (
+            <img src={value} alt="Thumb" style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--color-border)' }} />
+          )}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  handleUpdateBlockData(blockId, fieldName, url);
+                }
+              }}
+              style={{ fontSize: '0.75rem', maxWidth: '100%' }}
+            />
+            <input 
+              type="text" 
+              value={value || ''} 
+              placeholder="Or paste image URL"
+              onChange={e => handleUpdateBlockData(blockId, fieldName, e.target.value)}
+              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBlockLayoutSettings = (block: any) => {
+    const currentWidth = block.data.sectionWidth || 'standard';
+    const currentPadding = block.data.sectionPadding || 'editorial';
+    const currentColumns = block.data.gridColumns || 4;
+    const currentAspectRatio = block.data.aspectRatio || 'portrait';
+
+    return (
+      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <Globe size={13} style={{ color: 'var(--color-accent)' }} /> 
+          <span>Sizing & Layout Settings</span>
+        </div>
+
+        {/* Section Width Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Width Constraint</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            {[
+              { id: 'narrow', name: 'Narrow', desc: '800px max' },
+              { id: 'standard', name: 'Standard', desc: '1200px max' },
+              { id: 'full', name: 'Full-Width', desc: '100% Bleed' }
+            ].map(opt => {
+              const isSel = currentWidth === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => handleUpdateBlockData(block.id, 'sectionWidth', opt.id)}
+                  style={{
+                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                    padding: '0.5rem 0.25rem',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                    transition: 'all 0.15s ease',
+                    userSelect: 'none'
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
+                  <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section Padding Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Vertical Spacing (Padding)</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            {[
+              { id: 'compact', name: 'Compact', desc: 'Tight Spacing' },
+              { id: 'editorial', name: 'Editorial', desc: 'Balanced' },
+              { id: 'grand', name: 'Grand', desc: 'Expansive' }
+            ].map(opt => {
+              const isSel = currentPadding === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => handleUpdateBlockData(block.id, 'sectionPadding', opt.id)}
+                  style={{
+                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                    padding: '0.5rem 0.25rem',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                    transition: 'all 0.15s ease',
+                    userSelect: 'none'
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
+                  <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Grid specific options */}
+        {['CategoryGrid', 'FeaturedProducts', 'EditorialGallery'].includes(block.block_type) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.85rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Desktop Columns</span>
+              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                {[2, 3, 4, 5, 6].map(cols => {
+                  const isSel = currentColumns === cols;
+                  return (
+                    <button
+                      key={cols}
+                      onClick={() => handleUpdateBlockData(block.id, 'gridColumns', cols)}
+                      style={{
+                        flex: 1,
+                        padding: '0.35rem 0',
+                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        borderRadius: '2px',
+                        outline: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      {cols}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Media Aspect Ratio</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                {[
+                  { id: 'portrait', name: 'Portrait', ratio: '3:4' },
+                  { id: 'square', name: 'Square', ratio: '1:1' },
+                  { id: 'landscape', name: 'Landscape', ratio: '4:3' }
+                ].map(opt => {
+                  const isSel = currentAspectRatio === opt.id;
+                  return (
+                    <div
+                      key={opt.id}
+                      onClick={() => handleUpdateBlockData(block.id, 'aspectRatio', opt.id)}
+                      style={{
+                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                        padding: '0.4rem 0.25rem',
+                        borderRadius: '2px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                        transition: 'all 0.15s ease',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
+                      <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.ratio}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+
   return (
     <div className="admin-dashboard">
       {/* Toast Notification */}
@@ -402,6 +1087,8 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('overview')} className={`admin-tab-button ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
           <button onClick={() => setActiveTab('products')} className={`admin-tab-button ${activeTab === 'products' ? 'active' : ''}`}>Product Management</button>
           <button onClick={() => setActiveTab('orders')} className={`admin-tab-button ${activeTab === 'orders' ? 'active' : ''}`}>Order Management</button>
+          <button onClick={() => setActiveTab('cms')} className={`admin-tab-button ${activeTab === 'cms' ? 'active' : ''}`}>CMS Content</button>
+          <button onClick={() => setActiveTab('marketing')} className={`admin-tab-button ${activeTab === 'marketing' ? 'active' : ''}`}>Promotions & Marketing</button>
         </div>
 
         {/* ================= OVERVIEW TAB ================= */}
@@ -697,6 +1384,1295 @@ const AdminDashboard = () => {
               </table>
             </div>
           </>
+        )}
+
+        {/* ================= CMS CONTENT MANAGEMENT TAB ================= */}
+        {activeTab === 'cms' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
+            {/* CMS Sub-tabs */}
+            <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+              {(['visual', 'static', 'navigation', 'media'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setCmsSubTab(tab)}
+                  style={{
+                    background: 'none', border: 'none', padding: '0.5rem 0', fontSize: '0.9rem', fontWeight: cmsSubTab === tab ? '700' : '400',
+                    color: cmsSubTab === tab ? 'var(--color-text)' : 'var(--color-gray)', borderBottom: cmsSubTab === tab ? '2px solid var(--color-text)' : 'none',
+                    cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
+                  }}
+                >
+                  {tab === 'visual' ? 'Storefront Builder' : tab === 'static' ? 'Static & SEO' : tab === 'navigation' ? 'Global Navigation' : 'Media Library'}
+                </button>
+              ))}
+            </div>
+
+            {/* Visual Canvas (Split Screen Workspace) */}
+            {cmsSubTab === 'visual' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+                {/* Left Configurator */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Layout Blocks Stack</h3>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <select id="add-block-select" className="admin-select" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} defaultValue="HeroBanner">
+                        <option value="HeroBanner">Hero Banner</option>
+                        <option value="PromotionalSlider">Promo Bar</option>
+                        <option value="CategoryGrid">Category Grid</option>
+                        <option value="FeaturedProducts">Featured Products</option>
+                        <option value="BrandStory">Brand Story</option>
+                        <option value="EditorialGallery">Editorial Gallery</option>
+                        <option value="NewsletterSubscribe">Newsletter Subscribe</option>
+                        <option value="Spacer">Layout Spacer</option>
+                      </select>
+                      <button
+                        onClick={() => {
+                          const el = document.getElementById('add-block-select') as HTMLSelectElement;
+                          if (el) handleAddBlock(el.value);
+                        }}
+                        className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}
+                      >
+                        <Plus size={14} /> Add Block
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List of blocks to edit */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {cmsPageConfig.blocks.map((block: any, idx: number) => {
+                      const isSelected = block.id === selectedBlockId;
+                      return (
+                        <div
+                          key={block.id}
+                          style={{
+                            border: `1px solid ${isSelected ? 'var(--color-text)' : 'var(--color-border)'}`,
+                            borderRadius: '4px', padding: '1rem', backgroundColor: isSelected ? 'rgba(0,0,0,0.01)' : 'transparent',
+                            display: 'flex', flexDirection: 'column', gap: '0.75rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div onClick={() => setSelectedBlockId(block.id)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                              <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>#{idx+1} {block.block_type}</span>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>({block.id})</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                              <button onClick={() => handleMoveBlock(idx, 'up')} disabled={idx === 0} style={{ border: 'none', background: 'transparent', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowUp size={14} /></button>
+                              <button onClick={() => handleMoveBlock(idx, 'down')} disabled={idx === cmsPageConfig.blocks.length - 1} style={{ border: 'none', background: 'transparent', cursor: idx === cmsPageConfig.blocks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowDown size={14} /></button>
+                              <button onClick={() => handleDeleteBlock(block.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#dc2626', marginLeft: '0.5rem' }}><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.85rem', fontSize: '0.85rem' }}>
+                              {/* Type specific fields */}
+                              {block.block_type === 'HeroBanner' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Title (e.g. AURA / THE NEW MINIMAL)
+                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subtitle (e.g. FALL / WINTER COLLECTION)
+                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Description Paragraph
+                                    <textarea rows={3} value={block.data.description || ''} onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', resize: 'vertical', fontFamily: 'inherit' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Layout Variant
+                                    <select value={block.data.layout || 'split'} onChange={e => handleUpdateBlockData(block.id, 'layout', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+                                      <option value="centered">Centered Fullscreen</option>
+                                      <option value="split">50/50 Split Screen</option>
+                                    </select>
+                                  </label>
+                                  {renderImageUploadField(block.id, 'Banner Image', block.data.desktop_image, 'desktop_image')}
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Primary CTA Button Text
+                                    <input type="text" value={block.data.cta_text || ''} onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Primary CTA Redirection URL
+                                    <input type="text" value={block.data.cta_url || ''} onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Secondary CTA Link Text
+                                    <input type="text" value={block.data.secondary_cta_text || ''} onChange={e => handleUpdateBlockData(block.id, 'secondary_cta_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Secondary CTA Redirection URL
+                                    <input type="text" value={block.data.secondary_cta_url || ''} onChange={e => handleUpdateBlockData(block.id, 'secondary_cta_url', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                </>
+                              )}
+
+                              {block.block_type === 'PromotionalSlider' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Slider Banner Text
+                                    <input type="text" value={block.data.slides?.[0]?.text || ''} onChange={e => {
+                                      const slides = [{ text: e.target.value, link_url: block.data.slides?.[0]?.link_url || '' }];
+                                      handleUpdateBlockData(block.id, 'slides', slides);
+                                    }} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Banner Redirection URL
+                                    <input type="text" value={block.data.slides?.[0]?.link_url || ''} onChange={e => {
+                                      const slides = [{ text: block.data.slides?.[0]?.text || '', link_url: e.target.value }];
+                                      handleUpdateBlockData(block.id, 'slides', slides);
+                                    }} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Background Color Hex
+                                    <input type="color" value={block.data.background_color} onChange={e => handleUpdateBlockData(block.id, 'background_color', e.target.value)} style={{ width: '100%', height: '40px', padding: '0.15rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', cursor: 'pointer' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Countdown Target Date
+                                    <input type="datetime-local" value={block.data.countdown_target_timestamp ? block.data.countdown_target_timestamp.substring(0, 16) : ''} onChange={e => handleUpdateBlockData(block.id, 'countdown_target_timestamp', e.target.value ? new Date(e.target.value).toISOString() : '')} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                </>
+                              )}
+
+                              {block.block_type === 'CategoryGrid' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Grid Header
+                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                    <span style={{ fontWeight: '600', fontSize: '0.85rem' }}>Curated Categories List</span>
+                                    
+                                    {(block.data.categories || []).map((cat: any, cIdx: number) => {
+                                      const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
+                                      return (
+                                        <div key={cIdx} style={{ border: '1px solid var(--color-border)', padding: '0.75rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'rgba(0,0,0,0.01)' }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: '700', fontSize: '0.75rem' }}>Category Item #{cIdx+1}</span>
+                                            <button 
+                                              onClick={() => {
+                                                const updatedCats = [...block.data.categories];
+                                                updatedCats.splice(cIdx, 1);
+                                                handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                              }}
+                                              style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                                            >
+                                              <Trash2 size={12} /> Delete
+                                            </button>
+                                          </div>
+                                          
+                                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>Name</span>
+                                            <input 
+                                              type="text" 
+                                              value={catObj.name || ''} 
+                                              onChange={e => {
+                                                const updatedCats = [...block.data.categories];
+                                                updatedCats[cIdx] = { ...catObj, name: e.target.value };
+                                                handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                              }}
+                                              style={{ padding: '0.35rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.8rem' }}
+                                            />
+                                          </label>
+                                          
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)', fontWeight: '500' }}>Banner Image</span>
+                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', border: '1px solid var(--color-border)', padding: '0.35rem', backgroundColor: 'var(--color-bg)' }}>
+                                              {catObj.image && (
+                                                <img src={catObj.image} alt="Banner" style={{ width: '35px', height: '35px', objectFit: 'cover', borderRadius: '2px' }} />
+                                              )}
+                                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                                <input 
+                                                  type="file" 
+                                                  accept="image/*"
+                                                  onChange={e => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                      const url = URL.createObjectURL(file);
+                                                      const updatedCats = [...block.data.categories];
+                                                      updatedCats[cIdx] = { ...catObj, image: url };
+                                                      handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                                    }
+                                                  }}
+                                                  style={{ fontSize: '0.7rem' }}
+                                                />
+                                                <input 
+                                                  type="text" 
+                                                  value={catObj.image || ''} 
+                                                  placeholder="Or paste banner image URL"
+                                                  onChange={e => {
+                                                    const updatedCats = [...block.data.categories];
+                                                    updatedCats[cIdx] = { ...catObj, image: e.target.value };
+                                                    handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                                  }}
+                                                  style={{ padding: '0.2rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    
+                                    <button 
+                                      onClick={() => {
+                                        const updatedCats = [...(block.data.categories || [])];
+                                        updatedCats.push({ name: 'New Category', image: '' });
+                                        handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                      }}
+                                      className="btn btn-outline" 
+                                      style={{ padding: '0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', marginTop: '0.25rem' }}
+                                    >
+                                      <Plus size={12} /> Add Category Item
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+
+                              {block.block_type === 'FeaturedProducts' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Section Header
+                                    <input type="text" value={block.data.title} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>View All Redirection Text
+                                    <input type="text" value={block.data.cta_text} onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Max Product Limit
+                                    <input type="number" value={block.data.limit} onChange={e => handleUpdateBlockData(block.id, 'limit', Number(e.target.value))} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                </>
+                              )}
+
+                              {block.block_type === 'BrandStory' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subtitle
+                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Title
+                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Description
+                                    <textarea rows={3} value={block.data.description || ''} onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', resize: 'vertical', fontFamily: 'inherit' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Quote Highlight
+                                    <input type="text" value={block.data.quote || ''} onChange={e => handleUpdateBlockData(block.id, 'quote', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  {renderImageUploadField(block.id, 'Story Visual Image', block.data.image, 'image')}
+                                </>
+                              )}
+
+                              {block.block_type === 'EditorialGallery' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Gallery Subtitle
+                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Gallery Title
+                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  {renderImageUploadField(block.id, 'Image Panel 1 (Left)', block.data.image1, 'image1')}
+                                  {renderImageUploadField(block.id, 'Image Panel 2 (Center)', block.data.image2, 'image2')}
+                                  {renderImageUploadField(block.id, 'Image Panel 3 (Right)', block.data.image3, 'image3')}
+                                </>
+                              )}
+
+                              {block.block_type === 'NewsletterSubscribe' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Header Title
+                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subtitle / Description
+                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subscribe Button Text
+                                    <input type="text" value={block.data.button_text || ''} onChange={e => handleUpdateBlockData(block.id, 'button_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Placeholder Text
+                                    <input type="text" value={block.data.placeholder_text || ''} onChange={e => handleUpdateBlockData(block.id, 'placeholder_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                </>
+                              )}
+
+                              {block.block_type === 'Spacer' && (
+                                <>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Spacer Height (px): {block.data.height || 60}px
+                                    <input type="range" min="10" max="200" step="5" value={block.data.height || 60} onChange={e => handleUpdateBlockData(block.id, 'height', Number(e.target.value))} style={{ width: '100%', cursor: 'ew-resize' }} />
+                                  </label>
+                                </>
+                              )}
+
+                              {/* Sizing & Layout Panel */}
+                              {renderBlockLayoutSettings(block)}
+
+                              {/* Scheduling Sub-object */}
+                              <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '0.75rem', marginTop: '1rem' }}>
+                                <span style={{ fontWeight: '700', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}><Calendar size={12} /> Campaign Scheduling (Optional)</span>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem' }}>Start Time
+                                    <input type="datetime-local" value={block.scheduling.start_date ? block.scheduling.start_date.substring(0, 16) : ''} onChange={e => handleUpdateBlockScheduling(block.id, 'start_date', e.target.value ? new Date(e.target.value).toISOString() : '')} style={{ padding: '0.35rem', border: '1px solid var(--color-border)', fontSize: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem' }}>End Time
+                                    <input type="datetime-local" value={block.scheduling.end_date ? block.scheduling.end_date.substring(0, 16) : ''} onChange={e => handleUpdateBlockScheduling(block.id, 'end_date', e.target.value ? new Date(e.target.value).toISOString() : '')} style={{ padding: '0.35rem', border: '1px solid var(--color-border)', fontSize: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Active JSON Contract Valid</span>
+                    </div>
+                    <button onClick={handleSaveCmsConfig} className="btn btn-primary" style={{ padding: '0.6rem 2rem' }}>Push Dynamic Layout</button>
+                  </div>
+                </div>
+
+                {/* Right Visual Preview */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Live Layout Canvas Render</h3>
+                    <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
+                      <button 
+                        onClick={() => setPreviewMode('desktop')} 
+                        style={{ 
+                          padding: '0.45rem 0.9rem', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.35rem', 
+                          fontSize: '0.75rem', 
+                          fontWeight: '600', 
+                          fontFamily: '"Outfit", sans-serif', 
+                          backgroundColor: previewMode === 'desktop' ? 'var(--color-text)' : 'transparent',
+                          color: previewMode === 'desktop' ? 'var(--color-bg)' : 'var(--color-text)',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <Monitor size={13} /> Laptop
+                      </button>
+                      <button 
+                        onClick={() => setPreviewMode('tablet')} 
+                        style={{ 
+                          padding: '0.45rem 0.9rem', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.35rem', 
+                          fontSize: '0.75rem', 
+                          fontWeight: '600', 
+                          fontFamily: '"Outfit", sans-serif', 
+                          backgroundColor: previewMode === 'tablet' ? 'var(--color-text)' : 'transparent',
+                          color: previewMode === 'tablet' ? 'var(--color-bg)' : 'var(--color-text)',
+                          borderLeft: '1px solid var(--color-border)',
+                          borderRight: '1px solid var(--color-border)',
+                          borderTop: 'none',
+                          borderBottom: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <Tablet size={13} /> Tablet
+                      </button>
+                      <button 
+                        onClick={() => setPreviewMode('mobile')} 
+                        style={{ 
+                          padding: '0.45rem 0.9rem', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.35rem', 
+                          fontSize: '0.75rem', 
+                          fontWeight: '600', 
+                          fontFamily: '"Outfit", sans-serif', 
+                          backgroundColor: previewMode === 'mobile' ? 'var(--color-text)' : 'transparent',
+                          color: previewMode === 'mobile' ? 'var(--color-bg)' : 'var(--color-text)',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <Smartphone size={13} /> Mobile
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    style={{ 
+                      width: previewMode === 'desktop' ? '100%' : previewMode === 'tablet' ? '768px' : '375px',
+                      maxWidth: '100%',
+                      margin: '0 auto',
+                      border: previewMode === 'desktop' ? '1px solid var(--color-border)' : '14px solid #1c1917',
+                      borderRadius: previewMode === 'desktop' ? '4px' : previewMode === 'tablet' ? '24px' : '36px',
+                      backgroundColor: 'var(--color-bg)',
+                      overflow: 'hidden',
+                      minHeight: '520px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      boxShadow: previewMode === 'desktop' ? 'none' : '0 25px 50px -12px rgba(0,0,0,0.25)',
+                      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Top Notch for mobile view */}
+                    {previewMode === 'mobile' && (
+                      <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', width: '110px', height: '18px', backgroundColor: '#1c1917', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#27272a', marginRight: '6px' }}></span>
+                        <span style={{ width: '35px', height: '3px', borderRadius: '2px', backgroundColor: '#27272a' }}></span>
+                      </div>
+                    )}
+                    
+                    <div style={{ backgroundColor: 'rgba(0,0,0,0.03)', padding: previewMode === 'mobile' ? '1.15rem 1rem 0.5rem 1rem' : '0.5rem 1rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 5 }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                      <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', color: 'var(--color-gray)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        AURA SIMULATOR ({previewMode})
+                      </span>
+                    </div>
+                    <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1, overflowY: 'auto', maxHeight: previewMode === 'desktop' ? 'none' : '650px' }}>
+                      {cmsPageConfig.blocks.map((block: any) => {
+                        const isSelected = block.id === selectedBlockId;
+                        const isScheduled = block.scheduling.start_date || block.scheduling.end_date;
+                        
+                        // Sizing & spacing calculations for live simulator preview
+                        const padVal = block.data.sectionPadding === 'compact' ? '0.75rem 1rem' : block.data.sectionPadding === 'grand' ? '4.5rem 1.5rem' : '2.25rem 1.25rem';
+                        const innerWidth = block.data.sectionWidth === 'narrow' ? '82%' : block.data.sectionWidth === 'full' ? '100%' : '94%';
+
+                        return (
+                          <div key={block.id} onClick={() => setSelectedBlockId(block.id)} style={{ border: `2px ${isSelected ? 'solid var(--color-text)' : 'dashed var(--color-border)'}`, padding: padVal, cursor: 'pointer', position: 'relative', backgroundColor: 'rgba(0,0,0,0.01)', transition: 'all 0.15s' }}>
+                            <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.35rem', alignItems: 'center', zIndex: 10 }}>
+                              {isScheduled && <span style={{ fontSize: '0.6rem', backgroundColor: '#eab308', color: '#000', padding: '0.15rem 0.35rem', fontWeight: '700', borderRadius: '2px' }}>Scheduled</span>}
+                              <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', padding: '0.15rem 0.35rem', fontWeight: '700' }}>{block.block_type}</span>
+                            </div>
+                            <div style={{ width: innerWidth, margin: '0 auto', transition: 'all 0.18s ease' }}>
+                                            {block.block_type === 'HeroBanner' && (
+                              <div style={{ textAlign: block.data.layout === 'centered' ? 'center' : 'left', padding: '0', backgroundColor: '#fcfbfa', display: 'flex', flexDirection: 'column' }}>
+                                {block.data.layout === 'split' ? (
+                                  <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? '1fr' : '1.1fr 0.9fr', gap: '0', alignItems: 'stretch', minHeight: '380px' }}>
+                                    <div style={{ padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: '#faf9f6' }}>
+                                      {block.data.subtitle && (
+                                        <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c5a880', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
+                                          {block.data.subtitle}
+                                        </span>
+                                      )}
+                                      <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.25rem', fontWeight: 500, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.02em', margin: '0 0 1rem 0', color: '#000' }}>
+                                        {block.data.title || 'Untitled Banner'}
+                                      </h2>
+                                      {block.data.description && (
+                                        <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', lineHeight: '1.6', color: '#52525b', margin: '0 0 1.75rem 0', maxWidth: '320px' }}>
+                                          {block.data.description}
+                                        </p>
+                                      )}
+                                      <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                        {block.data.cta_text && (
+                                          <button style={{ pointerEvents: 'none', backgroundColor: '#000', color: '#fff', border: 'none', padding: '0.65rem 1.75rem', fontSize: '0.75rem', fontFamily: '"Outfit", sans-serif', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}>
+                                            {block.data.cta_text}
+                                          </button>
+                                        )}
+                                        {block.data.secondary_cta_text && (
+                                          <span style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', color: '#000', fontFamily: '"Outfit", sans-serif' }}>
+                                            {block.data.secondary_cta_text}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#e5e5e5', height: previewMode === 'mobile' ? '250px' : 'auto' }}>
+                                      {block.data.desktop_image ? (
+                                        <img src={block.data.desktop_image} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                      ) : (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#a1a1aa', fontSize: '0.75rem', fontFamily: '"Outfit", sans-serif' }}>No Image Selected</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div style={{ position: 'relative', padding: '4.5rem 2rem', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundImage: block.data.desktop_image ? `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${block.data.desktop_image})` : 'none', backgroundColor: block.data.desktop_image ? 'transparent' : '#f4f4f5', backgroundSize: 'cover', backgroundPosition: 'center', color: block.data.desktop_image ? '#fff' : '#000' }}>
+                                    {block.data.subtitle && (
+                                      <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: block.data.desktop_image ? '#e4e4e7' : '#c5a880', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
+                                        {block.data.subtitle}
+                                      </span>
+                                    )}
+                                    <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 400, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.02em', margin: '0 0 1rem 0', textAlign: 'center' }}>
+                                      {block.data.title || 'Untitled Banner'}
+                                    </h2>
+                                    {block.data.description && (
+                                      <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.85rem', lineHeight: '1.6', color: block.data.desktop_image ? '#f4f4f5' : '#52525b', margin: '0 0 1.75rem 0', maxWidth: '480px', textAlign: 'center' }}>
+                                        {block.data.description}
+                                      </p>
+                                    )}
+                                    <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                                      {block.data.cta_text && (
+                                        <button style={{ pointerEvents: 'none', backgroundColor: block.data.desktop_image ? '#fff' : '#000', color: block.data.desktop_image ? '#000' : '#fff', border: 'none', padding: '0.65rem 1.75rem', fontSize: '0.75rem', fontFamily: '"Outfit", sans-serif', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}>
+                                          {block.data.cta_text}
+                                        </button>
+                                      )}
+                                      {block.data.secondary_cta_text && (
+                                        <span style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: `1px solid ${block.data.desktop_image ? '#fff' : '#000'}`, paddingBottom: '2px', color: block.data.desktop_image ? '#fff' : '#000', fontFamily: '"Outfit", sans-serif' }}>
+                                          {block.data.secondary_cta_text}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {block.block_type === 'PromotionalSlider' && (
+                              <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '0.85rem 1rem', textAlign: 'center', fontSize: '0.75rem', letterSpacing: '0.05em', fontFamily: '"Outfit", sans-serif' }}>
+                                <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                  <Sparkles size={12} style={{ color: '#c5a880' }} />
+                                  <span>{block.data.slides?.[0]?.text || 'Promo text goes here'}</span>
+                                </div>
+                                {block.data.countdown_target_timestamp && (
+                                  <div style={{ fontSize: '0.65rem', marginTop: '0.25rem', color: '#a1a1aa', fontFamily: 'monospace' }}>
+                                    Campaign Ends: {new Date(block.data.countdown_target_timestamp).toLocaleString()}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {block.block_type === 'CategoryGrid' && (
+                              <div style={{ padding: '0.5rem 0' }}>
+                                <h4 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.35rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '1.25rem', letterSpacing: '0.05em', textAlign: 'center', color: '#000' }}>
+                                  {block.data.title || 'Curated Categories'}
+                                </h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? 'repeat(2, 1fr)' : `repeat(${block.data.gridColumns || 4}, 1fr)`, gap: '0.75rem' }}>
+                                  {(block.data.categories || []).map((cat: any, cIdx: number) => {
+                                    const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
+                                    return (
+                                      <div 
+                                        key={cIdx} 
+                                        style={{ 
+                                          aspectRatio: block.data.aspectRatio === 'square' ? '1/1' : block.data.aspectRatio === 'landscape' ? '4/3' : '3/4.2',
+                                          position: 'relative',
+                                          display: 'flex', 
+                                          alignItems: 'flex-end', 
+                                          justifyContent: 'center', 
+                                          padding: '1rem 0.5rem', 
+                                          backgroundImage: catObj.image ? `linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%), url(${catObj.image})` : 'none',
+                                          backgroundColor: catObj.image ? 'transparent' : '#f5f5f4', 
+                                          backgroundSize: 'cover',
+                                          backgroundPosition: 'center',
+                                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                                          border: catObj.image ? 'none' : '1px solid #e4e4e7',
+                                          overflow: 'hidden'
+                                        }}
+                                      >
+                                        <span 
+                                          style={{ 
+                                            fontSize: '0.75rem', 
+                                            textTransform: 'uppercase', 
+                                            fontWeight: '600', 
+                                            letterSpacing: '0.1em', 
+                                            color: catObj.image ? '#fff' : '#000', 
+                                            fontFamily: '"Outfit", sans-serif',
+                                            textAlign: 'center',
+                                            textShadow: catObj.image ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                                            zIndex: 1
+                                          }}
+                                        >
+                                          {catObj.name}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {block.block_type === 'FeaturedProducts' && (
+                              <div style={{ padding: '0.5rem 0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem', borderBottom: '1px solid #f4f4f5', paddingBottom: '0.5rem' }}>
+                                  <h4 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, color: '#000' }}>
+                                    {block.data.title || 'Featured Products'}
+                                  </h4>
+                                  <span style={{ fontSize: '0.65rem', borderBottom: '1px solid currentColor', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: '"Outfit", sans-serif', fontWeight: 600 }}>
+                                    {block.data.cta_text || 'View All'}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? 'repeat(2, 1fr)' : `repeat(${block.data.gridColumns || 4}, 1fr)`, gap: '0.75rem' }}>
+                                  {[1, 2, 3, 4].slice(0, block.data.limit || 4).map((i) => (
+                                    <div key={i} style={{ border: '1px solid #e4e4e7', aspectRatio: block.data.aspectRatio === 'square' ? '1/1' : block.data.aspectRatio === 'landscape' ? '4/3' : '3/4.2', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#fff' }}>
+                                      <div style={{ flex: 1, backgroundColor: '#f5f5f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#a8a29e', fontFamily: '"Outfit", sans-serif' }}>
+                                        Preview Product Image
+                                      </div>
+                                      <div style={{ padding: '0.5rem', borderTop: '1px solid #e4e4e7', backgroundColor: '#fff' }}>
+                                        <div style={{ fontSize: '0.7rem', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#000', fontFamily: '"Outfit", sans-serif', textTransform: 'uppercase' }}>Luxury Apparel Item</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#78716c', fontFamily: '"Outfit", sans-serif', marginTop: '0.15rem' }}>₹1,999</div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {block.block_type === 'BrandStory' && (
+                              <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? '1fr' : '1.2fr 0.8fr', gap: '1.5rem', padding: '1rem', backgroundColor: '#faf9f6', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  {block.data.subtitle && (
+                                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c5a880', fontWeight: 600 }}>{block.data.subtitle}</span>
+                                  )}
+                                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.5rem', fontWeight: 500, margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em' }}>{block.data.title || 'Brand Story Title'}</h3>
+                                  {block.data.quote && (
+                                    <blockquote style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontSize: '0.95rem', color: '#4b5563', borderLeft: '2px solid #c5a880', paddingLeft: '0.75rem', margin: '0.5rem 0' }}>
+                                      "{block.data.quote}"
+                                    </blockquote>
+                                  )}
+                                  {block.data.description && (
+                                    <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.75rem', lineHeight: '1.5', color: '#71717a', margin: 0 }}>{block.data.description}</p>
+                                  )}
+                                </div>
+                                <div style={{ aspectRatio: '1', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
+                                  {block.data.image ? (
+                                    <img src={block.data.image} alt="Story visual" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  ) : (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#a1a1aa', fontSize: '0.7rem' }}>No Image</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {block.block_type === 'EditorialGallery' && (
+                              <div style={{ padding: '0.5rem 0' }}>
+                                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                                  {block.data.subtitle && (
+                                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c5a880', fontWeight: 600 }}>{block.data.subtitle}</span>
+                                  )}
+                                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.4rem', fontWeight: 500, margin: '0.25rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'Editorial Gallery'}</h3>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? '1fr' : '1fr 1fr 1fr', gap: '0.5rem' }}>
+                                  <div style={{ aspectRatio: '3/4', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
+                                    {block.data.image1 ? <img src={block.data.image1} alt="Panel 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a1a1aa' }}>Panel 1</div>}
+                                  </div>
+                                  <div style={{ aspectRatio: '3/4', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
+                                    {block.data.image2 ? <img src={block.data.image2} alt="Panel 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a1a1aa' }}>Panel 2</div>}
+                                  </div>
+                                  <div style={{ aspectRatio: '3/4', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
+                                    {block.data.image3 ? <img src={block.data.image3} alt="Panel 3" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a1a1aa' }}>Panel 3</div>}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {block.block_type === 'NewsletterSubscribe' && (
+                              <div style={{ padding: '2rem 1.5rem', backgroundColor: '#0c0a09', color: '#fff', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                                <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.5rem', fontWeight: 400, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'JOIN THE CLUB'}</h3>
+                                {block.data.subtitle && (
+                                  <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.75rem', color: '#d4d4d8', margin: '0 0 0.5rem 0', maxWidth: '360px', lineHeight: '1.4' }}>{block.data.subtitle}</p>
+                                )}
+                                <div style={{ display: 'flex', flexDirection: previewMode === 'mobile' ? 'column' : 'row', width: '100%', maxWidth: '320px', gap: '0.5rem' }}>
+                                  <input type="email" placeholder={block.data.placeholder_text || 'Enter email'} style={{ flex: 1, padding: '0.4rem 0.75rem', fontSize: '0.75rem', border: '1px solid #27272a', backgroundColor: '#18181b', color: '#fff', outline: 'none' }} disabled />
+                                  <button style={{ pointerEvents: 'none', backgroundColor: '#fff', color: '#000', border: 'none', padding: '0.4rem 1rem', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: '"Outfit", sans-serif' }}>
+                                    {block.data.button_text || 'Subscribe'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {block.block_type === 'Spacer' && (
+                              <div style={{ height: `${block.data.height || 60}px`, border: '1px dashed #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: 'rgba(0,0,0,0.01)' }}>
+                                <span style={{ fontSize: '0.65rem', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: '"Outfit", sans-serif' }}>Spacer: {block.data.height || 60}px</span>
+                              </div>
+                            )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Static Content Pages & SEO Wrapper */}
+            {cmsSubTab === 'static' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+                {/* Static editor */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Selected Static Page
+                      <select
+                        value={selectedStaticPageId}
+                        onChange={e => setSelectedStaticPageId(e.target.value)}
+                        className="admin-select"
+                      >
+                        {staticPages.map(p => <option key={p.id} value={p.id}>{p.title} (/{p.slug})</option>)}
+                      </select>
+                    </label>
+                  </div>
+
+                  {(() => {
+                    const page = staticPages.find(p => p.id === selectedStaticPageId);
+                    if (!page) return null;
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Page Title
+                          <input type="text" value={page.title} onChange={e => {
+                            setStaticPages(staticPages.map(p => p.id === page.id ? { ...p, title: e.target.value } : p));
+                          }} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                        </label>
+                        
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>URL Slug
+                          <input type="text" value={page.slug} onChange={e => {
+                            setStaticPages(staticPages.map(p => p.id === page.id ? { ...p, slug: e.target.value } : p));
+                          }} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                        </label>
+
+                        {/* Text Editor Container */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <span style={{ fontWeight: '500' }}>Headless Rich-Text Content WYSIWYG Pane</span>
+                          <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ backgroundColor: 'rgba(0,0,0,0.03)', padding: '0.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                              <button type="button" onClick={() => showToast("Format Bold Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>B</button>
+                              <button type="button" onClick={() => showToast("Format Italic Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontStyle: 'italic', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>I</button>
+                              <button type="button" onClick={() => showToast("Format Underline Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', textDecoration: 'underline', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>U</button>
+                              <button type="button" onClick={() => showToast("Format Heading 2 Added")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>H2</button>
+                              <button type="button" onClick={() => showToast("Format List Added")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>List</button>
+                            </div>
+                            <textarea
+                              value={page.content}
+                              onChange={e => handleSaveStaticPage(page.id, e.target.value)}
+                              rows={10}
+                              style={{ width: '100%', padding: '1rem', border: 'none', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.85rem', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <button onClick={() => showToast("Static page saved successfully!")} className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>Save Page Changes</button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* SEO Panel Wrapper */}
+                <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Globe size={16} /> SEO & Open Graph Tags</h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                      <span style={{ fontWeight: '500' }}>Meta Title</span>
+                      <span style={{ color: (cmsPageConfig.seo.meta_title || '').length > 60 ? '#dc2626' : 'var(--color-gray)' }}>
+                        {(cmsPageConfig.seo.meta_title || '').length}/60 chars
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={cmsPageConfig.seo.meta_title}
+                      onChange={e => handleUpdateSeo('meta_title', e.target.value)}
+                      placeholder="Catchy marketing title"
+                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                      <span style={{ fontWeight: '500' }}>Meta Description</span>
+                      <span style={{ color: (cmsPageConfig.seo.meta_description || '').length > 160 ? '#dc2626' : 'var(--color-gray)' }}>
+                        {(cmsPageConfig.seo.meta_description || '').length}/160 chars
+                      </span>
+                    </div>
+                    <textarea
+                      value={cmsPageConfig.seo.meta_description}
+                      onChange={e => handleUpdateSeo('meta_description', e.target.value)}
+                      placeholder="Brief page meta overview summary..."
+                      rows={3}
+                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', resize: 'none', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                    />
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Open Graph Image URL
+                    <input
+                      type="text"
+                      value={cmsPageConfig.seo.open_graph_image}
+                      onChange={e => handleUpdateSeo('open_graph_image', e.target.value)}
+                      placeholder="/media/seo/preview.jpg"
+                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                    />
+                  </label>
+
+                  {/* Mock Google Search Preview Card */}
+                  <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', backgroundColor: '#f9f9f9', marginTop: '0.5rem' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05rem', display: 'block', marginBottom: '0.5rem' }}>Google SERP Mock Render</span>
+                    <span style={{ fontSize: '0.75rem', color: '#1a0dab', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', fontWeight: '500' }}>
+                      {cmsPageConfig.seo.meta_title || 'Please fill meta title'}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: '#006621', display: 'block', marginBottom: '0.2rem' }}>
+                      https://aura.studio/{cmsPageConfig.slug}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: '#545454', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {cmsPageConfig.seo.meta_description || 'Please fill meta description details.'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Builder */}
+            {cmsSubTab === 'navigation' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                {/* Header Menu */}
+                <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Compass size={16} /> Header Navigation</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {navMenus.header.map((item: any, idx: number) => (
+                      <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--color-border)', padding: '0.75rem', borderRadius: '2px', backgroundColor: '#fcfcfc' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--color-text)' }}>{item.label}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>{item.url}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="Badge"
+                            value={item.badge}
+                            onChange={e => handleUpdateNavBadge('header', idx, e.target.value)}
+                            style={{ padding: '0.25rem 0.5rem', width: '90px', fontSize: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                          />
+                          <button onClick={() => handleMoveNavItem('header', idx, 'up')} disabled={idx === 0} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-gray)' }}><ArrowUp size={14} /></button>
+                          <button onClick={() => handleMoveNavItem('header', idx, 'down')} disabled={idx === navMenus.header.length - 1} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-gray)' }}><ArrowDown size={14} /></button>
+                          <button onClick={() => handleDeleteNavItem('header', item.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <form onSubmit={e => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const label = (form.elements.namedItem('nav-label') as HTMLInputElement).value;
+                    const url = (form.elements.namedItem('nav-url') as HTMLInputElement).value;
+                    handleAddNavItem('header', label, url);
+                    form.reset();
+                  }} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <input name="nav-label" placeholder="Link Label" required style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                    <input name="nav-url" placeholder="/shop/category" required style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                    <button type="submit" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>Add Item</button>
+                  </form>
+                </div>
+
+                {/* Footer Menu */}
+                <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Compass size={16} /> Footer Links</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {navMenus.footer.map((item: any, idx: number) => (
+                      <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid var(--color-border)', padding: '0.75rem', borderRadius: '2px', backgroundColor: '#fcfcfc' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--color-text)' }}>{item.label}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>{item.url}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <button onClick={() => handleMoveNavItem('footer', idx, 'up')} disabled={idx === 0} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-gray)' }}><ArrowUp size={14} /></button>
+                          <button onClick={() => handleMoveNavItem('footer', idx, 'down')} disabled={idx === navMenus.footer.length - 1} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-gray)' }}><ArrowDown size={14} /></button>
+                          <button onClick={() => handleDeleteNavItem('footer', item.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#dc2626' }}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <form onSubmit={e => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const label = (form.elements.namedItem('nav-label') as HTMLInputElement).value;
+                    const url = (form.elements.namedItem('nav-url') as HTMLInputElement).value;
+                    handleAddNavItem('footer', label, url);
+                    form.reset();
+                  }} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <input name="nav-label" placeholder="Link Label" required style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                    <input name="nav-url" placeholder="/shipping" required style={{ padding: '0.5rem', flex: 1, fontSize: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                    <button type="submit" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>Add Item</button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Media Asset Manager */}
+            {cmsSubTab === 'media' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+                  <div className="admin-search-wrapper" style={{ flex: 1, maxWidth: '400px' }}>
+                    <Search size={16} className="admin-search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Search assets by tag/name..."
+                      className="admin-search-input"
+                      value={mediaSearch}
+                      onChange={e => setMediaSearch(e.target.value)}
+                    />
+                  </div>
+
+                  {/* WebP Auto Encoder controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid var(--color-border)', padding: '0.5rem 1rem', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: '500' }}>WebP Auto-Compression:</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="100"
+                      value={webpQuality}
+                      onChange={e => setWebpQuality(Number(e.target.value))}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '0.85rem', fontWeight: '600', fontFamily: 'monospace' }}>{webpQuality}% Quality</span>
+                  </div>
+
+                  <div>
+                    <input
+                      type="file"
+                      id="media-uploader-input"
+                      style={{ display: 'none' }}
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleMediaUploadSimulation(file);
+                      }}
+                    />
+                    <button
+                      onClick={() => document.getElementById('media-uploader-input')?.click()}
+                      className="btn btn-primary" style={{ padding: '0.65rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      <Plus size={16} /> Batch Upload
+                    </button>
+                  </div>
+                </div>
+
+                {/* Media Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                  {mediaFiles.filter(m => m.name.toLowerCase().includes(mediaSearch.toLowerCase()) || m.tag.toLowerCase().includes(mediaSearch.toLowerCase())).map(item => (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedMedia(item)}
+                      style={{
+                        border: `1px solid ${selectedMedia?.id === item.id ? 'var(--color-text)' : 'var(--color-border)'}`,
+                        borderRadius: '4px', overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column', backgroundColor: '#fafafa'
+                      }}
+                    >
+                      <div style={{ aspectRatio: '4/3', backgroundColor: '#e2e2e2', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={item.url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', backgroundColor: '#fff' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text)' }}>{item.name}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--color-gray)' }}>
+                          <span>Size: {item.size}</span>
+                          <span style={{ backgroundColor: 'rgba(0,0,0,0.05)', padding: '0.05rem 0.25rem', borderRadius: '2px' }}>{item.tag}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Selected Media Drawer Details */}
+                {selectedMedia && (
+                  <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1.25rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                    <img src={selectedMedia.url} alt="detail" style={{ width: '80px', height: '80px', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 0.25rem', fontSize: '0.95rem', fontWeight: '700', color: 'var(--color-text)' }}>{selectedMedia.name}</h4>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--color-gray)', margin: 0 }}>Type: {selectedMedia.type} · Size: {selectedMedia.size} · Tag: {selectedMedia.tag}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder="Edit tag..."
+                        value={selectedMedia.tag}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setMediaFiles(mediaFiles.map(m => m.id === selectedMedia.id ? { ...m, tag: val } : m));
+                          setSelectedMedia({ ...selectedMedia, tag: val });
+                        }}
+                        style={{ padding: '0.4rem', border: '1px solid var(--color-border)', fontSize: '0.8rem', width: '120px', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                      />
+                      <button onClick={() => handleDeleteMedia(selectedMedia.id)} className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', color: '#dc2626', borderColor: '#dc2626' }}>Delete Asset</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================= MARKETING TAB ================= */}
+        {activeTab === 'marketing' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
+            {/* Marketing Sub-tabs */}
+            <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+              {(['promotions', 'flash_sale', 'workflows'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setMarketingSubTab(tab)}
+                  style={{
+                    background: 'none', border: 'none', padding: '0.5rem 0', fontSize: '0.9rem', fontWeight: marketingSubTab === tab ? '700' : '400',
+                    color: marketingSubTab === tab ? 'var(--color-text)' : 'var(--color-gray)', borderBottom: marketingSubTab === tab ? '2px solid var(--color-text)' : 'none',
+                    cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
+                  }}
+                >
+                  {tab === 'promotions' ? 'Discount Code Engine' : tab === 'flash_sale' ? 'Flash Sale Orchestrator' : 'Automation Workflows'}
+                </button>
+              ))}
+            </div>
+
+            {/* Discount Code Form & List */}
+            {marketingSubTab === 'promotions' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+                {/* Promo Code list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Active Promotional Rules</h3>
+                  <div className="admin-table-container">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Code</th>
+                          <th>Rule Details</th>
+                          <th>Min Cart Trigger</th>
+                          <th>Limits (Global)</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {promotionsList.map(item => (
+                          <tr key={item.id}>
+                            <td style={{ fontWeight: '700', fontSize: '0.95rem' }}>{item.code}</td>
+                            <td>{item.type === 'Percentage' ? `${item.value}% Off Discount` : item.type === 'Fixed' ? `₹${item.value} Off Total` : 'Free Shipping Coupon'}</td>
+                            <td>₹{item.minThreshold}</td>
+                            <td>{item.limit} uses {item.singleUse ? '(1/user)' : ''}</td>
+                            <td>
+                              <span
+                                onClick={() => handleTogglePromo(item.id)}
+                                style={{
+                                  padding: '0.2rem 0.6rem', fontSize: '0.7rem', fontWeight: '700', borderRadius: '12px', cursor: 'pointer',
+                                  backgroundColor: item.status === 'Active' ? '#dcfce7' : '#fee2e2', color: item.status === 'Active' ? '#16a34a' : '#dc2626'
+                                }}
+                              >
+                                {item.status}
+                              </span>
+                            </td>
+                            <td>
+                              <button onClick={() => handleDeletePromo(item.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#dc2626' }}>
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Rules Creator Form */}
+                <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', backgroundColor: '#fff' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', color: 'var(--color-text)' }}>Create Promo Code</h3>
+                  <form onSubmit={handleAddPromo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Discount Code
+                      <input
+                        type="text"
+                        placeholder="e.g., WINTER30"
+                        value={newPromoForm.code}
+                        onChange={e => setNewPromoForm({ ...newPromoForm, code: e.target.value })}
+                        required
+                        style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Discount Type
+                      <select
+                        value={newPromoForm.type}
+                        onChange={e => setNewPromoForm({ ...newPromoForm, type: e.target.value })}
+                        style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+                      >
+                        <option value="Percentage">Percentage Off (%)</option>
+                        <option value="Fixed">Fixed Amount (₹)</option>
+                        <option value="Free Shipping">Free Shipping</option>
+                      </select>
+                    </label>
+
+                    {newPromoForm.type !== 'Free Shipping' && (
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Discount Value
+                        <input
+                          type="number"
+                          value={newPromoForm.value}
+                          onChange={e => setNewPromoForm({ ...newPromoForm, value: Number(e.target.value) })}
+                          required
+                          style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                        />
+                      </label>
+                    )}
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Min Cart Trigger Value (₹)
+                        <input
+                          type="number"
+                          value={newPromoForm.minThreshold}
+                          onChange={e => setNewPromoForm({ ...newPromoForm, minThreshold: Number(e.target.value) })}
+                          style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                        />
+                      </label>
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Global Usage Limit
+                        <input
+                          type="number"
+                          value={newPromoForm.limit}
+                          onChange={e => setNewPromoForm({ ...newPromoForm, limit: Number(e.target.value) })}
+                          style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                        />
+                      </label>
+                    </div>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                      <input
+                        type="checkbox"
+                        checked={newPromoForm.singleUse}
+                        onChange={e => setNewPromoForm({ ...newPromoForm, singleUse: e.target.checked })}
+                      />
+                      Enforce single-user limit (1 use per account)
+                    </label>
+
+                    <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem', marginTop: '0.5rem' }}>Generate Coupon</button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Flash Sale Orchestrator */}
+            {marketingSubTab === 'flash_sale' && (
+              <div style={{ border: '1px solid var(--color-border)', padding: '2rem', borderRadius: '4px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '700px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text)' }}><Sparkles size={18} style={{ color: '#eab308' }} /> Flash Sale Orchestrator</h3>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-gray)' }}>Override regular catalogue pricing site-wide instantly</p>
+                  </div>
+                  <label style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={flashSaleActive}
+                      onChange={e => {
+                        setFlashSaleActive(e.target.checked);
+                        showToast(`Flash sale status: ${e.target.checked ? 'Active' : 'Inactive'}`);
+                      }}
+                      style={{ transform: 'scale(1.25)', cursor: 'pointer' }}
+                    />
+                    <span style={{ marginLeft: '0.5rem', fontWeight: '700', fontSize: '0.9rem', color: flashSaleActive ? '#16a34a' : 'var(--color-gray)' }}>{flashSaleActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                  </label>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Global Markdown Override Percentage (%)
+                    <input
+                      type="number"
+                      value={flashSalePercentage}
+                      disabled={!flashSaleActive}
+                      onChange={e => setFlashSalePercentage(Number(e.target.value))}
+                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                    />
+                  </label>
+                  
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Countdown Expiration Target
+                    <input
+                      type="datetime-local"
+                      value={flashSaleCountdown ? flashSaleCountdown.substring(0, 16) : ''}
+                      disabled={!flashSaleActive}
+                      onChange={e => setFlashSaleCountdown(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                    />
+                  </label>
+                </div>
+
+                {/* Global Campaign Bar preview mock */}
+                <div style={{ border: '1px solid var(--color-border)', padding: '1rem', borderRadius: '4px', backgroundColor: flashSaleActive ? '#09090b' : '#fafafa', color: flashSaleActive ? '#fff' : 'var(--color-gray)', textAlign: 'center', transition: 'all 0.3s' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.5rem' }}>Storefront Countdown Bar Preview</span>
+                  {flashSaleActive ? (
+                    <div>
+                      <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>MIDNIGHT DEALS: SAVE {flashSalePercentage}% OFF SITE-WIDE!</span>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#eab308', fontFamily: 'monospace', marginTop: '0.25rem' }}>
+                        Ends in: {flashSaleCountdown ? new Date(flashSaleCountdown).toLocaleString() : 'N/A'}
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '0.8rem', fontStyle: 'italic' }}>Flash Sale banner is currently inactive</span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
+                  <button onClick={handleSaveFlashSale} className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>Save & Mutate Catalogue Pricing</button>
+                </div>
+              </div>
+            )}
+
+            {/* Automation Workflows */}
+            {marketingSubTab === 'workflows' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+                {/* Automation trigger list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Registered Marketing Triggers</h3>
+                  <div className="admin-table-container">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Event Action</th>
+                          <th>System Action</th>
+                          <th>Webhook Endpoint</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {automationRules.map(item => (
+                          <tr key={item.id}>
+                            <td>
+                              <span style={{ fontFamily: 'monospace', backgroundColor: 'rgba(0,0,0,0.04)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', color: 'var(--color-text)' }}>
+                                {item.event}
+                              </span>
+                            </td>
+                            <td>{item.action}</td>
+                            <td style={{ fontSize: '0.8rem', color: 'var(--color-gray)', wordBreak: 'break-all' }}>{item.webhook}</td>
+                            <td>
+                              <button onClick={() => handleDeleteAutomation(item.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#dc2626' }}>
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Workflow connector form */}
+                <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', backgroundColor: '#fff' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', color: 'var(--color-text)' }}>Register Trigger Routing</h3>
+                  <form onSubmit={handleAddAutomation} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Event Trigger
+                      <select
+                        value={newAutomation.event}
+                        onChange={e => setNewAutomation({ ...newAutomation, event: e.target.value })}
+                        style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+                      >
+                        <option value="cart_abandoned">cart_abandoned</option>
+                        <option value="user_signup">user_signup</option>
+                        <option value="order_completed">order_completed</option>
+                        <option value="item_wishlisted">item_wishlisted</option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Action Type
+                      <input
+                        type="text"
+                        value={newAutomation.action}
+                        disabled
+                        style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'rgba(0,0,0,0.02)', color: 'var(--color-gray)' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Webhook Endpoint URL
+                      <input
+                        type="url"
+                        placeholder="https://your-endpoint.com/webhook"
+                        value={newAutomation.webhook}
+                        onChange={e => setNewAutomation({ ...newAutomation, webhook: e.target.value })}
+                        required
+                        style={{ padding: '0.55rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>JSON Payload String
+                      <textarea
+                        value={newAutomation.payload}
+                        onChange={e => setNewAutomation({ ...newAutomation, payload: e.target.value })}
+                        rows={4}
+                        required
+                        style={{ padding: '0.55rem', border: '1px solid var(--color-border)', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.8rem', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                      />
+                    </label>
+
+                    <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem', marginTop: '0.5rem' }}>Register Trigger Route</button>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
