@@ -8,9 +8,10 @@ import {
   Search, Filter, X, LogOut, 
   TrendingUp, ShoppingBag, Box, Clock, CheckCircle, 
   AlertCircle, Eye, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Calendar, Compass, Sparkles,
-  Monitor, Tablet, Smartphone
+  Monitor, Tablet, Smartphone, Maximize2, Minimize2
 } from 'lucide-react';
 import './AdminDashboard.css';
+import './Home.css';
 
 const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const CURRENCIES = [
@@ -33,6 +34,7 @@ const AdminDashboard = () => {
   // ==========================================
   const [cmsSubTab, setCmsSubTab] = useState<'visual' | 'static' | 'navigation' | 'media'>('visual');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [cmsPageConfig, setCmsPageConfig] = useState<any>({
     page_id: "homepage_global",
     title: "Main Storefront Homepage",
@@ -900,14 +902,297 @@ const AdminDashboard = () => {
     );
   };
 
+  const renderVisualBlocks = () => {
+    return (
+      <div className="home-page animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0', pointerEvents: 'none', width: '100%' }}>
+        {cmsPageConfig.blocks.map((block: any) => {
+          const isSelected = block.id === selectedBlockId;
+          const isScheduled = block.scheduling.start_date || block.scheduling.end_date;
+          
+          const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
+          const padClass = block.data.sectionPadding ? `pad-${block.data.sectionPadding}` : 'pad-editorial';
+          const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
+          const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
+          const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
+          const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+
+          const parallaxStyle = (block.data.parallaxBg && block.data.layout !== 'split' && block.data.desktop_image) ? {
+            backgroundAttachment: 'fixed',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'cover'
+          } : {};
+
+          let blockContent = null;
+
+          if (block.block_type === 'HeroBanner') {
+            const isSplit = block.data.layout === 'split';
+            blockContent = (
+              <section className={`cms-hero ${padClass} ${themeClass} ${alignClass}`} style={parallaxStyle as React.CSSProperties}>
+                <div className={widthClass}>
+                  {isSplit ? (
+                    <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)' }}>
+                      <div className="cms-hero-left" style={{
+                        '--hero-padding-desktop': block.data.sectionWidth === 'narrow' ? '4rem 3rem' : '8rem 6rem'
+                      } as React.CSSProperties}>
+                        {block.data.subtitle && (
+                          <span className="cms-hero-subtitle">
+                            {block.data.subtitle}
+                          </span>
+                        )}
+                        <h1 className="cms-hero-title">
+                          {block.data.title || 'AURA'}
+                        </h1>
+                        {block.data.description && (
+                          <p className="cms-hero-description">
+                            {block.data.description}
+                          </p>
+                        )}
+                        <div className="cms-hero-actions" style={{ justifyContent: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
+                          {block.data.cta_text && (
+                            <button className="editorial-btn-primary" style={{ border: 'none', cursor: 'pointer' }}>
+                              {block.data.cta_text}
+                            </button>
+                          )}
+                          {block.data.secondary_cta_text && (
+                            <button className="editorial-btn-secondary" style={{ border: 'none', cursor: 'pointer' }}>
+                              {block.data.secondary_cta_text}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="cms-hero-right">
+                        {block.data.desktop_image ? (
+                          <img 
+                            src={block.data.desktop_image} 
+                            alt={block.data.title || 'Campaign'} 
+                            className="cms-hero-img"
+                          />
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px', backgroundColor: '#e5e5e5', color: '#a1a1aa', fontSize: '0.8rem' }}>No Image Selected</div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="cms-hero-full" style={{ backgroundImage: block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none', minHeight: block.data.sectionPadding === 'compact' ? '50vh' : '85vh', ...parallaxStyle }}>
+                      {block.data.desktop_image && <div className="cms-hero-full-overlay"></div>}
+                      <div className="cms-hero-full-content">
+                        {block.data.subtitle && (
+                          <span className="cms-hero-subtitle">
+                            {block.data.subtitle}
+                          </span>
+                        )}
+                        <h1 className="cms-hero-full-title">
+                          {block.data.title || 'AURA'}
+                        </h1>
+                        {block.data.description && (
+                          <p className="cms-hero-full-description">
+                            {block.data.description}
+                          </p>
+                        )}
+                        <div className="cms-hero-actions" style={{ justifyContent: 'center' }}>
+                          {block.data.cta_text && (
+                            <button className="editorial-btn-primary" style={{ border: 'none', cursor: 'pointer' }}>
+                              {block.data.cta_text}
+                            </button>
+                          )}
+                          {block.data.secondary_cta_text && (
+                            <button className="editorial-btn-secondary" style={{ border: 'none', cursor: 'pointer' }}>
+                              {block.data.secondary_cta_text}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'PromotionalSlider') {
+            blockContent = (
+              <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1.25rem 2rem', textAlign: 'center', fontSize: '0.85rem', letterSpacing: '0.08em', fontFamily: '"Outfit", sans-serif', zIndex: 10 }}>
+                <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem' }}>
+                  <Sparkles size={14} style={{ color: '#c5a880' }} />
+                  <span>{block.data.slides?.[0]?.text}</span>
+                </div>
+              </div>
+            );
+          } else if (block.block_type === 'CategoryGrid') {
+            blockContent = (
+              <section className={`cms-cat-section ${padClass} ${themeClass} ${alignClass}`}>
+                <div className={`container ${widthClass}`}>
+                  <h2 className="featured-cat-title">
+                    {block.data.title || 'Curated Categories'}
+                  </h2>
+                  <div className={`cms-cat-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 4 } as React.CSSProperties}>
+                    {(block.data.categories || []).map((cat: any, cIdx: number) => {
+                      const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
+                      return (
+                        <div 
+                          key={cIdx} 
+                          className={`cms-cat-card aspect-${block.data.aspectRatio || 'portrait'}`}
+                          style={{ 
+                            backgroundImage: catObj.image ? `url(${catObj.image})` : 'none',
+                            backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
+                          }}
+                        >
+                          {catObj.image && <div className="cms-cat-overlay"></div>}
+                          <span className="cms-cat-name">
+                            {catObj.name}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'FeaturedProducts') {
+            const displayLimit = block.data.limit || 4;
+            const displayList = products.slice(0, displayLimit);
+            blockContent = (
+              <section className={`section new-arrivals ${padClass} ${themeClass} ${alignClass}`}>
+                <div className={`container ${widthClass}`}>
+                  <div className="section-header mb-8" style={{ display: 'flex', flexDirection: 'column', alignItems: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
+                    <h2 className="section-title" style={{ margin: 0 }}>
+                      {block.data.title || 'Curated Classics'}
+                    </h2>
+                    <span className="view-all-link">
+                      {block.data.cta_text || 'View All Collection'}
+                    </span>
+                  </div>
+                  
+                  <div className={`product-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 4 } as React.CSSProperties}>
+                    {displayList.map((product) => (
+                      <div key={product.id} className="product-card">
+                        <div className={`product-image-wrap aspect-${block.data.aspectRatio || 'portrait'}`} style={{ overflow: 'hidden', backgroundColor: '#f4f4f5', position: 'relative' }}>
+                          <img src={product.image} alt={product.name} className="product-image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          {product.is_new && <span className="badge-new">New</span>}
+                          <div className="product-quick-add">Quick View</div>
+                        </div>
+                        <div className="product-info" style={{ marginTop: '1rem' }}>
+                          <span className="product-category">
+                            {product.category.toUpperCase().replace('-', ' ')}
+                          </span>
+                          <h3 className="product-name">{product.name}</h3>
+                          <p className="product-price">{getProductCurrency(product)}{product.price}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'BrandStory') {
+            blockContent = (
+              <section className={`cms-story ${padClass} ${themeClass} ${alignClass}`}>
+                <div className={`cms-story-grid ${widthClass}`}>
+                  <div className="cms-story-left">
+                    {block.data.subtitle && (
+                      <span className="cms-story-subtitle">{block.data.subtitle}</span>
+                    )}
+                    <h2 className="cms-story-title">{block.data.title || 'Brand Story'}</h2>
+                    {block.data.quote && (
+                      <blockquote className="cms-story-quote">
+                        "{block.data.quote}"
+                      </blockquote>
+                    )}
+                    {block.data.description && (
+                      <p className="cms-story-description">{block.data.description}</p>
+                    )}
+                  </div>
+                  <div className="cms-story-right">
+                    {block.data.image && (
+                      <img src={block.data.image} alt="Story" className="cms-story-img" />
+                    )}
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'EditorialGallery') {
+            blockContent = (
+              <section className={`cms-gallery ${padClass} ${themeClass} ${alignClass}`}>
+                <div className={`container ${widthClass}`}>
+                  <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3.5rem' }}>
+                    {block.data.subtitle && (
+                      <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600 }}>{block.data.subtitle}</span>
+                    )}
+                    <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'Editorial Gallery'}</h3>
+                  </div>
+                  <div className={`cms-gallery-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 3 } as React.CSSProperties}>
+                    <div className={`cms-gallery-item aspect-${block.data.aspectRatio || 'portrait'}`}>
+                      {block.data.image1 && <img src={block.data.image1} alt="Lookbook 1" className="cms-gallery-img" />}
+                    </div>
+                    <div className={`cms-gallery-item aspect-${block.data.aspectRatio || 'portrait'}`}>
+                      {block.data.image2 && <img src={block.data.image2} alt="Lookbook 2" className="cms-gallery-img" />}
+                    </div>
+                    <div className={`cms-gallery-item aspect-${block.data.aspectRatio || 'portrait'}`}>
+                      {block.data.image3 && <img src={block.data.image3} alt="Lookbook 3" className="cms-gallery-img" />}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'NewsletterSubscribe') {
+            blockContent = (
+              <section className={`cms-news ${padClass} ${themeClass} ${alignClass}`}>
+                <div className={widthClass} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <h3 className="cms-news-title">{block.data.title || 'JOIN THE CLUB'}</h3>
+                  {block.data.subtitle && (
+                    <p className="cms-news-subtitle">{block.data.subtitle}</p>
+                  )}
+                  <div className="cms-news-form">
+                    <input type="email" placeholder={block.data.placeholder_text || 'Enter email'} disabled className="cms-news-input" />
+                    <button type="button" className="cms-news-btn" style={{ cursor: 'default' }}>
+                      {block.data.button_text || 'Subscribe'}
+                    </button>
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'Spacer') {
+            blockContent = (
+              <div style={{ height: `${block.data.height || 60}px` }} />
+            );
+          }
+
+          return (
+            <div 
+              key={block.id} 
+              onClick={(e) => { e.stopPropagation(); setSelectedBlockId(block.id); }} 
+              style={{ 
+                border: `2px ${isSelected ? 'solid var(--color-text)' : 'dashed var(--color-border)'}`, 
+                position: 'relative', 
+                cursor: 'pointer',
+                margin: '0.5rem 0',
+                transition: 'all 0.15s' 
+              }}
+            >
+              <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.35rem', alignItems: 'center', zIndex: 100 }}>
+                {isScheduled && <span style={{ fontSize: '0.6rem', backgroundColor: '#eab308', color: '#000', padding: '0.15rem 0.35rem', fontWeight: '700', borderRadius: '2px' }}>Scheduled</span>}
+                <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', padding: '0.15rem 0.35rem', fontWeight: '700', textTransform: 'uppercase' }}>{block.block_type}</span>
+              </div>
+              {blockContent}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderBlockLayoutSettings = (block: any) => {
     const currentWidth = block.data.sectionWidth || 'standard';
     const currentPadding = block.data.sectionPadding || 'editorial';
     const currentColumns = block.data.gridColumns || 4;
     const currentAspectRatio = block.data.aspectRatio || 'portrait';
+    const currentAlign = block.data.textAlign || 'left';
+    const currentTheme = block.data.themeStyle || 'light';
+    const currentGap = block.data.columnGap || 'standard';
+    const currentHover = block.data.hoverAnimation || 'zoom';
+    const currentParallax = block.data.parallaxBg || false;
 
     return (
-      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <Globe size={13} style={{ color: 'var(--color-accent)' }} /> 
           <span>Sizing & Layout Settings</span>
@@ -981,6 +1266,87 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Theme Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Color Theme Style</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            {[
+              { id: 'light', name: 'Light Minimal', desc: 'Clean White' },
+              { id: 'dark', name: 'Noir Dark', desc: 'Deep Charcoal' },
+              { id: 'glass', name: 'Glassmorphism', desc: 'Frosted Glass' },
+              { id: 'accent', name: 'Warm Beige', desc: 'Luxury Accent' }
+            ].map(opt => {
+              const isSel = currentTheme === opt.id;
+              return (
+                <div 
+                  key={opt.id}
+                  onClick={() => handleUpdateBlockData(block.id, 'themeStyle', opt.id)}
+                  style={{
+                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                    padding: '0.5rem 0.25rem',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                    transition: 'all 0.15s ease',
+                    userSelect: 'none'
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
+                  <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Text Alignment Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Text Alignment</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            {[
+              { id: 'left', name: 'Left' },
+              { id: 'center', name: 'Center' },
+              { id: 'right', name: 'Right' }
+            ].map(opt => {
+              const isSel = currentAlign === opt.id;
+              return (
+                <button 
+                  key={opt.id}
+                  type="button"
+                  onClick={() => handleUpdateBlockData(block.id, 'textAlign', opt.id)}
+                  style={{
+                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                    padding: '0.5rem 0',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontWeight: '700',
+                    fontSize: '0.75rem',
+                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {opt.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Hero Specific Parallax Option */}
+        {block.block_type === 'HeroBanner' && block.data.layout !== 'split' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-text)' }}>
+            <input 
+              type="checkbox" 
+              checked={currentParallax} 
+              onChange={e => handleUpdateBlockData(block.id, 'parallaxBg', e.target.checked)} 
+            />
+            Enable Parallax Background Scroll Effect
+          </label>
+        )}
+
         {/* Grid specific options */}
         {['CategoryGrid', 'FeaturedProducts', 'EditorialGallery'].includes(block.block_type) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.85rem' }}>
@@ -992,6 +1358,7 @@ const AdminDashboard = () => {
                   return (
                     <button
                       key={cols}
+                      type="button"
                       onClick={() => handleUpdateBlockData(block.id, 'gridColumns', cols)}
                       style={{
                         flex: 1,
@@ -1009,6 +1376,73 @@ const AdminDashboard = () => {
                     >
                       {cols}
                     </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Column Spacing (Gap)</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                {[
+                  { id: 'compact', name: 'Compact', desc: 'Tight Grid' },
+                  { id: 'standard', name: 'Standard', desc: 'Regular Spacing' },
+                  { id: 'editorial', name: 'Editorial', desc: 'Spacious' }
+                ].map(opt => {
+                  const isSel = currentGap === opt.id;
+                  return (
+                    <div
+                      key={opt.id}
+                      onClick={() => handleUpdateBlockData(block.id, 'columnGap', opt.id)}
+                      style={{
+                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                        padding: '0.4rem 0.25rem',
+                        borderRadius: '2px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                        transition: 'all 0.15s ease',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
+                      <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Card Hover Animation</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                {[
+                  { id: 'none', name: 'None', desc: 'Static' },
+                  { id: 'zoom', name: 'Zoom Image', desc: 'Scales inner img' },
+                  { id: 'lift', name: 'Lift Card', desc: 'Translates up' },
+                  { id: 'minimal', name: 'Minimal', desc: 'Border Highlight' }
+                ].map(opt => {
+                  const isSel = currentHover === opt.id;
+                  return (
+                    <div
+                      key={opt.id}
+                      onClick={() => handleUpdateBlockData(block.id, 'hoverAnimation', opt.id)}
+                      style={{
+                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                        padding: '0.4rem 0.25rem',
+                        borderRadius: '2px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                        transition: 'all 0.15s ease',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
+                      <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
+                    </div>
                   );
                 })}
               </div>
@@ -1719,7 +2153,29 @@ const AdminDashboard = () => {
                 {/* Right Visual Preview */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Live Layout Canvas Render</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Live Layout Canvas Render</h3>
+                      <button 
+                        onClick={() => setIsCanvasFullscreen(true)} 
+                        title="Enter Fullscreen Preview"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: 'var(--color-gray)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0.25rem',
+                          borderRadius: '4px',
+                          transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--color-gray)'}
+                      >
+                        <Maximize2 size={16} />
+                      </button>
+                    </div>
                     <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
                       <button 
                         onClick={() => setPreviewMode('desktop')} 
@@ -1817,254 +2273,11 @@ const AdminDashboard = () => {
                         AURA SIMULATOR ({previewMode})
                       </span>
                     </div>
-                    <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1, overflowY: 'auto', maxHeight: previewMode === 'desktop' ? 'none' : '650px' }}>
-                      {cmsPageConfig.blocks.map((block: any) => {
-                        const isSelected = block.id === selectedBlockId;
-                        const isScheduled = block.scheduling.start_date || block.scheduling.end_date;
-                        
-                        // Sizing & spacing calculations for live simulator preview
-                        const padVal = block.data.sectionPadding === 'compact' ? '0.75rem 1rem' : block.data.sectionPadding === 'grand' ? '4.5rem 1.5rem' : '2.25rem 1.25rem';
-                        const innerWidth = block.data.sectionWidth === 'narrow' ? '82%' : block.data.sectionWidth === 'full' ? '100%' : '94%';
-
-                        return (
-                          <div key={block.id} onClick={() => setSelectedBlockId(block.id)} style={{ border: `2px ${isSelected ? 'solid var(--color-text)' : 'dashed var(--color-border)'}`, padding: padVal, cursor: 'pointer', position: 'relative', backgroundColor: 'rgba(0,0,0,0.01)', transition: 'all 0.15s' }}>
-                            <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.35rem', alignItems: 'center', zIndex: 10 }}>
-                              {isScheduled && <span style={{ fontSize: '0.6rem', backgroundColor: '#eab308', color: '#000', padding: '0.15rem 0.35rem', fontWeight: '700', borderRadius: '2px' }}>Scheduled</span>}
-                              <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', padding: '0.15rem 0.35rem', fontWeight: '700' }}>{block.block_type}</span>
-                            </div>
-                            <div style={{ width: innerWidth, margin: '0 auto', transition: 'all 0.18s ease' }}>
-                                            {block.block_type === 'HeroBanner' && (
-                              <div style={{ textAlign: block.data.layout === 'centered' ? 'center' : 'left', padding: '0', backgroundColor: '#fcfbfa', display: 'flex', flexDirection: 'column' }}>
-                                {block.data.layout === 'split' ? (
-                                  <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? '1fr' : '1.1fr 0.9fr', gap: '0', alignItems: 'stretch', minHeight: '380px' }}>
-                                    <div style={{ padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: '#faf9f6' }}>
-                                      {block.data.subtitle && (
-                                        <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c5a880', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
-                                          {block.data.subtitle}
-                                        </span>
-                                      )}
-                                      <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.25rem', fontWeight: 500, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.02em', margin: '0 0 1rem 0', color: '#000' }}>
-                                        {block.data.title || 'Untitled Banner'}
-                                      </h2>
-                                      {block.data.description && (
-                                        <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', lineHeight: '1.6', color: '#52525b', margin: '0 0 1.75rem 0', maxWidth: '320px' }}>
-                                          {block.data.description}
-                                        </p>
-                                      )}
-                                      <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        {block.data.cta_text && (
-                                          <button style={{ pointerEvents: 'none', backgroundColor: '#000', color: '#fff', border: 'none', padding: '0.65rem 1.75rem', fontSize: '0.75rem', fontFamily: '"Outfit", sans-serif', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}>
-                                            {block.data.cta_text}
-                                          </button>
-                                        )}
-                                        {block.data.secondary_cta_text && (
-                                          <span style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: '1px solid #000', paddingBottom: '2px', color: '#000', fontFamily: '"Outfit", sans-serif' }}>
-                                            {block.data.secondary_cta_text}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#e5e5e5', height: previewMode === 'mobile' ? '250px' : 'auto' }}>
-                                      {block.data.desktop_image ? (
-                                        <img src={block.data.desktop_image} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                      ) : (
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#a1a1aa', fontSize: '0.75rem', fontFamily: '"Outfit", sans-serif' }}>No Image Selected</div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div style={{ position: 'relative', padding: '4.5rem 2rem', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundImage: block.data.desktop_image ? `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${block.data.desktop_image})` : 'none', backgroundColor: block.data.desktop_image ? 'transparent' : '#f4f4f5', backgroundSize: 'cover', backgroundPosition: 'center', color: block.data.desktop_image ? '#fff' : '#000' }}>
-                                    {block.data.subtitle && (
-                                      <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: block.data.desktop_image ? '#e4e4e7' : '#c5a880', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
-                                        {block.data.subtitle}
-                                      </span>
-                                    )}
-                                    <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 400, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.02em', margin: '0 0 1rem 0', textAlign: 'center' }}>
-                                      {block.data.title || 'Untitled Banner'}
-                                    </h2>
-                                    {block.data.description && (
-                                      <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.85rem', lineHeight: '1.6', color: block.data.desktop_image ? '#f4f4f5' : '#52525b', margin: '0 0 1.75rem 0', maxWidth: '480px', textAlign: 'center' }}>
-                                        {block.data.description}
-                                      </p>
-                                    )}
-                                    <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                                      {block.data.cta_text && (
-                                        <button style={{ pointerEvents: 'none', backgroundColor: block.data.desktop_image ? '#fff' : '#000', color: block.data.desktop_image ? '#000' : '#fff', border: 'none', padding: '0.65rem 1.75rem', fontSize: '0.75rem', fontFamily: '"Outfit", sans-serif', fontWeight: 600, letterSpacing: '0.1em', cursor: 'pointer', textTransform: 'uppercase' }}>
-                                          {block.data.cta_text}
-                                        </button>
-                                      )}
-                                      {block.data.secondary_cta_text && (
-                                        <span style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', borderBottom: `1px solid ${block.data.desktop_image ? '#fff' : '#000'}`, paddingBottom: '2px', color: block.data.desktop_image ? '#fff' : '#000', fontFamily: '"Outfit", sans-serif' }}>
-                                          {block.data.secondary_cta_text}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {block.block_type === 'PromotionalSlider' && (
-                              <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '0.85rem 1rem', textAlign: 'center', fontSize: '0.75rem', letterSpacing: '0.05em', fontFamily: '"Outfit", sans-serif' }}>
-                                <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                  <Sparkles size={12} style={{ color: '#c5a880' }} />
-                                  <span>{block.data.slides?.[0]?.text || 'Promo text goes here'}</span>
-                                </div>
-                                {block.data.countdown_target_timestamp && (
-                                  <div style={{ fontSize: '0.65rem', marginTop: '0.25rem', color: '#a1a1aa', fontFamily: 'monospace' }}>
-                                    Campaign Ends: {new Date(block.data.countdown_target_timestamp).toLocaleString()}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {block.block_type === 'CategoryGrid' && (
-                              <div style={{ padding: '0.5rem 0' }}>
-                                <h4 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.35rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '1.25rem', letterSpacing: '0.05em', textAlign: 'center', color: '#000' }}>
-                                  {block.data.title || 'Curated Categories'}
-                                </h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? 'repeat(2, 1fr)' : `repeat(${block.data.gridColumns || 4}, 1fr)`, gap: '0.75rem' }}>
-                                  {(block.data.categories || []).map((cat: any, cIdx: number) => {
-                                    const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
-                                    return (
-                                      <div 
-                                        key={cIdx} 
-                                        style={{ 
-                                          aspectRatio: block.data.aspectRatio === 'square' ? '1/1' : block.data.aspectRatio === 'landscape' ? '4/3' : '3/4.2',
-                                          position: 'relative',
-                                          display: 'flex', 
-                                          alignItems: 'flex-end', 
-                                          justifyContent: 'center', 
-                                          padding: '1rem 0.5rem', 
-                                          backgroundImage: catObj.image ? `linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%), url(${catObj.image})` : 'none',
-                                          backgroundColor: catObj.image ? 'transparent' : '#f5f5f4', 
-                                          backgroundSize: 'cover',
-                                          backgroundPosition: 'center',
-                                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                                          border: catObj.image ? 'none' : '1px solid #e4e4e7',
-                                          overflow: 'hidden'
-                                        }}
-                                      >
-                                        <span 
-                                          style={{ 
-                                            fontSize: '0.75rem', 
-                                            textTransform: 'uppercase', 
-                                            fontWeight: '600', 
-                                            letterSpacing: '0.1em', 
-                                            color: catObj.image ? '#fff' : '#000', 
-                                            fontFamily: '"Outfit", sans-serif',
-                                            textAlign: 'center',
-                                            textShadow: catObj.image ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
-                                            zIndex: 1
-                                          }}
-                                        >
-                                          {catObj.name}
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            {block.block_type === 'FeaturedProducts' && (
-                              <div style={{ padding: '0.5rem 0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem', borderBottom: '1px solid #f4f4f5', paddingBottom: '0.5rem' }}>
-                                  <h4 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, color: '#000' }}>
-                                    {block.data.title || 'Featured Products'}
-                                  </h4>
-                                  <span style={{ fontSize: '0.65rem', borderBottom: '1px solid currentColor', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: '"Outfit", sans-serif', fontWeight: 600 }}>
-                                    {block.data.cta_text || 'View All'}
-                                  </span>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? 'repeat(2, 1fr)' : `repeat(${block.data.gridColumns || 4}, 1fr)`, gap: '0.75rem' }}>
-                                  {[1, 2, 3, 4].slice(0, block.data.limit || 4).map((i) => (
-                                    <div key={i} style={{ border: '1px solid #e4e4e7', aspectRatio: block.data.aspectRatio === 'square' ? '1/1' : block.data.aspectRatio === 'landscape' ? '4/3' : '3/4.2', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#fff' }}>
-                                      <div style={{ flex: 1, backgroundColor: '#f5f5f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#a8a29e', fontFamily: '"Outfit", sans-serif' }}>
-                                        Preview Product Image
-                                      </div>
-                                      <div style={{ padding: '0.5rem', borderTop: '1px solid #e4e4e7', backgroundColor: '#fff' }}>
-                                        <div style={{ fontSize: '0.7rem', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#000', fontFamily: '"Outfit", sans-serif', textTransform: 'uppercase' }}>Luxury Apparel Item</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#78716c', fontFamily: '"Outfit", sans-serif', marginTop: '0.15rem' }}>₹1,999</div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {block.block_type === 'BrandStory' && (
-                              <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? '1fr' : '1.2fr 0.8fr', gap: '1.5rem', padding: '1rem', backgroundColor: '#faf9f6', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                  {block.data.subtitle && (
-                                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c5a880', fontWeight: 600 }}>{block.data.subtitle}</span>
-                                  )}
-                                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.5rem', fontWeight: 500, margin: 0, textTransform: 'uppercase', letterSpacing: '0.02em' }}>{block.data.title || 'Brand Story Title'}</h3>
-                                  {block.data.quote && (
-                                    <blockquote style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontSize: '0.95rem', color: '#4b5563', borderLeft: '2px solid #c5a880', paddingLeft: '0.75rem', margin: '0.5rem 0' }}>
-                                      "{block.data.quote}"
-                                    </blockquote>
-                                  )}
-                                  {block.data.description && (
-                                    <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.75rem', lineHeight: '1.5', color: '#71717a', margin: 0 }}>{block.data.description}</p>
-                                  )}
-                                </div>
-                                <div style={{ aspectRatio: '1', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
-                                  {block.data.image ? (
-                                    <img src={block.data.image} alt="Story visual" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                  ) : (
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#a1a1aa', fontSize: '0.7rem' }}>No Image</div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {block.block_type === 'EditorialGallery' && (
-                              <div style={{ padding: '0.5rem 0' }}>
-                                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                                  {block.data.subtitle && (
-                                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c5a880', fontWeight: 600 }}>{block.data.subtitle}</span>
-                                  )}
-                                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.4rem', fontWeight: 500, margin: '0.25rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'Editorial Gallery'}</h3>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: previewMode === 'mobile' ? '1fr' : '1fr 1fr 1fr', gap: '0.5rem' }}>
-                                  <div style={{ aspectRatio: '3/4', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
-                                    {block.data.image1 ? <img src={block.data.image1} alt="Panel 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a1a1aa' }}>Panel 1</div>}
-                                  </div>
-                                  <div style={{ aspectRatio: '3/4', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
-                                    {block.data.image2 ? <img src={block.data.image2} alt="Panel 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a1a1aa' }}>Panel 2</div>}
-                                  </div>
-                                  <div style={{ aspectRatio: '3/4', backgroundColor: '#e5e5e5', overflow: 'hidden' }}>
-                                    {block.data.image3 ? <img src={block.data.image3} alt="Panel 3" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a1a1aa' }}>Panel 3</div>}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {block.block_type === 'NewsletterSubscribe' && (
-                              <div style={{ padding: '2rem 1.5rem', backgroundColor: '#0c0a09', color: '#fff', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-                                <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.5rem', fontWeight: 400, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'JOIN THE CLUB'}</h3>
-                                {block.data.subtitle && (
-                                  <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.75rem', color: '#d4d4d8', margin: '0 0 0.5rem 0', maxWidth: '360px', lineHeight: '1.4' }}>{block.data.subtitle}</p>
-                                )}
-                                <div style={{ display: 'flex', flexDirection: previewMode === 'mobile' ? 'column' : 'row', width: '100%', maxWidth: '320px', gap: '0.5rem' }}>
-                                  <input type="email" placeholder={block.data.placeholder_text || 'Enter email'} style={{ flex: 1, padding: '0.4rem 0.75rem', fontSize: '0.75rem', border: '1px solid #27272a', backgroundColor: '#18181b', color: '#fff', outline: 'none' }} disabled />
-                                  <button style={{ pointerEvents: 'none', backgroundColor: '#fff', color: '#000', border: 'none', padding: '0.4rem 1rem', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: '"Outfit", sans-serif' }}>
-                                    {block.data.button_text || 'Subscribe'}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {block.block_type === 'Spacer' && (
-                              <div style={{ height: `${block.data.height || 60}px`, border: '1px dashed #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: 'rgba(0,0,0,0.01)' }}>
-                                <span style={{ fontSize: '0.65rem', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: '"Outfit", sans-serif' }}>Spacer: {block.data.height || 60}px</span>
-                              </div>
-                            )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <div 
+                      className={`preview-container-wrap ${previewMode === 'mobile' ? 'preview-mobile' : previewMode === 'tablet' ? 'preview-tablet' : 'preview-desktop'}`}
+                      style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1, overflowY: 'auto', maxHeight: previewMode === 'desktop' ? 'none' : '650px' }}
+                    >
+                      {renderVisualBlocks()}
                     </div>
                   </div>
                 </div>
@@ -2883,6 +3096,204 @@ const AdminDashboard = () => {
                 <button type="submit" disabled={savingProduct} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>{savingProduct ? 'Saving...' : 'Save Product'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Visual Live Canvas Simulator Modal */}
+      {isCanvasFullscreen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(252, 251, 250, 0.98)', // Premium, light minimalist wash (similar to Aura branding)
+          zIndex: 99999,
+          display: 'flex',
+          flexDirection: 'column',
+          animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          color: 'var(--color-text)',
+          fontFamily: '"Outfit", sans-serif'
+        }}>
+          {/* Header Controls */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '1.25rem 2.5rem',
+            borderBottom: '1px solid var(--color-border)',
+            backgroundColor: '#fff',
+            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.02)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+              <span style={{ fontSize: '1rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Aura Fullscreen Canvas Preview</span>
+            </div>
+            
+            {/* Device Toggles */}
+            <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
+              <button 
+                onClick={() => setPreviewMode('desktop')} 
+                style={{ 
+                  padding: '0.6rem 1.2rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  fontSize: '0.8rem', 
+                  fontWeight: '600', 
+                  fontFamily: '"Outfit", sans-serif', 
+                  backgroundColor: previewMode === 'desktop' ? 'var(--color-text)' : 'transparent',
+                  color: previewMode === 'desktop' ? 'var(--color-bg)' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <Monitor size={15} /> Laptop (Full Width)
+              </button>
+              <button 
+                onClick={() => setPreviewMode('tablet')} 
+                style={{ 
+                  padding: '0.6rem 1.2rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  fontSize: '0.8rem', 
+                  fontWeight: '600', 
+                  fontFamily: '"Outfit", sans-serif', 
+                  backgroundColor: previewMode === 'tablet' ? 'var(--color-text)' : 'transparent',
+                  color: previewMode === 'tablet' ? 'var(--color-bg)' : 'var(--color-text)',
+                  borderLeft: '1px solid var(--color-border)',
+                  borderRight: '1px solid var(--color-border)',
+                  borderTop: 'none',
+                  borderBottom: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <Tablet size={15} /> Tablet (768px)
+              </button>
+              <button 
+                onClick={() => setPreviewMode('mobile')} 
+                style={{ 
+                  padding: '0.6rem 1.2rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  fontSize: '0.8rem', 
+                  fontWeight: '600', 
+                  fontFamily: '"Outfit", sans-serif', 
+                  backgroundColor: previewMode === 'mobile' ? 'var(--color-text)' : 'transparent',
+                  color: previewMode === 'mobile' ? 'var(--color-bg)' : 'var(--color-text)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <Smartphone size={15} /> Mobile (375px)
+              </button>
+            </div>
+
+            {/* Exit Fullscreen */}
+            <button 
+              onClick={() => setIsCanvasFullscreen(false)} 
+              className="btn btn-outline"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.6rem 1.2rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                cursor: 'pointer'
+              }}
+            >
+              <Minimize2 size={15} /> Minimize View
+            </button>
+          </div>
+
+          {/* Simulator Content Area */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '3rem 1.5rem',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+            backgroundColor: '#f5f5f4'
+          }}>
+            <div 
+              style={{ 
+                width: previewMode === 'desktop' ? '1280px' : previewMode === 'tablet' ? '768px' : '375px',
+                maxWidth: '100%',
+                border: previewMode === 'desktop' ? '1px solid var(--color-border)' : '16px solid #1c1917',
+                borderRadius: previewMode === 'desktop' ? '8px' : previewMode === 'tablet' ? '28px' : '40px',
+                backgroundColor: 'var(--color-bg)',
+                boxShadow: '0 30px 100px rgba(0,0,0,0.12)',
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Top Notch for mobile/tablet view */}
+              {(previewMode === 'mobile' || previewMode === 'tablet') && (
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '0', 
+                  left: '50%', 
+                  transform: 'translateX(-50%)', 
+                  width: '120px', 
+                  height: '18px', 
+                  backgroundColor: '#1c1917', 
+                  borderBottomLeftRadius: '12px', 
+                  borderBottomRightRadius: '12px', 
+                  zIndex: 100, 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center' 
+                }}>
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#27272a', marginRight: '6px' }}></span>
+                  <span style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#27272a' }}></span>
+                </div>
+              )}
+
+              {/* Browser bar */}
+              <div style={{ 
+                backgroundColor: 'rgba(0,0,0,0.02)', 
+                padding: (previewMode === 'mobile' || previewMode === 'tablet') ? '1.25rem 1.25rem 0.5rem 1.25rem' : '0.65rem 1.25rem', 
+                borderBottom: '1px solid var(--color-border)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                zIndex: 5 
+              }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.7rem', color: 'var(--color-gray)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Aura Visual Simulator (Active Config Canvas)
+                </span>
+              </div>
+
+              {/* Page Visual Blocks */}
+              <div 
+                className={`preview-container-wrap ${previewMode === 'mobile' ? 'preview-mobile' : previewMode === 'tablet' ? 'preview-tablet' : 'preview-desktop'}`}
+                style={{ 
+                  padding: '2rem', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '2rem', 
+                  backgroundColor: '#fff' 
+                }}
+              >
+                {renderVisualBlocks()}
+              </div>
+            </div>
           </div>
         </div>
       )}

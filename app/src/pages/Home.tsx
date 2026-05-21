@@ -155,20 +155,33 @@ const Home = () => {
     .sort((a: any, b: any) => a.order - b.order);
 
   return (
-    <div className="home-page" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+    <div className="home-page animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {activeBlocks.map((block: any) => {
         const key = block.id;
         const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
         const padClass = block.data.sectionPadding ? `pad-${block.data.sectionPadding}` : 'pad-editorial';
+        const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
+        const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
+        const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
+        const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+
+        const parallaxStyle = (block.data.parallaxBg && block.data.layout !== 'split' && block.data.desktop_image) ? {
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover'
+        } : {};
 
         if (block.block_type === 'HeroBanner') {
           const isSplit = block.data.layout === 'split';
           return (
-            <section key={key} className={`cms-hero ${padClass}`}>
+            <section key={key} className={`cms-hero ${padClass} ${themeClass} ${alignClass}`} style={parallaxStyle as React.CSSProperties}>
               <div className={widthClass}>
                 {isSplit ? (
                   <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)' }}>
-                    <div className="cms-hero-left" style={{ padding: block.data.sectionWidth === 'narrow' ? '4rem 3rem' : '8rem 6rem' }}>
+                    <div className="cms-hero-left" style={{
+                      '--hero-padding-desktop': block.data.sectionWidth === 'narrow' ? '4rem 3rem' : '8rem 6rem'
+                    } as React.CSSProperties}>
                       {block.data.subtitle && (
                         <span className="cms-hero-subtitle animate-fade-up">
                           {block.data.subtitle}
@@ -182,7 +195,7 @@ const Home = () => {
                           {block.data.description}
                         </p>
                       )}
-                      <div className="cms-hero-actions animate-fade-up delay-3">
+                      <div className="cms-hero-actions animate-fade-up delay-3" style={{ justifyContent: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
                         {block.data.cta_text && (
                           <Link to={block.data.cta_url || '/shop/all'} className="editorial-btn-primary">
                             {block.data.cta_text}
@@ -195,7 +208,7 @@ const Home = () => {
                         )}
                       </div>
                     </div>
-                    <div className="cms-hero-right">
+                    <div className="cms-hero-right animate-fade-in delay-2">
                       {block.data.desktop_image && (
                         <img 
                           src={block.data.desktop_image} 
@@ -206,7 +219,7 @@ const Home = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="cms-hero-full" style={{ backgroundImage: block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none', minHeight: block.data.sectionPadding === 'compact' ? '50vh' : '80vh' }}>
+                  <div className="cms-hero-full" style={{ backgroundImage: block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none', minHeight: block.data.sectionPadding === 'compact' ? '50vh' : '85vh', ...parallaxStyle }}>
                     {block.data.desktop_image && <div className="cms-hero-full-overlay"></div>}
                     <div className="cms-hero-full-content">
                       {block.data.subtitle && (
@@ -255,12 +268,12 @@ const Home = () => {
 
         if (block.block_type === 'CategoryGrid') {
           return (
-            <section key={key} className={`cms-cat-section ${padClass}`}>
+            <section key={key} className={`cms-cat-section ${padClass} ${themeClass} ${alignClass}`}>
               <div className={`container ${widthClass}`}>
-                <h2 className="featured-cat-title animate-fade-up" style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '3.5rem', textAlign: 'center', color: 'var(--color-text)' }}>
+                <h2 className="featured-cat-title animate-fade-up">
                   {block.data.title || 'Curated Categories'}
                 </h2>
-                <div className="cms-cat-grid" style={{ gridTemplateColumns: `repeat(${block.data.gridColumns || 4}, 1fr)` }}>
+                <div className={`cms-cat-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 4 } as React.CSSProperties}>
                   {(block.data.categories || []).map((cat: any, cIdx: number) => {
                     const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
                     const slug = catObj.name.toLowerCase().replace(/\s+/g, '-');
@@ -276,7 +289,7 @@ const Home = () => {
                         }}
                       >
                         {catObj.image && <div className="cms-cat-overlay"></div>}
-                        <span className="cms-cat-name">
+                        <span className="cms-cat-name animate-fade-up">
                           {catObj.name}
                         </span>
                       </Link>
@@ -293,26 +306,26 @@ const Home = () => {
           const displayList = products.slice(0, displayLimit);
 
           return (
-            <section key={key} className={`section new-arrivals ${padClass}`}>
+            <section key={key} className={`section new-arrivals ${padClass} ${themeClass} ${alignClass}`}>
               <div className={`container ${widthClass}`}>
-                <div className="section-header text-center mb-8 animate-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                  <h2 className="section-title" style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text)', margin: 0 }}>
+                <div className="section-header mb-8 animate-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
+                  <h2 className="section-title" style={{ margin: 0 }}>
                     {block.data.title || 'Curated Classics'}
                   </h2>
-                  <Link to="/shop/all" className="view-all-link" style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', color: 'var(--color-gray)', textTransform: 'uppercase', borderBottom: '1px solid currentColor', paddingBottom: '2px', textDecoration: 'none' }}>
+                  <Link to="/shop/all" className="view-all-link">
                     {block.data.cta_text || 'View All Collection'}
                   </Link>
                 </div>
                 
-                <div className="product-grid" style={{ gridTemplateColumns: `repeat(${block.data.gridColumns || 4}, 1fr)` }}>
+                <div className={`product-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 4 } as React.CSSProperties}>
                   {displayList.map((product, pIdx) => (
-                    <Link to={`/product/${product.id}`} key={product.id} className="product-card animate-fade-up" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${pIdx * 0.06}s` }}>
-                      <div className={`product-image-wrap aspect-${block.data.aspectRatio || 'portrait'}`} style={{ overflow: 'hidden', backgroundColor: '#f4f4f5', position: 'relative' }}>
-                        <img src={product.image} alt={product.name} className="product-image" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} />
+                    <Link to={`/product/${product.id}`} key={product.id} className="product-card animate-fade-up" style={{ animationDelay: `${pIdx * 0.06}s` }}>
+                      <div className={`product-image-wrap aspect-${block.data.aspectRatio || 'portrait'}`}>
+                        <img src={product.image} alt={product.name} className="product-image" />
                         {product.is_new && <span className="badge-new">New</span>}
                         <div className="product-quick-add">Quick View</div>
                       </div>
-                      <div className="product-info" style={{ marginTop: '1rem' }}>
+                      <div className="product-info">
                         <span className="product-category">
                           {product.category.toUpperCase().replace('-', ' ')}
                         </span>
@@ -329,7 +342,7 @@ const Home = () => {
 
         if (block.block_type === 'BrandStory') {
           return (
-            <section key={key} className={`cms-story ${padClass}`}>
+            <section key={key} className={`cms-story ${padClass} ${themeClass} ${alignClass}`}>
               <div className={`cms-story-grid ${widthClass}`}>
                 <div className="cms-story-left">
                   {block.data.subtitle && (
@@ -345,7 +358,7 @@ const Home = () => {
                     <p className="cms-story-description animate-fade-up delay-3">{block.data.description}</p>
                   )}
                 </div>
-                <div className="cms-story-right">
+                <div className="cms-story-right animate-fade-in delay-2">
                   {block.data.image && (
                     <img src={block.data.image} alt="Story" className="cms-story-img" />
                   )}
@@ -357,15 +370,15 @@ const Home = () => {
 
         if (block.block_type === 'EditorialGallery') {
           return (
-            <section key={key} className={`cms-gallery ${padClass}`}>
+            <section key={key} className={`cms-gallery ${padClass} ${themeClass} ${alignClass}`}>
               <div className={`container ${widthClass}`}>
-                <div style={{ textAlign: 'center', marginBottom: '3.5rem' }} className="animate-fade-up">
+                <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3.5rem' }} className="animate-fade-up">
                   {block.data.subtitle && (
                     <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600 }}>{block.data.subtitle}</span>
                   )}
-                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text)' }}>{block.data.title || 'Editorial Gallery'}</h3>
+                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'Editorial Gallery'}</h3>
                 </div>
-                <div className="cms-gallery-grid" style={{ gridTemplateColumns: `repeat(${block.data.gridColumns || 3}, 1fr)` }}>
+                <div className={`cms-gallery-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 3 } as React.CSSProperties}>
                   <div className={`cms-gallery-item animate-fade-up aspect-${block.data.aspectRatio || 'portrait'}`} style={{ animationDelay: '0s' }}>
                     {block.data.image1 && <img src={block.data.image1} alt="Lookbook 1" className="cms-gallery-img" />}
                   </div>
@@ -383,7 +396,7 @@ const Home = () => {
 
         if (block.block_type === 'NewsletterSubscribe') {
           return (
-            <section key={key} className={`cms-news ${padClass}`}>
+            <section key={key} className={`cms-news ${padClass} ${themeClass} ${alignClass}`}>
               <div className={widthClass} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                 <h3 className="cms-news-title animate-fade-up">{block.data.title || 'JOIN THE CLUB'}</h3>
                 {block.data.subtitle && (
