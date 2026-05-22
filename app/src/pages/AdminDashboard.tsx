@@ -7,8 +7,9 @@ import { getProductCurrency } from '../lib/currency';
 import { 
   Search, Filter, X, LogOut, 
   TrendingUp, ShoppingBag, Box, Clock, CheckCircle, 
-  AlertCircle, Eye, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Calendar, Compass, Sparkles,
-  Monitor, Tablet, Smartphone, Maximize2, Minimize2
+  AlertCircle, Eye, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Compass, Sparkles,
+  Monitor, Tablet, Smartphone, Maximize2, Minimize2,
+  Copy, ChevronDown, ChevronRight, Grid, Sliders, Settings, Link, Layers, Edit3
 } from 'lucide-react';
 import './AdminDashboard.css';
 import './Home.css';
@@ -35,114 +36,131 @@ const AdminDashboard = () => {
   const [cmsSubTab, setCmsSubTab] = useState<'visual' | 'static' | 'navigation' | 'media'>('visual');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
-  const [cmsPageConfig, setCmsPageConfig] = useState<any>({
-    page_id: "homepage_global",
-    title: "Main Storefront Homepage",
-    slug: "index",
-    status: "published",
-    seo: {
-      meta_title: "AURA | The Art of Minimalist Luxury",
-      meta_description: "Discover a curated standard of minimalist apparel. Crafted for those who appreciate understated elegance and architectural lines.",
-      open_graph_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200"
-    },
-    blocks: [
-      {
-        id: "block_hero_01",
-        block_type: "HeroBanner",
-        order: 1,
-        status: "published",
-        scheduling: { start_date: "", end_date: "" },
-        data: {
-          layout: "split",
-          title: "AURA / THE NEW MINIMAL",
-          subtitle: "FALL / WINTER COLLECTION",
-          description: "Discover the new standard of minimalist luxury apparel. Crafted for those who appreciate understated elegance and timeless silhouette.",
-          cta_text: "VIEW ALL",
-          cta_url: "/shop/all",
-          secondary_cta_text: "SHOP ACCESSORIES",
-          secondary_cta_url: "/shop/accessories",
-          desktop_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200",
-          mobile_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600"
-        }
-      },
-      {
-        id: "block_promo_slider_01",
-        block_type: "PromotionalSlider",
-        order: 2,
-        status: "published",
-        scheduling: { start_date: "", end_date: "" },
-        data: {
-          variant: "flash_sale_countdown",
-          background_color: "#0c0a09",
-          countdown_target_timestamp: "2026-06-25T23:59:59Z",
-          slides: [{ text: "Mid-Season Preview: Code 'AURA10' for private 10% off.", link_url: "/shop/new" }]
-        }
-      },
-      {
-        id: "block_brand_story_01",
-        block_type: "BrandStory",
-        order: 3,
-        status: "published",
-        scheduling: { start_date: "", end_date: "" },
-        data: {
-          subtitle: "OUR ESSENCE",
-          title: "THE ART OF SIMPLICITY",
-          description: "We believe in architectural silhouettes, pure fabrics, and a curated color palette that brings calm to the wardrobe. Every item is created with meticulous attention to detail.",
-          quote: "Simplicity is not the lack of clutter, but the presence of clarity.",
-          image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600"
-        }
-      },
-      {
-        id: "block_cat_grid_01",
-        block_type: "CategoryGrid",
-        order: 4,
-        status: "published",
-        scheduling: { start_date: "", end_date: "" },
-        data: {
-          title: "Curated Categories",
-          categories: [
-            { name: "Shirts", image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=300" },
-            { name: "T-Shirts", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300" },
-            { name: "POLO", image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&q=80&w=300" },
-            { name: "Jeans", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300" },
-            { name: "Trousers", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=300" },
-            { name: "LINEN", image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=300" },
-            { name: "Cargo pants", image: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&q=80&w=300" },
-            { name: "Joggers", image: "https://images.unsplash.com/photo-1551854838-212c50b4c184?auto=format&fit=crop&q=80&w=300" },
-            { name: "SHORTS", image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=300" },
-            { name: "Overshirts", image: "https://images.unsplash.com/photo-1479064555552-3ef4979f8908?auto=format&fit=crop&q=80&w=300" },
-            { name: "Footwear", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=300" }
-          ]
-        }
-      },
-      {
-        id: "block_editorial_gallery_01",
-        block_type: "EditorialGallery",
-        order: 5,
-        status: "published",
-        scheduling: { start_date: "", end_date: "" },
-        data: {
-          title: "SEASONAL CAPTURES",
-          subtitle: "FALL LOOKBOOK HIGHLIGHTS",
-          image1: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=600",
-          image2: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
-          image3: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=600"
-        }
-      },
-      {
-        id: "block_news_01",
-        block_type: "NewsletterSubscribe",
-        order: 6,
-        status: "published",
-        scheduling: { start_date: "", end_date: "" },
-        data: {
-          title: "JOIN THE DIALOGUE",
-          subtitle: "Receive seasonal lookbooks, private previews, and stories about craft directly to your inbox.",
-          button_text: "SUBSCRIBE",
-          placeholder_text: "ENTER YOUR EMAIL ADDRESS"
-        }
+  const [sandboxMode, setSandboxMode] = useState<'edit' | 'preview'>('edit');
+  const [simulatorCustomWidth, setSimulatorCustomWidth] = useState<number>(1280);
+  const [activeConfigTab, setActiveConfigTab] = useState<'content' | 'motion' | 'geometry' | 'design' | 'cta'>('content');
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
+  const [showVault, setShowVault] = useState(false);
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
+  const [searchCtaQuery, setSearchCtaQuery] = useState('');
+  const [cmsPageConfig, setCmsPageConfig] = useState<any>(() => {
+    const saved = localStorage.getItem('aura_cms_homepage');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Error loading saved layout configs in AdminDashboard:", e);
       }
-    ]
+    }
+    return {
+      page_id: "homepage_global",
+      title: "Main Storefront Homepage",
+      slug: "index",
+      status: "published",
+      seo: {
+        meta_title: "AURA | The Art of Minimalist Luxury",
+        meta_description: "Discover a curated standard of minimalist apparel. Crafted for those who appreciate understated elegance and architectural lines.",
+        open_graph_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200"
+      },
+      blocks: [
+        {
+          id: "block_hero_01",
+          block_type: "HeroBanner",
+          order: 1,
+          status: "published",
+          scheduling: { start_date: "", end_date: "" },
+          data: {
+            layout: "split",
+            title: "AURA / THE NEW MINIMAL",
+            subtitle: "FALL / WINTER COLLECTION",
+            description: "Discover the new standard of minimalist luxury apparel. Crafted for those who appreciate understated elegance and timeless silhouette.",
+            cta_text: "VIEW ALL",
+            cta_url: "/shop/all",
+            secondary_cta_text: "SHOP ACCESSORIES",
+            secondary_cta_url: "/shop/accessories",
+            desktop_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200",
+            mobile_image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600"
+          }
+        },
+        {
+          id: "block_promo_slider_01",
+          block_type: "PromotionalSlider",
+          order: 2,
+          status: "published",
+          scheduling: { start_date: "", end_date: "" },
+          data: {
+            variant: "flash_sale_countdown",
+            background_color: "#0c0a09",
+            countdown_target_timestamp: "2026-06-25T23:59:59Z",
+            slides: [{ text: "Mid-Season Preview: Code 'AURA10' for private 10% off.", link_url: "/shop/new" }]
+          }
+        },
+        {
+          id: "block_brand_story_01",
+          block_type: "BrandStory",
+          order: 3,
+          status: "published",
+          scheduling: { start_date: "", end_date: "" },
+          data: {
+            subtitle: "OUR ESSENCE",
+            title: "THE ART OF SIMPLICITY",
+            description: "We believe in architectural silhouettes, pure fabrics, and a curated color palette that brings calm to the wardrobe. Every item is created with meticulous attention to detail.",
+            quote: "Simplicity is not the lack of clutter, but the presence of clarity.",
+            image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600"
+          }
+        },
+        {
+          id: "block_cat_grid_01",
+          block_type: "CategoryGrid",
+          order: 4,
+          status: "published",
+          scheduling: { start_date: "", end_date: "" },
+          data: {
+            title: "Curated Categories",
+            categories: [
+              { name: "Shirts", image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=300" },
+              { name: "T-Shirts", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300" },
+              { name: "POLO", image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&q=80&w=300" },
+              { name: "Jeans", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300" },
+              { name: "Trousers", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=300" },
+              { name: "LINEN", image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=300" },
+              { name: "Cargo pants", image: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&q=80&w=300" },
+              { name: "Joggers", image: "https://images.unsplash.com/photo-1551854838-212c50b4c184?auto=format&fit=crop&q=80&w=300" },
+              { name: "SHORTS", image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=300" },
+              { name: "Overshirts", image: "https://images.unsplash.com/photo-1479064555552-3ef4979f8908?auto=format&fit=crop&q=80&w=300" },
+              { name: "Footwear", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=300" }
+            ]
+          }
+        },
+        {
+          id: "block_editorial_gallery_01",
+          block_type: "EditorialGallery",
+          order: 5,
+          status: "published",
+          scheduling: { start_date: "", end_date: "" },
+          data: {
+            title: "SEASONAL CAPTURES",
+            subtitle: "FALL LOOKBOOK HIGHLIGHTS",
+            image1: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=600",
+            image2: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+            image3: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=600"
+          }
+        },
+        {
+          id: "block_news_01",
+          block_type: "NewsletterSubscribe",
+          order: 6,
+          status: "published",
+          scheduling: { start_date: "", end_date: "" },
+          data: {
+            title: "JOIN THE DIALOGUE",
+            subtitle: "Receive seasonal lookbooks, private previews, and stories about craft directly to your inbox.",
+            button_text: "SUBSCRIBE",
+            placeholder_text: "ENTER YOUR EMAIL ADDRESS"
+          }
+        }
+      ]
+    };
   });
   const [selectedBlockId, setSelectedBlockId] = useState<string>("block_hero_01");
 
@@ -271,6 +289,12 @@ const AdminDashboard = () => {
     
     checkAdmin();
   }, [user]);
+
+  useEffect(() => {
+    if (cmsPageConfig) {
+      localStorage.setItem('aura_cms_homepage', JSON.stringify(cmsPageConfig));
+    }
+  }, [cmsPageConfig]);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToastMessage(msg);
@@ -569,44 +593,145 @@ const AdminDashboard = () => {
   };
 
   const handleUpdateBlockData = (blockId: string, field: string, value: any) => {
-    const updated = cmsPageConfig.blocks.map((b: any) => {
-      if (b.id === blockId) {
-        return {
-          ...b,
-          data: { ...b.data, [field]: value }
-        };
-      }
-      return b;
+    setCmsPageConfig((prev: any) => {
+      const updated = prev.blocks.map((b: any) => {
+        if (b.id === blockId) {
+          return {
+            ...b,
+            data: { ...b.data, [field]: value }
+          };
+        }
+        return b;
+      });
+      return { ...prev, blocks: updated };
     });
-    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
   };
 
-  const handleUpdateBlockScheduling = (blockId: string, field: string, value: any) => {
-    const updated = cmsPageConfig.blocks.map((b: any) => {
-      if (b.id === blockId) {
-        return {
-          ...b,
-          scheduling: { ...b.scheduling, [field]: value }
-        };
-      }
-      return b;
-    });
-    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
-  };
 
   const handleDeleteBlock = (blockId: string) => {
     if (window.confirm("Delete this layout block?")) {
-      const filtered = cmsPageConfig.blocks.filter((b: any) => b.id !== blockId);
-      const reordered = filtered.map((b: any, i: number) => ({ ...b, order: i + 1 }));
-      setCmsPageConfig({ ...cmsPageConfig, blocks: reordered });
-      if (selectedBlockId === blockId && reordered.length > 0) {
-        setSelectedBlockId(reordered[0].id);
-      }
+      setCmsPageConfig((prev: any) => {
+        const filtered = prev.blocks.filter((b: any) => b.id !== blockId);
+        const reordered = filtered.map((b: any, i: number) => ({ ...b, order: i + 1 }));
+        if (selectedBlockId === blockId && reordered.length > 0) {
+          setSelectedBlockId(reordered[0].id);
+        }
+        return { ...prev, blocks: reordered };
+      });
       showToast("Block deleted successfully");
     }
   };
 
-  const handleAddBlock = (type: string) => {
+  const handleUpdateBlockLayout = (blockId: string, field: string, value: any) => {
+    setCmsPageConfig((prev: any) => {
+      const updated = prev.blocks.map((b: any) => {
+        if (b.id === blockId) {
+          const layout = b.layout_configuration || {};
+          return {
+            ...b,
+            layout_configuration: { ...layout, [field]: value }
+          };
+        }
+        return b;
+      });
+      return { ...prev, blocks: updated };
+    });
+  };
+
+  const handleUpdateBlockAnimation = (blockId: string, field: string, value: any) => {
+    setCmsPageConfig((prev: any) => {
+      const updated = prev.blocks.map((b: any) => {
+        if (b.id === blockId) {
+          const animation = b.animation_orchestrator || {};
+          return {
+            ...b,
+            animation_orchestrator: { ...animation, [field]: value }
+          };
+        }
+        return b;
+      });
+      return { ...prev, blocks: updated };
+    });
+  };
+
+  const handleUpdateBlockDesign = (blockId: string, field: string, value: any) => {
+    setCmsPageConfig((prev: any) => {
+      const updated = prev.blocks.map((b: any) => {
+        if (b.id === blockId) {
+          const design = b.design_system_sync || {};
+          return {
+            ...b,
+            design_system_sync: { ...design, [field]: value }
+          };
+        }
+        return b;
+      });
+      return { ...prev, blocks: updated };
+    });
+  };
+
+  const handleContentImageUpload = async (blockId: string, fieldName: string, file: File, index?: number) => {
+    setUploadingField(index !== undefined ? `${fieldName}_${index}` : fieldName);
+    try {
+      const url = await uploadImage(file);
+      const updated = cmsPageConfig.blocks.map((b: any) => {
+        if (b.id === blockId) {
+          if (index !== undefined) {
+            const arr = b.data[fieldName] ? [...b.data[fieldName]] : [];
+            const currentItem = typeof arr[index] === 'string' ? { name: arr[index], image: '' } : arr[index];
+            arr[index] = { ...currentItem, image: url };
+            return {
+              ...b,
+              data: { ...b.data, [fieldName]: arr }
+            };
+          } else {
+            return {
+              ...b,
+              data: { ...b.data, [fieldName]: url }
+            };
+          }
+        }
+        return b;
+      });
+      setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+      showToast("Image uploaded successfully");
+    } catch (err: any) {
+      showToast("Upload failed: " + err.message, "error");
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
+  const handleDuplicateBlock = (blockId: string) => {
+    const idx = cmsPageConfig.blocks.findIndex((b: any) => b.id === blockId);
+    if (idx === -1) return;
+    const blockToCopy = cmsPageConfig.blocks[idx];
+    const newBlock = {
+      ...JSON.parse(JSON.stringify(blockToCopy)),
+      id: `node_copy_${Math.random().toString(36).substr(2, 9)}`,
+      order: blockToCopy.order + 1
+    };
+    const updatedBlocks = [...cmsPageConfig.blocks];
+    updatedBlocks.splice(idx + 1, 0, newBlock);
+    const ordered = updatedBlocks.map((b: any, index: number) => ({ ...b, order: index + 1 }));
+    setCmsPageConfig({ ...cmsPageConfig, blocks: ordered });
+    setSelectedBlockId(newBlock.id);
+    showToast("Block duplicated");
+  };
+
+  const handleToggleGlobalBlock = (blockId: string) => {
+    const updated = cmsPageConfig.blocks.map((b: any) => {
+      if (b.id === blockId) {
+        const isGlobal = !b.is_global;
+        showToast(isGlobal ? "Component saved as global instance" : "Component is now a local instance");
+        return { ...b, is_global: isGlobal };
+      }
+      return b;
+    });
+    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+  };
+
+  const handleAddBlockFromVault = (type: string, semanticTag: string) => {
     const newId = `block_${type.toLowerCase()}_${Date.now()}`;
     let defaultData = {};
     if (type === 'HeroBanner') {
@@ -679,8 +804,29 @@ const AdminDashboard = () => {
       id: newId,
       block_type: type,
       order: cmsPageConfig.blocks.length + 1,
-      status: "draft",
+      status: "published",
+      semantic_tag: semanticTag,
       scheduling: { start_date: "", end_date: "" },
+      layout_configuration: {
+        padding: { fluid_clamp: "py-[clamp(3rem,6vw,8rem)] px-[clamp(1rem,4vw,3rem)]", preset: "medium" },
+        grid_setup: { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4, gap: "gap-8" },
+        aspect_ratio: "portrait",
+        object_fit: "cover"
+      },
+      animation_orchestrator: {
+        entry_trigger: "scroll_view",
+        viewport_options: { once: true, amount_visible_threshold: 0.15 },
+        preset: "reveal_up",
+        curves: { type: "cubic_bezier", value: [0.16, 1, 0.3, 1], duration_ms: 750 },
+        stagger_children_ms: 50,
+        hover_preset: "scale_and_shift",
+        tactile_button_feedback: false
+      },
+      design_system_sync: {
+        typography_scale: { title: "H2", body: "Body" },
+        glassmorphic: false,
+        color_profile: { bg: "Studio Background", text: "Neutral Slate" }
+      },
       data: defaultData
     };
 
@@ -689,8 +835,12 @@ const AdminDashboard = () => {
       blocks: [...cmsPageConfig.blocks, newBlock]
     });
     setSelectedBlockId(newId);
-    showToast(`Added ${type} Block`);
+    setShowVault(false);
+    showToast(`Added ${type} preset enclosed in <${semanticTag}> tag`);
   };
+
+
+
 
   const handleUpdateSeo = (field: string, value: string) => {
     setCmsPageConfig({
@@ -868,39 +1018,8 @@ const AdminDashboard = () => {
   };
 
 
-  const renderImageUploadField = (blockId: string, label: string, value: string, fieldName: string) => {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-        <span style={{ fontWeight: '600', color: 'var(--color-text)', fontSize: '0.8rem' }}>{label}</span>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '2px', backgroundColor: 'rgba(0,0,0,0.01)' }}>
-          {value && (
-            <img src={value} alt="Thumb" style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '2px', border: '1px solid var(--color-border)' }} />
-          )}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={e => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = URL.createObjectURL(file);
-                  handleUpdateBlockData(blockId, fieldName, url);
-                }
-              }}
-              style={{ fontSize: '0.75rem', maxWidth: '100%' }}
-            />
-            <input 
-              type="text" 
-              value={value || ''} 
-              placeholder="Or paste image URL"
-              onChange={e => handleUpdateBlockData(blockId, fieldName, e.target.value)}
-              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
+
+
 
   const renderVisualBlocks = () => {
     return (
@@ -1180,311 +1299,8 @@ const AdminDashboard = () => {
     );
   };
 
-  const renderBlockLayoutSettings = (block: any) => {
-    const currentWidth = block.data.sectionWidth || 'standard';
-    const currentPadding = block.data.sectionPadding || 'editorial';
-    const currentColumns = block.data.gridColumns || 4;
-    const currentAspectRatio = block.data.aspectRatio || 'portrait';
-    const currentAlign = block.data.textAlign || 'left';
-    const currentTheme = block.data.themeStyle || 'light';
-    const currentGap = block.data.columnGap || 'standard';
-    const currentHover = block.data.hoverAnimation || 'zoom';
-    const currentParallax = block.data.parallaxBg || false;
 
-    return (
-      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div style={{ fontWeight: '700', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <Globe size={13} style={{ color: 'var(--color-accent)' }} /> 
-          <span>Sizing & Layout Settings</span>
-        </div>
 
-        {/* Section Width Selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Width Constraint</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-            {[
-              { id: 'narrow', name: 'Narrow', desc: '800px max' },
-              { id: 'standard', name: 'Standard', desc: '1200px max' },
-              { id: 'full', name: 'Full-Width', desc: '100% Bleed' }
-            ].map(opt => {
-              const isSel = currentWidth === opt.id;
-              return (
-                <div 
-                  key={opt.id}
-                  onClick={() => handleUpdateBlockData(block.id, 'sectionWidth', opt.id)}
-                  style={{
-                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                    padding: '0.5rem 0.25rem',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                    transition: 'all 0.15s ease',
-                    userSelect: 'none'
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
-                  <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Section Padding Selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Vertical Spacing (Padding)</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-            {[
-              { id: 'compact', name: 'Compact', desc: 'Tight Spacing' },
-              { id: 'editorial', name: 'Editorial', desc: 'Balanced' },
-              { id: 'grand', name: 'Grand', desc: 'Expansive' }
-            ].map(opt => {
-              const isSel = currentPadding === opt.id;
-              return (
-                <div 
-                  key={opt.id}
-                  onClick={() => handleUpdateBlockData(block.id, 'sectionPadding', opt.id)}
-                  style={{
-                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                    padding: '0.5rem 0.25rem',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                    transition: 'all 0.15s ease',
-                    userSelect: 'none'
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
-                  <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Theme Selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Color Theme Style</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            {[
-              { id: 'light', name: 'Light Minimal', desc: 'Clean White' },
-              { id: 'dark', name: 'Noir Dark', desc: 'Deep Charcoal' },
-              { id: 'glass', name: 'Glassmorphism', desc: 'Frosted Glass' },
-              { id: 'accent', name: 'Warm Beige', desc: 'Luxury Accent' }
-            ].map(opt => {
-              const isSel = currentTheme === opt.id;
-              return (
-                <div 
-                  key={opt.id}
-                  onClick={() => handleUpdateBlockData(block.id, 'themeStyle', opt.id)}
-                  style={{
-                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                    padding: '0.5rem 0.25rem',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                    transition: 'all 0.15s ease',
-                    userSelect: 'none'
-                  }}
-                >
-                  <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
-                  <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Text Alignment Selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Text Alignment</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-            {[
-              { id: 'left', name: 'Left' },
-              { id: 'center', name: 'Center' },
-              { id: 'right', name: 'Right' }
-            ].map(opt => {
-              const isSel = currentAlign === opt.id;
-              return (
-                <button 
-                  key={opt.id}
-                  type="button"
-                  onClick={() => handleUpdateBlockData(block.id, 'textAlign', opt.id)}
-                  style={{
-                    border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                    padding: '0.5rem 0',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    fontWeight: '700',
-                    fontSize: '0.75rem',
-                    backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                    color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                    fontFamily: 'inherit'
-                  }}
-                >
-                  {opt.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Hero Specific Parallax Option */}
-        {block.block_type === 'HeroBanner' && block.data.layout !== 'split' && (
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-text)' }}>
-            <input 
-              type="checkbox" 
-              checked={currentParallax} 
-              onChange={e => handleUpdateBlockData(block.id, 'parallaxBg', e.target.checked)} 
-            />
-            Enable Parallax Background Scroll Effect
-          </label>
-        )}
-
-        {/* Grid specific options */}
-        {['CategoryGrid', 'FeaturedProducts', 'EditorialGallery'].includes(block.block_type) && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.85rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Desktop Columns</span>
-              <div style={{ display: 'flex', gap: '0.35rem' }}>
-                {[2, 3, 4, 5, 6].map(cols => {
-                  const isSel = currentColumns === cols;
-                  return (
-                    <button
-                      key={cols}
-                      type="button"
-                      onClick={() => handleUpdateBlockData(block.id, 'gridColumns', cols)}
-                      style={{
-                        flex: 1,
-                        padding: '0.35rem 0',
-                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                        fontSize: '0.75rem',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        borderRadius: '2px',
-                        outline: 'none',
-                        fontFamily: 'inherit'
-                      }}
-                    >
-                      {cols}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Column Spacing (Gap)</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { id: 'compact', name: 'Compact', desc: 'Tight Grid' },
-                  { id: 'standard', name: 'Standard', desc: 'Regular Spacing' },
-                  { id: 'editorial', name: 'Editorial', desc: 'Spacious' }
-                ].map(opt => {
-                  const isSel = currentGap === opt.id;
-                  return (
-                    <div
-                      key={opt.id}
-                      onClick={() => handleUpdateBlockData(block.id, 'columnGap', opt.id)}
-                      style={{
-                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                        padding: '0.4rem 0.25rem',
-                        borderRadius: '2px',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                        transition: 'all 0.15s ease',
-                        userSelect: 'none'
-                      }}
-                    >
-                      <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
-                      <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Card Hover Animation</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { id: 'none', name: 'None', desc: 'Static' },
-                  { id: 'zoom', name: 'Zoom Image', desc: 'Scales inner img' },
-                  { id: 'lift', name: 'Lift Card', desc: 'Translates up' },
-                  { id: 'minimal', name: 'Minimal', desc: 'Border Highlight' }
-                ].map(opt => {
-                  const isSel = currentHover === opt.id;
-                  return (
-                    <div
-                      key={opt.id}
-                      onClick={() => handleUpdateBlockData(block.id, 'hoverAnimation', opt.id)}
-                      style={{
-                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                        padding: '0.4rem 0.25rem',
-                        borderRadius: '2px',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                        transition: 'all 0.15s ease',
-                        userSelect: 'none'
-                      }}
-                    >
-                      <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
-                      <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.desc}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gray)' }}>Media Aspect Ratio</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { id: 'portrait', name: 'Portrait', ratio: '3:4' },
-                  { id: 'square', name: 'Square', ratio: '1:1' },
-                  { id: 'landscape', name: 'Landscape', ratio: '4:3' }
-                ].map(opt => {
-                  const isSel = currentAspectRatio === opt.id;
-                  return (
-                    <div
-                      key={opt.id}
-                      onClick={() => handleUpdateBlockData(block.id, 'aspectRatio', opt.id)}
-                      style={{
-                        border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
-                        padding: '0.4rem 0.25rem',
-                        borderRadius: '2px',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
-                        color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
-                        transition: 'all 0.15s ease',
-                        userSelect: 'none'
-                      }}
-                    >
-                      <div style={{ fontSize: '0.75rem', fontWeight: '700' }}>{opt.name}</div>
-                      <div style={{ fontSize: '0.55rem', opacity: 0.8 }}>{opt.ratio}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
 
 
   return (
@@ -1841,448 +1657,1761 @@ const AdminDashboard = () => {
             </div>
 
             {/* Visual Canvas (Split Screen Workspace) */}
-            {cmsSubTab === 'visual' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
-                {/* Left Configurator */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Layout Blocks Stack</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <select id="add-block-select" className="admin-select" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} defaultValue="HeroBanner">
-                        <option value="HeroBanner">Hero Banner</option>
-                        <option value="PromotionalSlider">Promo Bar</option>
-                        <option value="CategoryGrid">Category Grid</option>
-                        <option value="FeaturedProducts">Featured Products</option>
-                        <option value="BrandStory">Brand Story</option>
-                        <option value="EditorialGallery">Editorial Gallery</option>
-                        <option value="NewsletterSubscribe">Newsletter Subscribe</option>
-                        <option value="Spacer">Layout Spacer</option>
-                      </select>
-                      <button
-                        onClick={() => {
-                          const el = document.getElementById('add-block-select') as HTMLSelectElement;
-                          if (el) handleAddBlock(el.value);
-                        }}
-                        className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}
+            {/* Visual Canvas (Three Column Workspace) */}
+            {cmsSubTab === 'visual' && (() => {
+              // Helper functions for dynamic configurations
+              const getBlockLayoutConfig = (block: any) => {
+                const defaults = {
+                  padding: { fluid_clamp: "py-[clamp(3rem,6vw,8rem)] px-[clamp(1rem,4vw,3rem)]", preset: "editorial" },
+                  grid_setup: { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4, gap: "gap-8" },
+                  aspect_ratio: block.data?.aspectRatio || "portrait",
+                  object_fit: "cover"
+                };
+                if (!block.layout_configuration) return defaults;
+                return {
+                  ...defaults,
+                  ...block.layout_configuration,
+                  padding: { ...defaults.padding, ...block.layout_configuration.padding },
+                  grid_setup: { ...defaults.grid_setup, ...block.layout_configuration.grid_setup }
+                };
+              };
+
+              const getBlockAnimationConfig = (block: any) => {
+                const defaults = {
+                  entry_trigger: "scroll_view",
+                  viewport_options: { once: true, amount_visible_threshold: 0.15 },
+                  preset: "reveal_up",
+                  curves: { type: "cubic_bezier", value: [0.16, 1, 0.3, 1], duration_ms: 750 },
+                  stagger_children_ms: 50,
+                  hover_preset: block.data?.hoverAnimation === 'lift' ? 'scale_and_shift' : 'none',
+                  tactile_button_feedback: false
+                };
+                if (!block.animation_orchestrator) return defaults;
+                return {
+                  ...defaults,
+                  ...block.animation_orchestrator,
+                  viewport_options: { ...defaults.viewport_options, ...block.animation_orchestrator.viewport_options },
+                  curves: { ...defaults.curves, ...block.animation_orchestrator.curves }
+                };
+              };
+
+              const getBlockDesignSync = (block: any) => {
+                const defaults = {
+                  typography_scale: { title: "H2", body: "Body" },
+                  glassmorphic: block.data?.themeStyle === 'glass',
+                  color_profile: { bg: "Studio Background", text: "Neutral Slate" }
+                };
+                if (!block.design_system_sync) return defaults;
+                return {
+                  ...defaults,
+                  ...block.design_system_sync,
+                  typography_scale: { ...defaults.typography_scale, ...block.design_system_sync.typography_scale },
+                  color_profile: { ...defaults.color_profile, ...block.design_system_sync.color_profile }
+                };
+              };
+
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 340px', gap: '1.5rem', alignItems: 'stretch', minHeight: '80vh', position: 'relative' }}>
+                  
+                  {/* 1. LEFT COLUMN: LAYER TREE SIDEBAR */}
+                  <div style={{ backgroundColor: 'var(--color-bg)', borderRight: '1px solid var(--color-border)', paddingRight: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Layers size={14} style={{ color: 'var(--color-accent)' }} />
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layers Hierarchy</h4>
+                      </div>
+                      <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--color-border)', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
+                        {cmsPageConfig.blocks.length} nodes
+                      </span>
+                    </div>
+
+                    {/* Component Vault Open Button */}
+                    <button 
+                      onClick={() => setShowVault(!showVault)}
+                      className="btn btn-primary"
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
+                    >
+                      <Plus size={14} /> Component Vault
+                    </button>
+
+                    {/* Component Vault Slide-Out Shelf */}
+                    {showVault && (
+                      <div style={{ border: '1px solid var(--color-text)', borderRadius: '4px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: 'var(--color-bg)', zIndex: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.25rem' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '700' }}>INSERT PRE-MAPPED PRESETS</span>
+                          <button onClick={() => setShowVault(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-gray)' }}><X size={14} /></button>
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                          {[
+                            { type: 'HeroBanner', desc: 'Campaign Split Hero', tag: 'section' },
+                            { type: 'PromotionalSlider', desc: 'Countdown Announcement Bar', tag: 'aside' },
+                            { type: 'CategoryGrid', desc: 'Curated Categories Grid', tag: 'section' },
+                            { type: 'FeaturedProducts', desc: 'Weekly Featured Products', tag: 'article' },
+                            { type: 'BrandStory', desc: 'Editorial Narrative Highlight', tag: 'aside' },
+                            { type: 'EditorialGallery', desc: 'Lookbook Captures Slider', tag: 'section' },
+                            { type: 'NewsletterSubscribe', desc: 'Minimal Join Club Input', tag: 'footer' },
+                            { type: 'Spacer', desc: 'Geometric Layout Spacer', tag: 'div' }
+                          ].map((preset) => (
+                            <div 
+                              key={preset.type} 
+                              style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '2px', cursor: 'pointer' }}
+                              onClick={() => handleAddBlockFromVault(preset.type, preset.tag)}
+                              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-text)'}
+                              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                            >
+                              <div style={{ fontWeight: '700', fontSize: '0.75rem' }}>{preset.type}</div>
+                              <div style={{ fontSize: '0.6rem', color: 'var(--color-gray)' }}>{preset.desc}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Layer hierarchy tree nodes list */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', maxHeight: '420px' }}>
+                      {cmsPageConfig.blocks.map((block: any, idx: number) => {
+                        const isSelected = block.id === selectedBlockId;
+                        const isExpanded = expandedNodes[block.id] || false;
+                        const semantic = block.semantic_tag || 'section';
+
+                        return (
+                          <div 
+                            key={block.id} 
+                            style={{
+                              border: `1px solid ${isSelected ? 'var(--color-text)' : 'var(--color-border)'}`,
+                              backgroundColor: isSelected ? 'rgba(0,0,0,0.01)' : 'transparent',
+                              borderRadius: '4px',
+                              padding: '0.5rem'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.25rem' }}>
+                              <div 
+                                onClick={() => {
+                                  setExpandedNodes({ ...expandedNodes, [block.id]: !isExpanded });
+                                }}
+                                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                              >
+                                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              </div>
+
+                              <div 
+                                onClick={() => setSelectedBlockId(block.id)}
+                                style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px' }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  <span style={{ fontWeight: '700', fontSize: '0.75rem' }}>{idx+1}. {block.block_type}</span>
+                                  {block.is_global && (
+                                    <span style={{ fontSize: '0.55rem', backgroundColor: 'var(--color-accent)', color: '#fff', padding: '1px 3px', borderRadius: '2px' }}>Global</span>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: '0.6rem', color: 'var(--color-gray)' }}>&lt;{semantic}&gt; {block.id.substring(0, 12)}...</span>
+                              </div>
+
+                              {/* Node action reorder/trash shortcuts */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <button onClick={() => handleMoveBlock(idx, 'up')} disabled={idx === 0} style={{ border: 'none', background: 'transparent', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowUp size={11} /></button>
+                                <button onClick={() => handleMoveBlock(idx, 'down')} disabled={idx === cmsPageConfig.blocks.length - 1} style={{ border: 'none', background: 'transparent', cursor: idx === cmsPageConfig.blocks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowDown size={11} /></button>
+                                <button onClick={() => handleDeleteBlock(block.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#f87171' }}><Trash2 size={11} /></button>
+                              </div>
+                            </div>
+
+                            {/* Expanded attributes sub-tree */}
+                            {isExpanded && (
+                              <div style={{ borderLeft: '1px dashed var(--color-border)', marginLeft: '6px', paddingLeft: '8px', marginTop: '0.35rem', display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.65rem', color: 'var(--color-gray)' }}>
+                                <div>• Padding: <span style={{ fontWeight: 600 }}>{block.layout_configuration?.padding?.preset || 'medium'}</span></div>
+                                <div>• Aspect Ratio: <span style={{ fontWeight: 600 }}>{block.layout_configuration?.aspect_ratio || 'portrait'}</span></div>
+                                <div>• Hover Effect: <span style={{ fontWeight: 600 }}>{block.animation_orchestrator?.hover_preset || 'scale_and_shift'}</span></div>
+                                <div>• Action Event: <span style={{ fontWeight: 600 }}>{block.data?.cta_action || 'route'}</span></div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', marginTop: 'auto' }}>
+                      <button 
+                        onClick={handleSaveCmsConfig}
+                        className="btn btn-primary"
+                        style={{ padding: '0.6rem 1rem', width: '100%', fontSize: '0.75rem' }}
                       >
-                        <Plus size={14} /> Add Block
+                        Push Dynamic Layout
                       </button>
                     </div>
                   </div>
 
-                  {/* List of blocks to edit */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {cmsPageConfig.blocks.map((block: any, idx: number) => {
-                      const isSelected = block.id === selectedBlockId;
-                      return (
-                        <div
-                          key={block.id}
-                          style={{
-                            border: `1px solid ${isSelected ? 'var(--color-text)' : 'var(--color-border)'}`,
-                            borderRadius: '4px', padding: '1rem', backgroundColor: isSelected ? 'rgba(0,0,0,0.01)' : 'transparent',
-                            display: 'flex', flexDirection: 'column', gap: '0.75rem'
-                          }}
+                  {/* 2. CENTER COLUMN: INTERACTIVE LIVE CANVAS */}
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    
+                    {/* Stress Tester Viewport Simulator + Sandbox switch */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      
+                      {/* Viewport size buttons */}
+                      <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
+                        {[
+                          { mode: 'desktop', icon: <Monitor size={12} />, label: 'Laptop' },
+                          { mode: 'tablet', icon: <Tablet size={12} />, label: 'Tablet' },
+                          { mode: 'mobile', icon: <Smartphone size={12} />, label: 'Mobile' }
+                        ].map((item) => (
+                          <button
+                            key={item.mode}
+                            onClick={() => setPreviewMode(item.mode as any)}
+                            style={{
+                              padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600,
+                              backgroundColor: previewMode === item.mode ? 'var(--color-text)' : 'transparent',
+                              color: previewMode === item.mode ? 'var(--color-bg)' : 'var(--color-text)',
+                              border: 'none', cursor: 'pointer', transition: 'all 0.15s'
+                            }}
+                          >
+                            {item.icon} {item.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Width Drag/Stress Tester Range Input */}
+                      {previewMode === 'desktop' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>Width: {simulatorCustomWidth}px</span>
+                          <input 
+                            type="range" 
+                            min="320" 
+                            max="1600" 
+                            value={simulatorCustomWidth} 
+                            onChange={(e) => setSimulatorCustomWidth(Number(e.target.value))} 
+                            style={{ width: '80px', cursor: 'ew-resize' }} 
+                          />
+                        </div>
+                      )}
+
+                      {/* Sandbox Switcher */}
+                      <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
+                        {[
+                          { mode: 'edit', label: 'Edit Mode' },
+                          { mode: 'preview', label: 'Preview Interaction' }
+                        ].map((m) => (
+                          <button
+                            key={m.mode}
+                            onClick={() => setSandboxMode(m.mode as any)}
+                            style={{
+                              padding: '0.4rem 0.75rem', fontSize: '0.75rem', fontWeight: 600,
+                              backgroundColor: sandboxMode === m.mode ? 'var(--color-text)' : 'transparent',
+                              color: sandboxMode === m.mode ? 'var(--color-bg)' : 'var(--color-text)',
+                              border: 'none', cursor: 'pointer', transition: 'all 0.15s'
+                            }}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Fullscreen Button */}
+                      <button 
+                        onClick={() => setIsCanvasFullscreen(true)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-gray)' }}
+                        title="Enter Fullscreen"
+                      >
+                        <Maximize2 size={15} />
+                      </button>
+                    </div>
+
+                    {/* Simulator Device Frame wrapper */}
+                    <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '1rem', backgroundColor: '#faf9f6', border: '1px solid var(--color-border)', borderRadius: '4px', minHeight: '500px' }}>
+                      <div
+                        style={{
+                          width: previewMode === 'desktop' ? `${simulatorCustomWidth}px` : previewMode === 'tablet' ? '768px' : '375px',
+                          maxWidth: '100%',
+                          border: previewMode === 'desktop' ? '1px solid var(--color-border)' : '12px solid #18181b',
+                          borderRadius: previewMode === 'desktop' ? '4px' : '24px',
+                          backgroundColor: 'var(--color-bg)',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.06)',
+                          transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                      >
+                        {/* Notch for mobile */}
+                        {previewMode === 'mobile' && (
+                          <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', width: '100px', height: '14px', backgroundColor: '#18181b', borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#27272a', marginRight: '6px' }}></span>
+                            <span style={{ width: '30px', height: '3px', borderRadius: '2px', backgroundColor: '#27272a' }}></span>
+                          </div>
+                        )}
+
+                        {/* Header bar mock */}
+                        <div style={{ backgroundColor: 'rgba(0,0,0,0.02)', padding: previewMode === 'mobile' ? '1.15rem 1rem 0.35rem' : '0.35rem 0.75rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.35rem', zIndex: 5 }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                          <span style={{ marginLeft: '0.25rem', fontSize: '0.6rem', color: 'var(--color-gray)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            AURA SIMULATOR ({sandboxMode.toUpperCase()})
+                          </span>
+                        </div>
+
+                        <div 
+                          className={`preview-container-wrap ${previewMode === 'mobile' ? 'preview-mobile' : previewMode === 'tablet' ? 'preview-tablet' : 'preview-desktop'}`}
+                          style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', pointerEvents: 'auto' }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div onClick={() => setSelectedBlockId(block.id)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-                              <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>#{idx+1} {block.block_type}</span>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>({block.id})</span>
+                          {cmsPageConfig.blocks.map((block: any) => {
+                            const isSelected = block.id === selectedBlockId;
+                            
+                            // Load current custom configurations
+                            const layConfig = getBlockLayoutConfig(block);
+                            const pad = layConfig.padding?.preset || 'editorial';
+                            const aspect = layConfig.aspect_ratio || 'portrait';
+                            const fit = layConfig.object_fit || 'cover';
+                            const mobCols = layConfig.grid_setup?.columns_mobile || 1;
+                            const tabCols = layConfig.grid_setup?.columns_tablet || 2;
+                            const dskCols = layConfig.grid_setup?.columns_desktop || 4;
+
+                            const padClass = `pad-${pad}`;
+                            const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
+                            const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
+                            const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
+                            const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+
+                            let blockContent = null;
+
+                            if (block.block_type === 'HeroBanner') {
+                              const isSplit = block.data.layout === 'split';
+                              blockContent = (
+                                <section className={`cms-hero ${padClass} ${themeClass} ${alignClass}`}>
+                                  <div className="width-standard">
+                                    {isSplit ? (
+                                      <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)' }}>
+                                        <div className="cms-hero-left" style={{ padding: '4rem 3rem' }}>
+                                          {block.data.subtitle && <span className="cms-hero-subtitle">{block.data.subtitle}</span>}
+                                          <h1 className="cms-hero-title">{block.data.title || 'AURA'}</h1>
+                                          {block.data.description && <p className="cms-hero-description">{block.data.description}</p>}
+                                          <div className="cms-hero-actions">
+                                            {block.data.cta_text && <button className="editorial-btn-primary">{block.data.cta_text}</button>}
+                                          </div>
+                                        </div>
+                                        <div className="cms-hero-right">
+                                          {block.data.desktop_image ? (
+                                            <img src={block.data.desktop_image} alt="Campaign" className="cms-hero-img" style={{ objectFit: fit as any }} />
+                                          ) : (
+                                            <div style={{ height: '300px', backgroundColor: '#f4f4f5' }} />
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="cms-hero-full" style={{ backgroundImage: block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none', minHeight: '60vh' }}>
+                                        {block.data.desktop_image && <div className="cms-hero-full-overlay"></div>}
+                                        <div className="cms-hero-full-content">
+                                          {block.data.subtitle && <span className="cms-hero-subtitle">{block.data.subtitle}</span>}
+                                          <h1 className="cms-hero-full-title">{block.data.title || 'AURA'}</h1>
+                                          {block.data.description && <p className="cms-hero-full-description">{block.data.description}</p>}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'PromotionalSlider') {
+                              blockContent = (
+                                <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1rem', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
+                                  <span>{block.data.slides?.[0]?.text || 'Private Collection Preview'}</span>
+                                </div>
+                              );
+                            } else if (block.block_type === 'CategoryGrid') {
+                              blockContent = (
+                                <section className={`cms-cat-section ${padClass} ${themeClass} ${alignClass}`}>
+                                  <div className="container width-standard">
+                                    <h2 className="featured-cat-title" style={{ fontFamily: 'var(--font-heading)' }}>{block.data.title || 'Curated Categories'}</h2>
+                                    
+                                    {/* Grid mapping columns slider values dynamically in style overrides */}
+                                    <div 
+                                      className={`cms-cat-grid ${gapClass} ${hoverClass}`}
+                                      style={{
+                                        display: 'grid',
+                                        '--grid-cols-desktop': dskCols,
+                                        '--grid-cols-tablet': tabCols,
+                                        '--grid-cols-mobile': mobCols,
+                                        gap: '1rem'
+                                      } as React.CSSProperties}
+                                    >
+                                      {(block.data.categories || []).map((cat: any, cIdx: number) => {
+                                        const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
+                                        return (
+                                          <div 
+                                            key={cIdx} 
+                                            className={`cms-cat-card aspect-${aspect}`}
+                                            style={{ 
+                                              backgroundImage: catObj.image ? `url(${catObj.image})` : 'none',
+                                              backgroundColor: '#f5f5f4',
+                                              backgroundSize: fit
+                                            }}
+                                          >
+                                            <div className="cms-cat-overlay"></div>
+                                            <span className="cms-cat-name">{catObj.name}</span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'FeaturedProducts') {
+                              const limit = block.data.limit || 4;
+                              const displayList = products.slice(0, limit);
+                              blockContent = (
+                                <section className={`section new-arrivals ${padClass} ${themeClass} ${alignClass}`}>
+                                  <div className="container width-standard">
+                                    <h2 className="section-title" style={{ fontFamily: 'var(--font-heading)', marginBottom: '1.5rem' }}>{block.data.title || 'Curated Classics'}</h2>
+                                    
+                                    <div 
+                                      className={`product-grid ${gapClass} ${hoverClass}`}
+                                      style={{
+                                        display: 'grid',
+                                        '--grid-cols-desktop': dskCols,
+                                        '--grid-cols-tablet': tabCols,
+                                        '--grid-cols-mobile': mobCols,
+                                        gap: '1rem'
+                                      } as React.CSSProperties}
+                                    >
+                                      {displayList.map((product) => (
+                                        <div key={product.id} className="product-card">
+                                          <div className={`product-image-wrap aspect-${aspect}`} style={{ overflow: 'hidden', position: 'relative' }}>
+                                            <img src={product.image} alt={product.name} className="product-image" style={{ width: '100%', height: '100%', objectFit: fit as any }} />
+                                          </div>
+                                          <div style={{ marginTop: '0.5rem' }}>
+                                            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--color-gray)' }}>{product.category}</span>
+                                            <h4 style={{ fontSize: '0.85rem', margin: '2px 0' }}>{product.name}</h4>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>₹{product.price}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'BrandStory') {
+                              blockContent = (
+                                <section className={`cms-story ${padClass} ${themeClass} ${alignClass}`}>
+                                  <div className="cms-story-grid width-standard">
+                                    <div className="cms-story-left">
+                                      {block.data.subtitle && <span className="cms-story-subtitle">{block.data.subtitle}</span>}
+                                      <h2 className="cms-story-title">{block.data.title || 'Brand Story'}</h2>
+                                      {block.data.quote && <blockquote className="cms-story-quote">"{block.data.quote}"</blockquote>}
+                                      <p className="cms-story-description">{block.data.description}</p>
+                                    </div>
+                                    <div className="cms-story-right">
+                                      {block.data.image && <img src={block.data.image} alt="Story" className="cms-story-img" style={{ objectFit: fit as any }} />}
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'EditorialGallery') {
+                              blockContent = (
+                                <section className={`cms-gallery ${padClass} ${themeClass} ${alignClass}`}>
+                                  <div className="container width-standard">
+                                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', marginBottom: '2rem' }}>{block.data.title || 'Editorial Gallery'}</h3>
+                                    <div 
+                                      className={`cms-gallery-grid ${gapClass} ${hoverClass}`}
+                                      style={{
+                                        display: 'grid',
+                                        '--grid-cols-desktop': dskCols,
+                                        '--grid-cols-tablet': tabCols,
+                                        '--grid-cols-mobile': mobCols,
+                                        gap: '1rem'
+                                      } as React.CSSProperties}
+                                    >
+                                      {[block.data.image1, block.data.image2, block.data.image3].filter(Boolean).map((img, i) => (
+                                        <div key={i} className={`cms-gallery-item aspect-${aspect}`}>
+                                          <img src={img} alt="Lookbook" className="cms-gallery-img" style={{ objectFit: fit as any }} />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'NewsletterSubscribe') {
+                              blockContent = (
+                                <section className={`cms-news ${padClass} ${themeClass} ${alignClass}`}>
+                                  <div className="width-standard" style={{ textAlign: 'center' }}>
+                                    <h3 className="cms-news-title">{block.data.title || 'JOIN THE CLUB'}</h3>
+                                    <p className="cms-news-subtitle">{block.data.subtitle}</p>
+                                    <div className="cms-news-form">
+                                      <input type="email" placeholder="YOUR EMAIL ADDRESS" disabled className="cms-news-input" />
+                                      <button type="button" className="cms-news-btn">{block.data.button_text || 'Join'}</button>
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'Spacer') {
+                              blockContent = (
+                                <div style={{ height: `${block.data.height || 60}px` }} />
+                              );
+                            }
+
+                            return (
+                              <div 
+                                key={block.id} 
+                                onClick={(e) => { 
+                                  if (sandboxMode === 'edit') {
+                                    e.stopPropagation(); 
+                                    setSelectedBlockId(block.id); 
+                                  }
+                                }}
+                                className="cms-canvas-block-wrapper"
+                                style={{ 
+                                  border: isSelected ? '2px solid var(--color-text)' : '1px dashed var(--color-border)', 
+                                  position: 'relative', 
+                                  cursor: sandboxMode === 'edit' ? 'pointer' : 'default',
+                                  margin: '0.5rem 0',
+                                  transition: 'all 0.2s',
+                                  pointerEvents: 'auto'
+                                }}
+                              >
+                                {sandboxMode === 'edit' && (
+                                  <div className="cms-action-rail" style={{
+                                    position: 'absolute',
+                                    top: '-15px',
+                                    right: '10px',
+                                    backgroundColor: 'var(--color-text)',
+                                    color: 'var(--color-bg)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    zIndex: 200,
+                                    fontSize: '0.7rem',
+                                    opacity: 0,
+                                    transition: 'opacity 0.2s, transform 0.2s',
+                                    transform: 'translateY(5px)'
+                                  }}>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleDuplicateBlock(block.id); }} 
+                                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                      title="Duplicate Block"
+                                    >
+                                      <Copy size={11} /> Duplicate
+                                    </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleToggleGlobalBlock(block.id); }} 
+                                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                    >
+                                      <Globe size={11} /> Global
+                                    </button>
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteBlock(block.id); }} 
+                                      style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px' }}
+                                    >
+                                      <Trash2 size={11} /> Delete
+                                    </button>
+                                  </div>
+                                )}
+                                
+                                <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 10, display: 'flex', gap: '0.25rem' }}>
+                                  <span style={{ fontSize: '0.55rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', padding: '2px 6px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                    &lt;{block.semantic_tag || 'section'}&gt;
+                                  </span>
+                                  {block.status === 'draft' && (
+                                    <span style={{ fontSize: '0.55rem', backgroundColor: '#eab308', color: '#000', padding: '2px 6px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                      Draft
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div style={{ pointerEvents: sandboxMode === 'edit' ? 'none' : 'auto' }}>
+                                  {blockContent}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. RIGHT COLUMN: ADVANCED COMPONENT CONTEXT CONFIGURATION */}
+                  <div style={{ backgroundColor: 'var(--color-bg)', borderLeft: '1px solid var(--color-border)', paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {(() => {
+                      const block = cmsPageConfig.blocks.find((b: any) => b.id === selectedBlockId);
+                      if (!block) {
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--color-gray)', textAlign: 'center', gap: '0.5rem', padding: '1rem' }}>
+                            <Sliders size={24} />
+                            <span style={{ fontSize: '0.8rem' }}>Select a dynamic layout block on the structure tree or live canvas to orchestrate motion, constraints, and geometry.</span>
+                          </div>
+                        );
+                      }
+
+                      // Pre-fill helper configuration blocks
+                      const layConfig = getBlockLayoutConfig(block);
+                      const animConfig = getBlockAnimationConfig(block);
+                      const designSync = getBlockDesignSync(block);
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                          
+                          {/* Selected Block Info */}
+                          <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{block.block_type}</span>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>{block.id.substring(0, 15)}</span>
                             </div>
-                            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-                              <button onClick={() => handleMoveBlock(idx, 'up')} disabled={idx === 0} style={{ border: 'none', background: 'transparent', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowUp size={14} /></button>
-                              <button onClick={() => handleMoveBlock(idx, 'down')} disabled={idx === cmsPageConfig.blocks.length - 1} style={{ border: 'none', background: 'transparent', cursor: idx === cmsPageConfig.blocks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowDown size={14} /></button>
-                              <button onClick={() => handleDeleteBlock(block.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#dc2626', marginLeft: '0.5rem' }}><Trash2 size={14} /></button>
+                            
+                            {/* Semantic tag and Status selector toggle */}
+                            <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Tag:</span>
+                                <select
+                                  value={block.semantic_tag || 'section'}
+                                  onChange={e => {
+                                    const updated = cmsPageConfig.blocks.map((b: any) => b.id === block.id ? { ...b, semantic_tag: e.target.value } : b);
+                                    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+                                  }}
+                                  className="admin-select"
+                                  style={{ padding: '2px 6px', fontSize: '0.65rem' }}
+                                >
+                                  <option value="section">&lt;section&gt;</option>
+                                  <option value="article">&lt;article&gt;</option>
+                                  <option value="aside">&lt;aside&gt;</option>
+                                  <option value="div">&lt;div&gt;</option>
+                                  <option value="footer">&lt;footer&gt;</option>
+                                </select>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Status:</span>
+                                <select
+                                  value={block.status || 'published'}
+                                  onChange={e => {
+                                    const updated = cmsPageConfig.blocks.map((b: any) => b.id === block.id ? { ...b, status: e.target.value } : b);
+                                    setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+                                  }}
+                                  className="admin-select"
+                                  style={{ padding: '2px 6px', fontSize: '0.65rem', color: block.status === 'published' ? '#22c55e' : '#eab308', fontWeight: 'bold' }}
+                                >
+                                  <option value="published">Published</option>
+                                  <option value="draft">Draft</option>
+                                </select>
+                              </div>
                             </div>
                           </div>
 
-                          {isSelected && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.85rem', fontSize: '0.85rem' }}>
-                              {/* Type specific fields */}
-                              {block.block_type === 'HeroBanner' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Title (e.g. AURA / THE NEW MINIMAL)
-                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subtitle (e.g. FALL / WINTER COLLECTION)
-                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Description Paragraph
-                                    <textarea rows={3} value={block.data.description || ''} onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', resize: 'vertical', fontFamily: 'inherit' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Layout Variant
-                                    <select value={block.data.layout || 'split'} onChange={e => handleUpdateBlockData(block.id, 'layout', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-                                      <option value="centered">Centered Fullscreen</option>
-                                      <option value="split">50/50 Split Screen</option>
-                                    </select>
-                                  </label>
-                                  {renderImageUploadField(block.id, 'Banner Image', block.data.desktop_image, 'desktop_image')}
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Primary CTA Button Text
-                                    <input type="text" value={block.data.cta_text || ''} onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Primary CTA Redirection URL
-                                    <input type="text" value={block.data.cta_url || ''} onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Secondary CTA Link Text
-                                    <input type="text" value={block.data.secondary_cta_text || ''} onChange={e => handleUpdateBlockData(block.id, 'secondary_cta_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Secondary CTA Redirection URL
-                                    <input type="text" value={block.data.secondary_cta_url || ''} onChange={e => handleUpdateBlockData(block.id, 'secondary_cta_url', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                </>
-                              )}
+                          {/* Five Tabs Headers */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '2px', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.35rem' }}>
+                            {[
+                              { id: 'content', label: 'Content', icon: <Edit3 size={11} /> },
+                              { id: 'motion', label: 'Motion', icon: <Sparkles size={11} /> },
+                              { id: 'geometry', label: 'Layout', icon: <Grid size={11} /> },
+                              { id: 'design', label: 'Token', icon: <Settings size={11} /> },
+                              { id: 'cta', label: 'Route', icon: <Link size={11} /> }
+                            ].map(t => {
+                              const isSel = activeConfigTab === t.id;
+                              return (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  onClick={() => setActiveConfigTab(t.id as any)}
+                                  style={{
+                                    background: 'none', border: 'none', padding: '0.35rem 0',
+                                    fontSize: '0.7rem', fontWeight: isSel ? '700' : '400',
+                                    color: isSel ? 'var(--color-text)' : 'var(--color-gray)',
+                                    borderBottom: isSel ? '2px solid var(--color-text)' : 'none',
+                                    cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px'
+                                  }}
+                                >
+                                  {t.icon}
+                                  <span>{t.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
 
-                              {block.block_type === 'PromotionalSlider' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Slider Banner Text
-                                    <input type="text" value={block.data.slides?.[0]?.text || ''} onChange={e => {
-                                      const slides = [{ text: e.target.value, link_url: block.data.slides?.[0]?.link_url || '' }];
-                                      handleUpdateBlockData(block.id, 'slides', slides);
-                                    }} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Banner Redirection URL
-                                    <input type="text" value={block.data.slides?.[0]?.link_url || ''} onChange={e => {
-                                      const slides = [{ text: block.data.slides?.[0]?.text || '', link_url: e.target.value }];
-                                      handleUpdateBlockData(block.id, 'slides', slides);
-                                    }} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Background Color Hex
-                                    <input type="color" value={block.data.background_color} onChange={e => handleUpdateBlockData(block.id, 'background_color', e.target.value)} style={{ width: '100%', height: '40px', padding: '0.15rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', cursor: 'pointer' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Countdown Target Date
-                                    <input type="datetime-local" value={block.data.countdown_target_timestamp ? block.data.countdown_target_timestamp.substring(0, 16) : ''} onChange={e => handleUpdateBlockData(block.id, 'countdown_target_timestamp', e.target.value ? new Date(e.target.value).toISOString() : '')} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                </>
-                              )}
+                          {/* Tab Content Panels */}
+                          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.8rem', paddingRight: '4px' }}>
+                            
+                            {/* TAB CONTENT: COMPONENT CONTENT FIELDS */}
+                            {activeConfigTab === 'content' && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                {block.block_type === 'HeroBanner' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Hero Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Hero Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Description</span>
+                                      <textarea
+                                        value={block.data.description || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)}
+                                        className="admin-input"
+                                        rows={3}
+                                        style={{ resize: 'vertical' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Hero Layout Style</span>
+                                      <select
+                                        value={block.data.layout || 'split'}
+                                        onChange={e => handleUpdateBlockData(block.id, 'layout', e.target.value)}
+                                        className="admin-select"
+                                      >
+                                        <option value="split">Split Screen Campaign</option>
+                                        <option value="standard">Standard Centred Overlay</option>
+                                      </select>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Desktop Image</span>
+                                      {block.data.desktop_image && (
+                                        <img src={block.data.desktop_image} alt="Desktop Preview" style={{ width: '100%', height: '80px', objectFit: 'cover', border: '1px solid var(--color-border)', marginBottom: '0.25rem' }} />
+                                      )}
+                                      <input
+                                        type="text"
+                                        placeholder="Paste Image URL..."
+                                        value={block.data.desktop_image || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'desktop_image', e.target.value)}
+                                        className="admin-input"
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <label className="btn btn-secondary" style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', margin: 0, flex: 1, textAlign: 'center' }}>
+                                          {uploadingField === 'desktop_image' ? 'Uploading...' : 'Upload File'}
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={async e => {
+                                              const file = e.target.files?.[0];
+                                              if (file) {
+                                                await handleContentImageUpload(block.id, 'desktop_image', file);
+                                              }
+                                            }}
+                                          />
+                                        </label>
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Mobile Image</span>
+                                      {block.data.mobile_image && (
+                                        <img src={block.data.mobile_image} alt="Mobile Preview" style={{ width: '60px', height: '60px', objectFit: 'cover', border: '1px solid var(--color-border)', marginBottom: '0.25rem' }} />
+                                      )}
+                                      <input
+                                        type="text"
+                                        placeholder="Paste Image URL..."
+                                        value={block.data.mobile_image || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'mobile_image', e.target.value)}
+                                        className="admin-input"
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <label className="btn btn-secondary" style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', margin: 0, flex: 1, textAlign: 'center' }}>
+                                          {uploadingField === 'mobile_image' ? 'Uploading...' : 'Upload File'}
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={async e => {
+                                              const file = e.target.files?.[0];
+                                              if (file) {
+                                                await handleContentImageUpload(block.id, 'mobile_image', file);
+                                              }
+                                            }}
+                                          />
+                                        </label>
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>Primary CTA Text</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.cta_text || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>Primary CTA Link</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.cta_url || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>Secondary CTA Text</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.secondary_cta_text || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'secondary_cta_text', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>Secondary CTA Link</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.secondary_cta_url || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'secondary_cta_url', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                    </div>
+                                  </>
+                                )}
 
-                              {block.block_type === 'CategoryGrid' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Grid Header
-                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                    <span style={{ fontWeight: '600', fontSize: '0.85rem' }}>Curated Categories List</span>
-                                    
-                                    {(block.data.categories || []).map((cat: any, cIdx: number) => {
-                                      const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
-                                      return (
-                                        <div key={cIdx} style={{ border: '1px solid var(--color-border)', padding: '0.75rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'rgba(0,0,0,0.01)' }}>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontWeight: '700', fontSize: '0.75rem' }}>Category Item #{cIdx+1}</span>
-                                            <button 
+                                {block.block_type === 'PromotionalSlider' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Ticker Style Mode</span>
+                                      <select
+                                        value={block.data.variant || 'flash_sale_countdown'}
+                                        onChange={e => handleUpdateBlockData(block.id, 'variant', e.target.value)}
+                                        className="admin-select"
+                                      >
+                                        <option value="flash_sale_countdown">Flash Sale Countdown Ticker</option>
+                                        <option value="standard">Scrolling Announcement Bar</option>
+                                      </select>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Bar Background Hex Color</span>
+                                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <input
+                                          type="color"
+                                          value={block.data.background_color || '#0c0a09'}
+                                          onChange={e => handleUpdateBlockData(block.id, 'background_color', e.target.value)}
+                                          style={{ width: '36px', height: '36px', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0, backgroundColor: 'transparent' }}
+                                        />
+                                        <input
+                                          type="text"
+                                          value={block.data.background_color || '#0c0a09'}
+                                          onChange={e => handleUpdateBlockData(block.id, 'background_color', e.target.value)}
+                                          className="admin-input"
+                                          placeholder="#0c0a09"
+                                          style={{ flex: 1 }}
+                                        />
+                                      </div>
+                                    </div>
+                                    {block.data.variant === 'flash_sale_countdown' && (
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600 }}>Countdown Expiry Target</span>
+                                        <input
+                                          type="text"
+                                          placeholder="e.g. 2026-06-25T23:59:59Z"
+                                          value={block.data.countdown_target_timestamp || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'countdown_target_timestamp', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                        <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>ISO timestamp format representing the exact expiry moment.</span>
+                                      </div>
+                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600 }}>Announcement Items</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const currentSlides = block.data.slides || [];
+                                            const updated = [...currentSlides, { text: 'New promo ticker slide...', link_url: '/shop/all' }];
+                                            handleUpdateBlockData(block.id, 'slides', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '2px 8px', fontSize: '0.65rem' }}
+                                        >
+                                          + Add slide
+                                        </button>
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {(block.data.slides || []).map((slide: any, sIdx: number) => (
+                                          <div key={sIdx} style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.25rem', position: 'relative' }}>
+                                            <button
+                                              type="button"
                                               onClick={() => {
-                                                const updatedCats = [...block.data.categories];
-                                                updatedCats.splice(cIdx, 1);
-                                                handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                                const updated = (block.data.slides || []).filter((_: any, i: number) => i !== sIdx);
+                                                handleUpdateBlockData(block.id, 'slides', updated);
                                               }}
-                                              style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                                              style={{ position: 'absolute', top: '4px', right: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}
                                             >
-                                              <Trash2 size={12} /> Delete
+                                              ×
                                             </button>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Slide Text</span>
+                                              <input
+                                                type="text"
+                                                value={slide.text || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.slides];
+                                                  updated[sIdx] = { ...updated[sIdx], text: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Link Target URL</span>
+                                              <input
+                                                type="text"
+                                                value={slide.link_url || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.slides];
+                                                  updated[sIdx] = { ...updated[sIdx], link_url: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
                                           </div>
-                                          
-                                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>Name</span>
-                                            <input 
-                                              type="text" 
-                                              value={catObj.name || ''} 
-                                              onChange={e => {
-                                                const updatedCats = [...block.data.categories];
-                                                updatedCats[cIdx] = { ...catObj, name: e.target.value };
-                                                handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'CategoryGrid' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Grid Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Responsive Grid Columns</span>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                        <span>Mobile Columns:</span>
+                                        <strong>{layConfig.grid_setup?.columns_mobile || 1}</strong>
+                                      </div>
+                                      <input
+                                        type="range" min="1" max="2"
+                                        value={layConfig.grid_setup?.columns_mobile || 1}
+                                        onChange={e => {
+                                          const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                          handleUpdateBlockLayout(block.id, 'grid_setup', { ...setup, columns_mobile: Number(e.target.value) });
+                                        }}
+                                        style={{ width: '100%', cursor: 'ew-resize' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                        <span>Tablet Columns:</span>
+                                        <strong>{layConfig.grid_setup?.columns_tablet || 2}</strong>
+                                      </div>
+                                      <input
+                                        type="range" min="1" max="4"
+                                        value={layConfig.grid_setup?.columns_tablet || 2}
+                                        onChange={e => {
+                                          const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                          handleUpdateBlockLayout(block.id, 'grid_setup', { ...setup, columns_tablet: Number(e.target.value) });
+                                        }}
+                                        style={{ width: '100%', cursor: 'ew-resize' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                        <span>Laptop/Desktop Columns:</span>
+                                        <strong>{layConfig.grid_setup?.columns_desktop || 4}</strong>
+                                      </div>
+                                      <input
+                                        type="range" min="1" max="6"
+                                        value={layConfig.grid_setup?.columns_desktop || 4}
+                                        onChange={e => {
+                                          const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                          handleUpdateBlockLayout(block.id, 'grid_setup', { ...setup, columns_desktop: Number(e.target.value) });
+                                          handleUpdateBlockData(block.id, 'gridColumns', Number(e.target.value));
+                                        }}
+                                        style={{ width: '100%', cursor: 'ew-resize' }}
+                                      />
+                                    </div>
+                                    {/* Quick Grid Presets */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.25rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Quick Columns Presets (Desktop-Tablet-Mobile)</span>
+                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.35rem' }}>
+                                        {[
+                                          { name: '1-Column List', desc: '1-1-1', mobile: 1, tablet: 1, desktop: 1 },
+                                          { name: 'Classic Split', desc: '2-2-1', mobile: 1, tablet: 2, desktop: 2 },
+                                          { name: 'Minimalist Trio', desc: '3-3-1', mobile: 1, tablet: 3, desktop: 3 },
+                                          { name: 'Premium Quad', desc: '4-2-1', mobile: 1, tablet: 2, desktop: 4 },
+                                          { name: 'Dense Showcase', desc: '6-3-2', mobile: 2, tablet: 3, desktop: 6 }
+                                        ].map(preset => {
+                                          const isSel = (layConfig.grid_setup?.columns_desktop === preset.desktop) && 
+                                                        (layConfig.grid_setup?.columns_tablet === preset.tablet) && 
+                                                        (layConfig.grid_setup?.columns_mobile === preset.mobile);
+                                          return (
+                                            <button
+                                              key={preset.name}
+                                              type="button"
+                                              onClick={() => {
+                                                handleUpdateBlockLayout(block.id, 'grid_setup', {
+                                                  columns_mobile: preset.mobile,
+                                                  columns_tablet: preset.tablet,
+                                                  columns_desktop: preset.desktop,
+                                                  gap: layConfig.grid_setup?.gap || 'gap-8'
+                                                });
+                                                handleUpdateBlockData(block.id, 'gridColumns', preset.desktop);
                                               }}
-                                              style={{ padding: '0.35rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.8rem' }}
-                                            />
-                                          </label>
-                                          
-                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)', fontWeight: '500' }}>Banner Image</span>
-                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', border: '1px solid var(--color-border)', padding: '0.35rem', backgroundColor: 'var(--color-bg)' }}>
-                                              {catObj.image && (
-                                                <img src={catObj.image} alt="Banner" style={{ width: '35px', height: '35px', objectFit: 'cover', borderRadius: '2px' }} />
-                                              )}
-                                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                                <input 
-                                                  type="file" 
-                                                  accept="image/*"
+                                              style={{
+                                                border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                                                padding: '0.4rem 0.25rem',
+                                                fontSize: '0.6rem',
+                                                fontWeight: '700',
+                                                backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                                                color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                                                cursor: 'pointer',
+                                                textAlign: 'center'
+                                              }}
+                                            >
+                                              <div>{preset.name}</div>
+                                              <div style={{ fontSize: '0.55rem', opacity: 0.65, fontWeight: 'normal', marginTop: '2px' }}>{preset.desc}</div>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600 }}>Grid Categories</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const currentCats = block.data.categories || [];
+                                            const updated = [...currentCats, { name: 'New Category', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=300' }];
+                                            handleUpdateBlockData(block.id, 'categories', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '2px 8px', fontSize: '0.65rem' }}
+                                        >
+                                          + Add category
+                                        </button>
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {(block.data.categories || []).map((cat: any, cIdx: number) => {
+                                          const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
+                                          return (
+                                            <div key={cIdx} style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.35rem', position: 'relative' }}>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const updated = (block.data.categories || []).filter((_: any, i: number) => i !== cIdx);
+                                                  handleUpdateBlockData(block.id, 'categories', updated);
+                                                }}
+                                                style={{ position: 'absolute', top: '4px', right: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}
+                                              >
+                                                ×
+                                              </button>
+                                              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Category Name</span>
+                                                <input
+                                                  type="text"
+                                                  value={catObj.name || ''}
                                                   onChange={e => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                      const url = URL.createObjectURL(file);
-                                                      const updatedCats = [...block.data.categories];
-                                                      updatedCats[cIdx] = { ...catObj, image: url };
-                                                      handleUpdateBlockData(block.id, 'categories', updatedCats);
-                                                    }
+                                                    const updated = [...block.data.categories];
+                                                    const currentObj = typeof updated[cIdx] === 'string' ? { name: updated[cIdx], image: '' } : updated[cIdx];
+                                                    updated[cIdx] = { ...currentObj, name: e.target.value };
+                                                    handleUpdateBlockData(block.id, 'categories', updated);
                                                   }}
-                                                  style={{ fontSize: '0.7rem' }}
+                                                  className="admin-input"
+                                                  style={{ padding: '0.25rem', fontSize: '0.75rem' }}
                                                 />
-                                                <input 
-                                                  type="text" 
-                                                  value={catObj.image || ''} 
-                                                  placeholder="Or paste banner image URL"
+                                              </label>
+                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Category Image</span>
+                                                {catObj.image && (
+                                                  <img src={catObj.image} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                                                )}
+                                                <input
+                                                  type="text"
+                                                  placeholder="Image URL"
+                                                  value={catObj.image || ''}
                                                   onChange={e => {
-                                                    const updatedCats = [...block.data.categories];
-                                                    updatedCats[cIdx] = { ...catObj, image: e.target.value };
-                                                    handleUpdateBlockData(block.id, 'categories', updatedCats);
+                                                    const updated = [...block.data.categories];
+                                                    const currentObj = typeof updated[cIdx] === 'string' ? { name: updated[cIdx], image: '' } : updated[cIdx];
+                                                    updated[cIdx] = { ...currentObj, image: e.target.value };
+                                                    handleUpdateBlockData(block.id, 'categories', updated);
                                                   }}
-                                                  style={{ padding: '0.2rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                                                  className="admin-input"
+                                                  style={{ padding: '0.25rem', fontSize: '0.7rem' }}
                                                 />
+                                                <label className="btn btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', margin: 0, textAlign: 'center' }}>
+                                                  {uploadingField === `categories_${cIdx}` ? 'Uploading...' : 'Upload Image'}
+                                                  <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    style={{ display: 'none' }}
+                                                    onChange={async e => {
+                                                      const file = e.target.files?.[0];
+                                                      if (file) {
+                                                        await handleContentImageUpload(block.id, 'categories', file, cIdx);
+                                                      }
+                                                    }}
+                                                  />
+                                                </label>
                                               </div>
                                             </div>
-                                          </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'FeaturedProducts' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Featured Section Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Products Display Limit</span>
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        max={20}
+                                        value={block.data.limit || 4}
+                                        onChange={e => handleUpdateBlockData(block.id, 'limit', Number(e.target.value))}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Filter By Category</span>
+                                      <select
+                                        value={block.data.filter_category || 'all'}
+                                        onChange={e => handleUpdateBlockData(block.id, 'filter_category', e.target.value)}
+                                        className="admin-select"
+                                      >
+                                        <option value="all">All Products</option>
+                                        <option value="men">Men's Collection</option>
+                                        <option value="accessories">Accessories</option>
+                                      </select>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA Button Text</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.cta_text || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA Button Link</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.cta_url || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'BrandStory' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Story Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Story Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Quote Highlight</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.quote || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'quote', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Story Description</span>
+                                      <textarea
+                                        value={block.data.description || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)}
+                                        className="admin-input"
+                                        rows={4}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Narrative Image</span>
+                                      {block.data.image && (
+                                        <img src={block.data.image} alt="Story Preview" style={{ width: '100%', height: '80px', objectFit: 'cover', border: '1px solid var(--color-border)', marginBottom: '0.25rem' }} />
+                                      )}
+                                      <input
+                                        type="text"
+                                        placeholder="Paste Image URL..."
+                                        value={block.data.image || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'image', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                      <label className="btn btn-secondary" style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', margin: 0, textAlign: 'center' }}>
+                                        {uploadingField === 'image' ? 'Uploading...' : 'Upload Image File'}
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          style={{ display: 'none' }}
+                                          onChange={async e => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              await handleContentImageUpload(block.id, 'image', file);
+                                            }
+                                          }}
+                                        />
+                                      </label>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'EditorialGallery' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Gallery Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Gallery Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    {['image1', 'image2', 'image3'].map((imgKey, index) => (
+                                      <div key={imgKey} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                        <span style={{ fontWeight: 600 }}>Gallery Image {index + 1}</span>
+                                        {block.data[imgKey] && (
+                                          <img src={block.data[imgKey]} alt={`Gallery ${index+1}`} style={{ width: '100%', height: '60px', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                                        )}
+                                        <input
+                                          type="text"
+                                          placeholder="Paste URL..."
+                                          value={block.data[imgKey] || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, imgKey, e.target.value)}
+                                          className="admin-input"
+                                          style={{ fontSize: '0.75rem' }}
+                                        />
+                                        <label className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', margin: 0, textAlign: 'center' }}>
+                                          {uploadingField === imgKey ? 'Uploading...' : `Upload Image ${index+1}`}
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={async e => {
+                                              const file = e.target.files?.[0];
+                                              if (file) {
+                                                await handleContentImageUpload(block.id, imgKey, file);
+                                              }
+                                            }}
+                                          />
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </>
+                                )}
+
+                                {block.block_type === 'NewsletterSubscribe' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Newsletter Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Newsletter Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Subscribe Button Text</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.button_text || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'button_text', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Input Placeholder Text</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.placeholder_text || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'placeholder_text', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'Spacer' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Spacer Height (pixels)</span>
+                                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <input
+                                          type="range" min="10" max="300" step="5"
+                                          value={block.data.height || 60}
+                                          onChange={e => handleUpdateBlockData(block.id, 'height', Number(e.target.value))}
+                                          style={{ flex: 1, cursor: 'ew-resize' }}
+                                        />
+                                        <input
+                                          type="number"
+                                          value={block.data.height || 60}
+                                          onChange={e => handleUpdateBlockData(block.id, 'height', Number(e.target.value))}
+                                          className="admin-input"
+                                          style={{ width: '60px' }}
+                                        />
+                                        <span>px</span>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+
+                            {/* TAB A: MOTION & INTERACTION */}
+                            {activeConfigTab === 'motion' && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                
+                                {/* Hover Micro-Interactions */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Hover Micro-Interaction Presets</span>
+                                  <select 
+                                    value={animConfig.hover_preset || 'scale_and_shift'} 
+                                    onChange={e => handleUpdateBlockAnimation(block.id, 'hover_preset', e.target.value)}
+                                    className="admin-select"
+                                  >
+                                    <option value="none">None (Static)</option>
+                                    <option value="magnetic">Magnetic Snap (Cursor Delta Vector Pull)</option>
+                                    <option value="scale_and_shift">Scale & Shift + Sheen (Lift + Glare)</option>
+                                    <option value="minimal_shift">Minimal Translate Lift</option>
+                                  </select>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Assigns state-driven hardware-accelerated transitions to layout element containers on hover vectors.</span>
+                                </div>
+
+                                {/* Scroll entry transition */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Scroll Entry Effect (IntersectionObserver)</span>
+                                  <select 
+                                    value={animConfig.preset || 'reveal_up'} 
+                                    onChange={e => handleUpdateBlockAnimation(block.id, 'preset', e.target.value)}
+                                    className="admin-select"
+                                  >
+                                    <option value="none">Immediate</option>
+                                    <option value="reveal_up">Reveal-Up (Cubic-Bezier 20px Offset)</option>
+                                    <option value="fade_in">Fade In</option>
+                                  </select>
+                                </div>
+
+                                {/* Stagger Toggle */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input 
+                                      type="checkbox" 
+                                      checked={animConfig.stagger_children || false} 
+                                      onChange={e => handleUpdateBlockAnimation(block.id, 'stagger_children', e.target.checked)}
+                                    />
+                                    <span style={{ fontWeight: 600 }}>Stagger Children Transition</span>
+                                  </label>
+                                  {animConfig.stagger_children && (
+                                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginLeft: '1.25rem', marginTop: '0.25rem' }}>
+                                      <span style={{ fontSize: '0.7rem' }}>Incremental Delay (ms)</span>
+                                      <input 
+                                        type="number" 
+                                        value={animConfig.stagger_children_ms || 50} 
+                                        onChange={e => handleUpdateBlockAnimation(block.id, 'stagger_children_ms', Number(e.target.value))}
+                                        className="admin-input"
+                                        style={{ padding: '0.35rem' }}
+                                      />
+                                    </label>
+                                  )}
+                                </div>
+
+                                {/* Tactile Indicator Toggle */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input 
+                                      type="checkbox" 
+                                      checked={animConfig.tactile_button_feedback || false} 
+                                      onChange={e => handleUpdateBlockAnimation(block.id, 'tactile_button_feedback', e.target.checked)}
+                                    />
+                                    <span style={{ fontWeight: 600 }}>Tactile Button Feedback</span>
+                                  </label>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', marginLeft: '1.25rem' }}>Enables micro-animations on internal CTAs (e.g. arrow translations, shopping cart spin).</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* TAB B: FLUID GEOMETRY & BREAKPOINTS */}
+                            {activeConfigTab === 'geometry' && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                
+                                {/* Clamp Padding Preset Matrix */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Clamp Engine Spacing Preset</span>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.35rem' }}>
+                                    {[
+                                      { id: 'studio_minimal', name: 'Studio Minimal', formula: 'py-[clamp(1rem,2vw,1.5rem)] px-[clamp(1rem,2vw,1.5rem)]' },
+                                      { id: 'compact', name: 'Compact', formula: 'py-[clamp(2rem,4vw,4rem)] px-[clamp(1rem,3vw,2rem)]' },
+                                      { id: 'editorial', name: 'Balanced Canvas', formula: 'py-[clamp(4rem,8vw,8rem)] px-[clamp(1.5rem,5vw,4rem)]' },
+                                      { id: 'grand', name: 'Grand Gallery', formula: 'py-[clamp(8rem,14vw,14rem)] px-[clamp(2rem,8vw,6rem)]' },
+                                      { id: 'hero_fluid', name: 'Hero Fluid', formula: 'py-[clamp(10rem,18vw,20rem)] px-[clamp(3rem,10vw,8rem)]' }
+                                    ].map(opt => {
+                                      const isSel = (layConfig.padding?.preset || 'editorial') === opt.id;
+                                      return (
+                                        <button
+                                          key={opt.id}
+                                          type="button"
+                                          onClick={() => {
+                                            handleUpdateBlockLayout(block.id, 'padding', { preset: opt.id, fluid_clamp: opt.formula });
+                                            handleUpdateBlockData(block.id, 'sectionPadding', opt.id);
+                                          }}
+                                          style={{
+                                            border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                                            padding: '0.4rem',
+                                            fontSize: '0.65rem',
+                                            fontWeight: '700',
+                                            backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                                            color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                                            cursor: 'pointer',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          {opt.name}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <div style={{ fontSize: '0.6rem', color: 'var(--color-gray)', fontFamily: 'monospace', overflowX: 'auto', backgroundColor: '#f4f4f5', padding: '4px', whiteSpace: 'nowrap' }}>
+                                    {layConfig.padding?.fluid_clamp || 'py-[clamp(3rem,6vw,6rem)]'}
+                                  </div>
+                                </div>
+
+                                {/* Aspect-Ratio Locks */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Visual Aspect-Ratio Lock</span>
+                                  <select 
+                                    value={layConfig.aspect_ratio || 'portrait'} 
+                                    onChange={e => {
+                                      handleUpdateBlockLayout(block.id, 'aspect_ratio', e.target.value);
+                                      handleUpdateBlockData(block.id, 'aspectRatio', e.target.value);
+                                    }}
+                                    className="admin-select"
+                                  >
+                                    <option value="portrait">Portrait (3:4)</option>
+                                    <option value="square">Square (1:1)</option>
+                                    <option value="landscape">Landscape (16:9)</option>
+                                  </select>
+                                  
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', cursor: 'pointer' }}>
+                                    <input 
+                                      type="checkbox" 
+                                      checked={layConfig.object_fit === 'cover'} 
+                                      onChange={e => handleUpdateBlockLayout(block.id, 'object_fit', e.target.checked ? 'cover' : 'contain')}
+                                    />
+                                    <span style={{ fontSize: '0.75rem' }}>Force hardware-accelerated Object Cover Fill</span>
+                                  </label>
+                                </div>
+
+                                {/* Multi-device responsive columns sliders */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Adaptive Responsive Grid Columns</span>
+                                  
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                      <span>Mobile Viewport (Cols)</span>
+                                      <span style={{ fontWeight: 'bold' }}>{layConfig.grid_setup?.columns_mobile || 1}</span>
+                                    </div>
+                                    <input 
+                                      type="range" min="1" max="2" 
+                                      value={layConfig.grid_setup?.columns_mobile || 1} 
+                                      onChange={e => {
+                                        const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                        handleUpdateBlockLayout(block.id, 'grid_setup', { ...setup, columns_mobile: Number(e.target.value) });
+                                      }}
+                                      style={{ width: '100%', cursor: 'ew-resize' }} 
+                                    />
+                                  </div>
+
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                      <span>Tablet Viewport (Cols)</span>
+                                      <span style={{ fontWeight: 'bold' }}>{layConfig.grid_setup?.columns_tablet || 2}</span>
+                                    </div>
+                                    <input 
+                                      type="range" min="1" max="4" 
+                                      value={layConfig.grid_setup?.columns_tablet || 2} 
+                                      onChange={e => {
+                                        const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                        handleUpdateBlockLayout(block.id, 'grid_setup', { ...setup, columns_tablet: Number(e.target.value) });
+                                      }}
+                                      style={{ width: '100%', cursor: 'ew-resize' }} 
+                                    />
+                                  </div>
+
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                      <span>Desktop Viewport (Cols)</span>
+                                      <span style={{ fontWeight: 'bold' }}>{layConfig.grid_setup?.columns_desktop || 4}</span>
+                                    </div>
+                                    <input 
+                                      type="range" min="1" max="6" 
+                                      value={layConfig.grid_setup?.columns_desktop || 4} 
+                                      onChange={e => {
+                                        const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                        handleUpdateBlockLayout(block.id, 'grid_setup', { ...setup, columns_desktop: Number(e.target.value) });
+                                        handleUpdateBlockData(block.id, 'gridColumns', Number(e.target.value));
+                                      }}
+                                      style={{ width: '100%', cursor: 'ew-resize' }} 
+                                    />
+                                    {/* Quick Columns Presets */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.25rem' }}>
+                                      <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Quick Columns Presets (Desktop-Tablet-Mobile)</span>
+                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.35rem' }}>
+                                        {[
+                                          { name: '1-Column List', desc: '1-1-1', mobile: 1, tablet: 1, desktop: 1 },
+                                          { name: 'Classic Split', desc: '2-2-1', mobile: 1, tablet: 2, desktop: 2 },
+                                          { name: 'Minimalist Trio', desc: '3-3-1', mobile: 1, tablet: 3, desktop: 3 },
+                                          { name: 'Premium Quad', desc: '4-2-1', mobile: 1, tablet: 2, desktop: 4 },
+                                          { name: 'Dense Showcase', desc: '6-3-2', mobile: 2, tablet: 3, desktop: 6 }
+                                        ].map(preset => {
+                                          const isSel = (layConfig.grid_setup?.columns_desktop === preset.desktop) && 
+                                                        (layConfig.grid_setup?.columns_tablet === preset.tablet) && 
+                                                        (layConfig.grid_setup?.columns_mobile === preset.mobile);
+                                          return (
+                                            <button
+                                              key={preset.name}
+                                              type="button"
+                                              onClick={() => {
+                                                handleUpdateBlockLayout(block.id, 'grid_setup', {
+                                                  columns_mobile: preset.mobile,
+                                                  columns_tablet: preset.tablet,
+                                                  columns_desktop: preset.desktop,
+                                                  gap: layConfig.grid_setup?.gap || 'gap-8'
+                                                });
+                                                handleUpdateBlockData(block.id, 'gridColumns', preset.desktop);
+                                              }}
+                                              style={{
+                                                border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                                                padding: '0.4rem 0.25rem',
+                                                fontSize: '0.6rem',
+                                                fontWeight: '700',
+                                                backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                                                color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                                                cursor: 'pointer',
+                                                textAlign: 'center'
+                                              }}
+                                            >
+                                              <div>{preset.name}</div>
+                                              <div style={{ fontSize: '0.55rem', opacity: 0.65, fontWeight: 'normal', marginTop: '2px' }}>{preset.desc}</div>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* TAB C: DESIGN SYSTEM TOKENS */}
+                            {activeConfigTab === 'design' && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                
+                                {/* Typography Scale Lock */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Typography Scale Constraint</span>
+                                  <select 
+                                    value={designSync.typography_scale?.title || 'H2'} 
+                                    onChange={e => handleUpdateBlockDesign(block.id, 'typography_scale', { ...designSync.typography_scale, title: e.target.value })}
+                                    className="admin-select"
+                                  >
+                                    <option value="Display">Display Scale (Light Italic Serif 64px)</option>
+                                    <option value="H1">H1 Scale (Sleek Sans-Serif Bold 40px)</option>
+                                    <option value="H2">H2 Scale (Architectural Semi-Bold 24px)</option>
+                                    <option value="Subheading">Subheading Scale (Outfit Medium 18px)</option>
+                                    <option value="Body">Body Scale (Inter Regular 15px)</option>
+                                  </select>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Locks heading size parameters to prevent visual spacing fragmentation.</span>
+                                </div>
+
+                                {/* Glassmorphic Checkbox */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input 
+                                      type="checkbox" 
+                                      checked={designSync.glassmorphic || false} 
+                                      onChange={e => {
+                                        handleUpdateBlockDesign(block.id, 'glassmorphic', e.target.checked);
+                                        handleUpdateBlockData(block.id, 'themeStyle', e.target.checked ? 'glass' : 'light');
+                                      }}
+                                    />
+                                    <span style={{ fontWeight: 600 }}>Frosted Glassmorphism Layer</span>
+                                  </label>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', marginLeft: '1.25rem' }}>Applies backdrop blurs (`backdrop-blur-md`), background transparency opacities, and clean borders.</span>
+                                </div>
+
+                                {/* Corporate Theme palette restriction */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Harmonious Palette Constraint</span>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                    {[
+                                      { name: 'light', label: 'Studio Background', value: '#fcfbfa' },
+                                      { name: 'dark', label: 'Neutral Slate', value: '#18181b' },
+                                      { name: 'accent', label: 'Warm Beige Accent', value: '#c5a880' }
+                                    ].map(tok => {
+                                      const isSel = block.data.themeStyle === tok.name;
+                                      return (
+                                        <div
+                                          key={tok.name}
+                                          onClick={() => {
+                                            handleUpdateBlockData(block.id, 'themeStyle', tok.name);
+                                            handleUpdateBlockDesign(block.id, 'color_profile', { bg: tok.label });
+                                          }}
+                                          style={{
+                                            border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                                            padding: '0.4rem',
+                                            borderRadius: '2px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.35rem',
+                                            backgroundColor: isSel ? 'rgba(0,0,0,0.03)' : 'transparent'
+                                          }}
+                                        >
+                                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tok.value, border: '1px solid var(--color-border)' }}></span>
+                                          <span style={{ fontSize: '0.65rem', fontWeight: 600 }}>{tok.label}</span>
                                         </div>
                                       );
                                     })}
-                                    
-                                    <button 
-                                      onClick={() => {
-                                        const updatedCats = [...(block.data.categories || [])];
-                                        updatedCats.push({ name: 'New Category', image: '' });
-                                        handleUpdateBlockData(block.id, 'categories', updatedCats);
-                                      }}
-                                      className="btn btn-outline" 
-                                      style={{ padding: '0.4rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', marginTop: '0.25rem' }}
-                                    >
-                                      <Plus size={12} /> Add Category Item
-                                    </button>
                                   </div>
-                                </>
-                              )}
-
-                              {block.block_type === 'FeaturedProducts' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Section Header
-                                    <input type="text" value={block.data.title} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>View All Redirection Text
-                                    <input type="text" value={block.data.cta_text} onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Max Product Limit
-                                    <input type="number" value={block.data.limit} onChange={e => handleUpdateBlockData(block.id, 'limit', Number(e.target.value))} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                </>
-                              )}
-
-                              {block.block_type === 'BrandStory' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subtitle
-                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Title
-                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Description
-                                    <textarea rows={3} value={block.data.description || ''} onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', resize: 'vertical', fontFamily: 'inherit' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Quote Highlight
-                                    <input type="text" value={block.data.quote || ''} onChange={e => handleUpdateBlockData(block.id, 'quote', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  {renderImageUploadField(block.id, 'Story Visual Image', block.data.image, 'image')}
-                                </>
-                              )}
-
-                              {block.block_type === 'EditorialGallery' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Gallery Subtitle
-                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Gallery Title
-                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  {renderImageUploadField(block.id, 'Image Panel 1 (Left)', block.data.image1, 'image1')}
-                                  {renderImageUploadField(block.id, 'Image Panel 2 (Center)', block.data.image2, 'image2')}
-                                  {renderImageUploadField(block.id, 'Image Panel 3 (Right)', block.data.image3, 'image3')}
-                                </>
-                              )}
-
-                              {block.block_type === 'NewsletterSubscribe' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Header Title
-                                    <input type="text" value={block.data.title || ''} onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subtitle / Description
-                                    <input type="text" value={block.data.subtitle || ''} onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Subscribe Button Text
-                                    <input type="text" value={block.data.button_text || ''} onChange={e => handleUpdateBlockData(block.id, 'button_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Placeholder Text
-                                    <input type="text" value={block.data.placeholder_text || ''} onChange={e => handleUpdateBlockData(block.id, 'placeholder_text', e.target.value)} style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                </>
-                              )}
-
-                              {block.block_type === 'Spacer' && (
-                                <>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Spacer Height (px): {block.data.height || 60}px
-                                    <input type="range" min="10" max="200" step="5" value={block.data.height || 60} onChange={e => handleUpdateBlockData(block.id, 'height', Number(e.target.value))} style={{ width: '100%', cursor: 'ew-resize' }} />
-                                  </label>
-                                </>
-                              )}
-
-                              {/* Sizing & Layout Panel */}
-                              {renderBlockLayoutSettings(block)}
-
-                              {/* Scheduling Sub-object */}
-                              <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '0.75rem', marginTop: '1rem' }}>
-                                <span style={{ fontWeight: '700', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}><Calendar size={12} /> Campaign Scheduling (Optional)</span>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem' }}>Start Time
-                                    <input type="datetime-local" value={block.scheduling.start_date ? block.scheduling.start_date.substring(0, 16) : ''} onChange={e => handleUpdateBlockScheduling(block.id, 'start_date', e.target.value ? new Date(e.target.value).toISOString() : '')} style={{ padding: '0.35rem', border: '1px solid var(--color-border)', fontSize: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem' }}>End Time
-                                    <input type="datetime-local" value={block.scheduling.end_date ? block.scheduling.end_date.substring(0, 16) : ''} onChange={e => handleUpdateBlockScheduling(block.id, 'end_date', e.target.value ? new Date(e.target.value).toISOString() : '')} style={{ padding: '0.35rem', border: '1px solid var(--color-border)', fontSize: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                                  </label>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Enforces corporate theme rules and contrast ratios (disallows custom arbitrary hex color pollution).</span>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+
+                            {/* TAB D: SMART CTA & ANCHORS */}
+                            {activeConfigTab === 'cta' && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                
+                                {/* Predictive Deep-Link Combobox Input */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Predictive Route Deep-Link</span>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Type to search Products / Collections..." 
+                                    value={searchCtaQuery} 
+                                    onChange={e => setSearchCtaQuery(e.target.value)}
+                                    className="admin-input"
+                                    style={{ padding: '0.5rem' }}
+                                  />
+                                  {searchCtaQuery && (
+                                    <div style={{ border: '1px solid var(--color-border)', borderRadius: '2px', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'var(--color-bg)', zIndex: 10 }}>
+                                      {products.filter(p => p.name.toLowerCase().includes(searchCtaQuery.toLowerCase())).slice(0, 3).map(p => (
+                                        <div 
+                                          key={p.id} 
+                                          onClick={() => {
+                                            handleUpdateBlockData(block.id, 'cta_url', `/product/${p.id}`);
+                                            setSearchCtaQuery('');
+                                          }}
+                                          style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid var(--color-border)', fontSize: '0.7rem' }}
+                                        >
+                                          Product: {p.name}
+                                        </div>
+                                      ))}
+                                      {['new-arrivals', 'accessories', 'all-apparel'].filter(slug => slug.includes(searchCtaQuery.toLowerCase())).map(slug => (
+                                        <div 
+                                          key={slug} 
+                                          onClick={() => {
+                                            handleUpdateBlockData(block.id, 'cta_url', `/shop/${slug}`);
+                                            setSearchCtaQuery('');
+                                          }}
+                                          style={{ padding: '4px 8px', cursor: 'pointer', borderBottom: '1px solid var(--color-border)', fontSize: '0.7rem' }}
+                                        >
+                                          Collection: {slug}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <div style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Current URL Target: <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{block.data.cta_url || '/shop/all'}</span></div>
+                                </div>
+
+                                {/* Click Triggers event mapping */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Functional Modals Mapper</span>
+                                  <select 
+                                    value={block.data.cta_action || 'route'} 
+                                    onChange={e => handleUpdateBlockData(block.id, 'cta_action', e.target.value)}
+                                    className="admin-select"
+                                  >
+                                    <option value="route">Route Redirect (Deep Link Navigation)</option>
+                                    <option value="cart">Open Shopping Cart Drawer Event</option>
+                                    <option value="modal">Launch Newsletter Slide-out Modal</option>
+                                    <option value="anchor">Anchor Scroll (Offset to dynamic container)</option>
+                                  </select>
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Binds clicking the CTA button to active system events instead of a standard URL redirection.</span>
+                                </div>
+                              </div>
+                            )}
+
+                          </div>
                         </div>
                       );
-                    })}
+                    })()}
                   </div>
 
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
-                      <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Active JSON Contract Valid</span>
-                    </div>
-                    <button onClick={handleSaveCmsConfig} className="btn btn-primary" style={{ padding: '0.6rem 2rem' }}>Push Dynamic Layout</button>
-                  </div>
                 </div>
-
-                {/* Right Visual Preview */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Live Layout Canvas Render</h3>
-                      <button 
-                        onClick={() => setIsCanvasFullscreen(true)} 
-                        title="Enter Fullscreen Preview"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--color-gray)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0.25rem',
-                          borderRadius: '4px',
-                          transition: 'all 0.15s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text)'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'var(--color-gray)'}
-                      >
-                        <Maximize2 size={16} />
-                      </button>
-                    </div>
-                    <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-bg)' }}>
-                      <button 
-                        onClick={() => setPreviewMode('desktop')} 
-                        style={{ 
-                          padding: '0.45rem 0.9rem', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.35rem', 
-                          fontSize: '0.75rem', 
-                          fontWeight: '600', 
-                          fontFamily: '"Outfit", sans-serif', 
-                          backgroundColor: previewMode === 'desktop' ? 'var(--color-text)' : 'transparent',
-                          color: previewMode === 'desktop' ? 'var(--color-bg)' : 'var(--color-text)',
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <Monitor size={13} /> Laptop
-                      </button>
-                      <button 
-                        onClick={() => setPreviewMode('tablet')} 
-                        style={{ 
-                          padding: '0.45rem 0.9rem', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.35rem', 
-                          fontSize: '0.75rem', 
-                          fontWeight: '600', 
-                          fontFamily: '"Outfit", sans-serif', 
-                          backgroundColor: previewMode === 'tablet' ? 'var(--color-text)' : 'transparent',
-                          color: previewMode === 'tablet' ? 'var(--color-bg)' : 'var(--color-text)',
-                          borderLeft: '1px solid var(--color-border)',
-                          borderRight: '1px solid var(--color-border)',
-                          borderTop: 'none',
-                          borderBottom: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <Tablet size={13} /> Tablet
-                      </button>
-                      <button 
-                        onClick={() => setPreviewMode('mobile')} 
-                        style={{ 
-                          padding: '0.45rem 0.9rem', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.35rem', 
-                          fontSize: '0.75rem', 
-                          fontWeight: '600', 
-                          fontFamily: '"Outfit", sans-serif', 
-                          backgroundColor: previewMode === 'mobile' ? 'var(--color-text)' : 'transparent',
-                          color: previewMode === 'mobile' ? 'var(--color-bg)' : 'var(--color-text)',
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <Smartphone size={13} /> Mobile
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    style={{ 
-                      width: previewMode === 'desktop' ? '100%' : previewMode === 'tablet' ? '768px' : '375px',
-                      maxWidth: '100%',
-                      margin: '0 auto',
-                      border: previewMode === 'desktop' ? '1px solid var(--color-border)' : '14px solid #1c1917',
-                      borderRadius: previewMode === 'desktop' ? '4px' : previewMode === 'tablet' ? '24px' : '36px',
-                      backgroundColor: 'var(--color-bg)',
-                      overflow: 'hidden',
-                      minHeight: '520px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      boxShadow: previewMode === 'desktop' ? 'none' : '0 25px 50px -12px rgba(0,0,0,0.25)',
-                      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                      position: 'relative'
-                    }}
-                  >
-                    {/* Top Notch for mobile view */}
-                    {previewMode === 'mobile' && (
-                      <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', width: '110px', height: '18px', backgroundColor: '#1c1917', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#27272a', marginRight: '6px' }}></span>
-                        <span style={{ width: '35px', height: '3px', borderRadius: '2px', backgroundColor: '#27272a' }}></span>
-                      </div>
-                    )}
-                    
-                    <div style={{ backgroundColor: 'rgba(0,0,0,0.03)', padding: previewMode === 'mobile' ? '1.15rem 1rem 0.5rem 1rem' : '0.5rem 1rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 5 }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
-                      <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', color: 'var(--color-gray)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        AURA SIMULATOR ({previewMode})
-                      </span>
-                    </div>
-                    <div 
-                      className={`preview-container-wrap ${previewMode === 'mobile' ? 'preview-mobile' : previewMode === 'tablet' ? 'preview-tablet' : 'preview-desktop'}`}
-                      style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1, overflowY: 'auto', maxHeight: previewMode === 'desktop' ? 'none' : '650px' }}
-                    >
-                      {renderVisualBlocks()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Static Content Pages & SEO Wrapper */}
             {cmsSubTab === 'static' && (

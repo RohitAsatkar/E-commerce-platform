@@ -132,18 +132,33 @@ const Home = () => {
   const [pageConfig, setPageConfig] = useState<any>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('aura_cms_homepage');
-    if (saved) {
-      try {
-        setPageConfig(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error loading saved layout configs:", e);
+    const loadConfig = () => {
+      const saved = localStorage.getItem('aura_cms_homepage');
+      if (saved) {
+        try {
+          setPageConfig(JSON.parse(saved));
+        } catch (e) {
+          console.error("Error loading saved layout configs:", e);
+          setPageConfig(DEFAULT_CMS_CONFIG);
+        }
+      } else {
         setPageConfig(DEFAULT_CMS_CONFIG);
       }
-    } else {
-      setPageConfig(DEFAULT_CMS_CONFIG);
-    }
+    };
+
+    loadConfig();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'aura_cms_homepage') {
+        loadConfig();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
+
 
   if (!pageConfig) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', fontFamily: '"Outfit", sans-serif', color: 'var(--color-gray)' }}>Loading AURA Storefront...</div>;
@@ -273,7 +288,14 @@ const Home = () => {
                 <h2 className="featured-cat-title animate-fade-up">
                   {block.data.title || 'Curated Categories'}
                 </h2>
-                <div className={`cms-cat-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 4 } as React.CSSProperties}>
+                <div 
+                  className={`cms-cat-grid ${gapClass} ${hoverClass}`} 
+                  style={{ 
+                    '--grid-cols-desktop': block.layout_configuration?.grid_setup?.columns_desktop || block.data.gridColumns || 4,
+                    '--grid-cols-tablet': block.layout_configuration?.grid_setup?.columns_tablet || 2,
+                    '--grid-cols-mobile': block.layout_configuration?.grid_setup?.columns_mobile || 1
+                  } as React.CSSProperties}
+                >
                   {(block.data.categories || []).map((cat: any, cIdx: number) => {
                     const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
                     const slug = catObj.name.toLowerCase().replace(/\s+/g, '-');
@@ -317,7 +339,14 @@ const Home = () => {
                   </Link>
                 </div>
                 
-                <div className={`product-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 4 } as React.CSSProperties}>
+                <div 
+                  className={`product-grid ${gapClass} ${hoverClass}`} 
+                  style={{ 
+                    '--grid-cols-desktop': block.layout_configuration?.grid_setup?.columns_desktop || block.data.gridColumns || 4,
+                    '--grid-cols-tablet': block.layout_configuration?.grid_setup?.columns_tablet || 2,
+                    '--grid-cols-mobile': block.layout_configuration?.grid_setup?.columns_mobile || 1
+                  } as React.CSSProperties}
+                >
                   {displayList.map((product, pIdx) => (
                     <Link to={`/product/${product.id}`} key={product.id} className="product-card animate-fade-up" style={{ animationDelay: `${pIdx * 0.06}s` }}>
                       <div className={`product-image-wrap aspect-${block.data.aspectRatio || 'portrait'}`}>
@@ -378,7 +407,14 @@ const Home = () => {
                   )}
                   <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'Editorial Gallery'}</h3>
                 </div>
-                <div className={`cms-gallery-grid ${gapClass} ${hoverClass}`} style={{ '--grid-cols': block.data.gridColumns || 3 } as React.CSSProperties}>
+                <div 
+                  className={`cms-gallery-grid ${gapClass} ${hoverClass}`} 
+                  style={{ 
+                    '--grid-cols-desktop': block.layout_configuration?.grid_setup?.columns_desktop || block.data.gridColumns || 3,
+                    '--grid-cols-tablet': block.layout_configuration?.grid_setup?.columns_tablet || 2,
+                    '--grid-cols-mobile': block.layout_configuration?.grid_setup?.columns_mobile || 1
+                  } as React.CSSProperties}
+                >
                   <div className={`cms-gallery-item animate-fade-up aspect-${block.data.aspectRatio || 'portrait'}`} style={{ animationDelay: '0s' }}>
                     {block.data.image1 && <img src={block.data.image1} alt="Lookbook 1" className="cms-gallery-img" />}
                   </div>
