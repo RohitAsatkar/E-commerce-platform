@@ -127,6 +127,274 @@ const DEFAULT_CMS_CONFIG = {
   ]
 };
 
+const CmsHeroSlider = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
+  const slides = block.data.slides || [];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const autoplayEnabled = block.data.autoplay_enabled !== false;
+  const autoplaySpeed = block.data.autoplay_speed || 4000;
+
+  useEffect(() => {
+    if (!autoplayEnabled || slides.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % slides.length);
+    }, autoplaySpeed);
+    return () => clearInterval(interval);
+  }, [slides.length, autoplayEnabled, autoplaySpeed]);
+
+  if (slides.length === 0) {
+    return (
+      <div style={{ padding: '4rem 2rem', textAlign: 'center', backgroundColor: '#f5f5f5', color: '#999', fontSize: '0.9rem', ...style }}>
+        No slides configured. Add slides in settings.
+      </div>
+    );
+  }
+
+  return (
+    <section 
+      className="cms-hero-slider"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '75vh',
+        minHeight: '480px',
+        overflow: 'hidden',
+        backgroundColor: '#000',
+        fontFamily: '"Outfit", sans-serif',
+        ...style
+      }}
+    >
+      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+        {slides.map((slide: any, idx: number) => {
+          const isActive = idx === activeIndex;
+          return (
+            <div
+              key={idx}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: isActive ? 1 : 0,
+                visibility: isActive ? 'visible' : 'hidden',
+                transition: 'opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.8s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundImage: `url(${slide.image_url})`,
+                  backgroundPosition: 'center',
+                  backgroundSize: 'cover',
+                  backgroundRepeat: 'no-repeat',
+                  transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  transition: 'transform 6s ease-out',
+                  zIndex: 1
+                }}
+              />
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  zIndex: 2
+                }}
+              />
+
+              <div 
+                style={{
+                  position: 'absolute',
+                  bottom: '4rem',
+                  left: '5%',
+                  right: '5%',
+                  zIndex: 3,
+                  color: '#fff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                  alignItems: 'flex-start',
+                  textAlign: 'left'
+                }}
+              >
+                {slide.subtitle && (
+                  <span 
+                    className="animate-fade-up"
+                    style={{ 
+                      fontSize: '0.85rem', 
+                      fontWeight: 600, 
+                      letterSpacing: '0.2em', 
+                      textTransform: 'uppercase',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? 'translateY(0)' : 'translateY(15px)',
+                      transition: 'opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s'
+                    }}
+                  >
+                    {slide.subtitle}
+                  </span>
+                )}
+                {slide.title && (
+                  <h2 
+                    className="animate-fade-up"
+                    style={{ 
+                      fontFamily: '"Cormorant Garamond", serif', 
+                      fontSize: 'clamp(2rem, 4vw, 4rem)', 
+                      fontWeight: 400, 
+                      margin: '0.25rem 0',
+                      letterSpacing: '0.03em',
+                      textTransform: 'uppercase',
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? 'translateY(0)' : 'translateY(15px)',
+                      transition: 'opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s'
+                    }}
+                  >
+                    {slide.title}
+                  </h2>
+                )}
+                {slide.cta_text && (
+                  <Link 
+                    to={slide.cta_url || '/shop/all'} 
+                    style={{ 
+                      marginTop: '0.75rem',
+                      padding: '0.7rem 1.8rem', 
+                      backgroundColor: '#fff', 
+                      color: '#000', 
+                      textDecoration: 'none', 
+                      fontSize: '0.75rem', 
+                      fontWeight: 700, 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.15em',
+                      border: 'none',
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? 'translateY(0)' : 'translateY(15px)',
+                      transition: 'opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s, background-color 0.3s, color 0.3s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#000';
+                      e.currentTarget.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#fff';
+                      e.currentTarget.style.color = '#000';
+                    }}
+                  >
+                    {slide.cta_text}
+                  </Link>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {slides.length > 1 && (
+        <>
+          <button
+            onClick={() => setActiveIndex((prev) => (prev - 1 + slides.length) % slides.length)}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '1.5rem',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(4px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff',
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.1rem',
+              transition: 'background 0.3s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+          >
+            ‹
+          </button>
+          <button
+            onClick={() => setActiveIndex((prev) => (prev + 1) % slides.length)}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '1.5rem',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(4px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff',
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.1rem',
+              transition: 'background 0.3s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+          >
+            ›
+          </button>
+        </>
+      )}
+
+      {slides.length > 1 && (
+        <div 
+          style={{
+            position: 'absolute',
+            bottom: '1.75rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10,
+            display: 'flex',
+            gap: '0.6rem'
+          }}
+        >
+          {slides.map((_: any, idx: number) => {
+            const isActive = idx === activeIndex;
+            return (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                style={{
+                  width: isActive ? '28px' : '6px',
+                  height: '6px',
+                  borderRadius: '3px',
+                  border: 'none',
+                  backgroundColor: isActive ? '#fff' : 'rgba(255, 255, 255, 0.4)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+};
+
 const Home = () => {
   const { products } = useProducts();
   const [pageConfig, setPageConfig] = useState<any>(null);
@@ -175,6 +443,7 @@ const Home = () => {
         const key = block.id;
         const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
         const padClass = block.data.sectionPadding ? `pad-${block.data.sectionPadding}` : 'pad-editorial';
+        const padHClass = block.data.sectionHorizontalPadding ? `pad-h-${block.data.sectionHorizontalPadding}` : '';
         const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
         const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
         const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
@@ -187,11 +456,25 @@ const Home = () => {
           backgroundSize: 'cover'
         } : {};
 
+        const layConfig = block.layout_configuration || {};
+        const manualHeight = layConfig.manual_height;
+        const manualWidth = layConfig.manual_width;
+
+        const sectionStyle: React.CSSProperties = {
+          ...parallaxStyle,
+          ...(manualHeight ? { minHeight: `${manualHeight}px`, display: 'flex', flexDirection: 'column', justifyContent: 'center' } : {}),
+          ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
+        };
+
+        const containerStyle: React.CSSProperties = {
+          ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
+        };
+
         if (block.block_type === 'HeroBanner') {
           const isSplit = block.data.layout === 'split';
           return (
-            <section key={key} className={`cms-hero ${padClass} ${themeClass} ${alignClass}`} style={parallaxStyle as React.CSSProperties}>
-              <div className={widthClass}>
+            <section key={key} className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={widthClass} style={containerStyle}>
                 {isSplit ? (
                   <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)' }}>
                     <div className="cms-hero-left" style={{
@@ -272,7 +555,7 @@ const Home = () => {
 
         if (block.block_type === 'PromotionalSlider') {
           return (
-            <div key={key} style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1.25rem 2rem', textAlign: 'center', fontSize: '0.85rem', letterSpacing: '0.08em', fontFamily: '"Outfit", sans-serif', zIndex: 10 }}>
+            <div key={key} style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1.25rem 2rem', textAlign: 'center', fontSize: '0.85rem', letterSpacing: '0.08em', fontFamily: '"Outfit", sans-serif', zIndex: 10, ...sectionStyle }}>
               <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem' }}>
                 <Sparkles size={14} style={{ color: '#c5a880' }} />
                 <span>{block.data.slides?.[0]?.text}</span>
@@ -283,8 +566,8 @@ const Home = () => {
 
         if (block.block_type === 'CategoryGrid') {
           return (
-            <section key={key} className={`cms-cat-section ${padClass} ${themeClass} ${alignClass}`}>
-              <div className={`container ${widthClass}`}>
+            <section key={key} className={`cms-cat-section ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
                 <h2 className="featured-cat-title animate-fade-up">
                   {block.data.title || 'Curated Categories'}
                 </h2>
@@ -328,8 +611,8 @@ const Home = () => {
           const displayList = products.slice(0, displayLimit);
 
           return (
-            <section key={key} className={`section new-arrivals ${padClass} ${themeClass} ${alignClass}`}>
-              <div className={`container ${widthClass}`}>
+            <section key={key} className={`section new-arrivals ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
                 <div className="section-header mb-8 animate-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
                   <h2 className="section-title" style={{ margin: 0 }}>
                     {block.data.title || 'Curated Classics'}
@@ -371,8 +654,8 @@ const Home = () => {
 
         if (block.block_type === 'BrandStory') {
           return (
-            <section key={key} className={`cms-story ${padClass} ${themeClass} ${alignClass}`}>
-              <div className={`cms-story-grid ${widthClass}`}>
+            <section key={key} className={`cms-story ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`cms-story-grid ${widthClass}`} style={containerStyle}>
                 <div className="cms-story-left">
                   {block.data.subtitle && (
                     <span className="cms-story-subtitle animate-fade-up">{block.data.subtitle}</span>
@@ -399,8 +682,8 @@ const Home = () => {
 
         if (block.block_type === 'EditorialGallery') {
           return (
-            <section key={key} className={`cms-gallery ${padClass} ${themeClass} ${alignClass}`}>
-              <div className={`container ${widthClass}`}>
+            <section key={key} className={`cms-gallery ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
                 <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3.5rem' }} className="animate-fade-up">
                   {block.data.subtitle && (
                     <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600 }}>{block.data.subtitle}</span>
@@ -432,8 +715,8 @@ const Home = () => {
 
         if (block.block_type === 'NewsletterSubscribe') {
           return (
-            <section key={key} className={`cms-news ${padClass} ${themeClass} ${alignClass}`}>
-              <div className={widthClass} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <section key={key} className={`cms-news ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={widthClass} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', ...containerStyle }}>
                 <h3 className="cms-news-title animate-fade-up">{block.data.title || 'JOIN THE CLUB'}</h3>
                 {block.data.subtitle && (
                   <p className="cms-news-subtitle animate-fade-up delay-1">{block.data.subtitle}</p>
@@ -452,6 +735,188 @@ const Home = () => {
         if (block.block_type === 'Spacer') {
           return (
             <div key={key} style={{ height: `${block.data.height || 60}px` }} />
+          );
+        }
+
+        if (block.block_type === 'LuxuryFaq') {
+          return (
+            <section key={key} className={`cms-faq ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
+                <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3.5rem' }} className="animate-fade-up">
+                  {block.data.subtitle && (
+                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600 }}>{block.data.subtitle}</span>
+                  )}
+                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'FAQ'}</h3>
+                </div>
+                <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {(block.data.faqs || []).map((faq: any, fIdx: number) => (
+                    <details 
+                      key={fIdx} 
+                      className="faq-details animate-fade-up" 
+                      style={{ 
+                        borderBottom: '1px solid var(--color-border)', 
+                        paddingBottom: '1rem', 
+                        cursor: 'pointer',
+                        animationDelay: `${fIdx * 0.05}s`
+                      }}
+                    >
+                      <summary style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, fontSize: '1rem', listStyle: 'none', padding: '0.5rem 0' }}>
+                        <span>{faq.question}</span>
+                        <span className="faq-icon" style={{ fontSize: '1.25rem', color: 'var(--color-accent)', transition: 'transform 0.2s' }}>+</span>
+                      </summary>
+                      <div style={{ color: 'var(--color-gray)', fontSize: '0.9rem', lineHeight: '1.6', marginTop: '0.5rem', cursor: 'default' }}>
+                        {faq.answer}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        if (block.block_type === 'ReviewTestimonials') {
+          return (
+            <section key={key} className={`cms-reviews ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
+                <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3.5rem' }} className="animate-fade-up">
+                  {block.data.subtitle && (
+                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600 }}>{block.data.subtitle}</span>
+                  )}
+                  <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{block.data.title || 'Client Impressions'}</h3>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+                  {(block.data.reviews || []).map((rev: any, rIdx: number) => (
+                    <div 
+                      key={rIdx} 
+                      className="review-card animate-fade-up"
+                      style={{ 
+                        border: '1px solid var(--color-border)', 
+                        padding: '2.5rem', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '1.25rem',
+                        animationDelay: `${rIdx * 0.08}s`,
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: '4px', color: '#c5a880', fontSize: '1rem' }}>
+                        {Array.from({ length: rev.rating || 5 }).map(() => '★')}
+                      </div>
+                      <blockquote style={{ fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--color-text)', margin: 0, flexGrow: 1, lineHeight: '1.6' }}>
+                        "{rev.quote}"
+                      </blockquote>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--color-light-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>
+                          {rev.client_avatar || rev.client_name.split(' ').map((n: string) => n[0]).join('')}
+                        </div>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', letterSpacing: '0.05em' }}>{rev.client_name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        if (block.block_type === 'LogoCloud') {
+          return (
+            <section key={key} className={`cms-logocloud ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', ...sectionStyle }}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
+                {block.data.title && (
+                  <h5 style={{ textAlign: 'center', fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--color-gray)', textTransform: 'uppercase', marginBottom: '2rem' }} className="animate-fade-up">{block.data.title}</h5>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '4rem' }} className="animate-fade-up">
+                  {(block.data.logos || []).map((logo: any, lIdx: number) => (
+                    <div 
+                      key={lIdx} 
+                      style={{ 
+                        fontSize: '1.1rem', 
+                        fontWeight: 700, 
+                        letterSpacing: '0.2em', 
+                        opacity: 0.55, 
+                        fontFamily: '"Outfit", sans-serif', 
+                        color: 'var(--color-text)',
+                        transition: 'opacity 0.2s'
+                      }}
+                      className="logo-cloud-item"
+                    >
+                      {logo.image_url ? (
+                        <img src={logo.image_url} alt={logo.name} style={{ height: '28px', filter: 'grayscale(100%)' }} />
+                      ) : (
+                        logo.name
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        if (block.block_type === 'HeroGrid') {
+          return (
+            <section key={key} className={`cms-herogrid ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+              <div className={`container ${widthClass}`} style={containerStyle}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem', alignItems: 'center' }}>
+                  <div className="animate-fade-in" style={{ position: 'relative', overflow: 'hidden' }}>
+                    <img 
+                      src={block.data.image_left} 
+                      alt="Mosaic Highlight" 
+                      style={{ 
+                        width: '100%', 
+                        maxHeight: '550px', 
+                        objectFit: 'cover', 
+                        transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)' 
+                      }} 
+                      className="mosaic-left-img"
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+                    <div className="animate-fade-up">
+                      <span style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.25em', fontWeight: 600 }}>{block.data.subtitle}</span>
+                      <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '3rem', fontWeight: 500, margin: '0.75rem 0 1.25rem 0', textTransform: 'uppercase', lineHeight: 1.1 }}>{block.data.title}</h2>
+                      <p style={{ color: 'var(--color-gray)', fontSize: '1rem', lineHeight: '1.7', marginBottom: '2rem' }}>{block.data.description}</p>
+                      {block.data.cta_text && (
+                        <Link 
+                          to={block.data.cta_url || '/shop/all'} 
+                          style={{ 
+                            display: 'inline-block',
+                            borderBottom: '2px solid var(--color-text)', 
+                            paddingBottom: '4px', 
+                            fontSize: '0.9rem', 
+                            fontWeight: 600, 
+                            letterSpacing: '0.15em', 
+                            color: 'var(--color-text)',
+                            textTransform: 'uppercase',
+                            textDecoration: 'none',
+                            transition: 'color 0.2s, border-color 0.2s'
+                          }}
+                          className="mosaic-cta-link"
+                        >
+                          {block.data.cta_text}
+                        </Link>
+                      )}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                      <div className="animate-fade-up" style={{ overflow: 'hidden', animationDelay: '0.1s' }}>
+                        <img src={block.data.image_right_top} alt="Mosaic Aux 1" style={{ width: '100%', height: '220px', objectFit: 'cover' }} />
+                      </div>
+                      <div className="animate-fade-up" style={{ overflow: 'hidden', animationDelay: '0.2s' }}>
+                        <img src={block.data.image_right_bottom} alt="Mosaic Aux 2" style={{ width: '100%', height: '220px', objectFit: 'cover' }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        if (block.block_type === 'HeroSlider') {
+          return (
+            <CmsHeroSlider key={key} block={block} style={sectionStyle} />
           );
         }
 

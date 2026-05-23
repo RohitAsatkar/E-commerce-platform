@@ -1219,9 +1219,57 @@
   padding-top: clamp(10rem, 18vw, 20rem) !important;
   padding-bottom: clamp(10rem, 18vw, 20rem) !important;
 }
+.pad-h-none,
+.pad-h-none .container,
+.pad-h-none .width-standard,
+.pad-h-none .width-narrow,
+.pad-h-none .cms-story-grid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.pad-h-studio_minimal,
+.pad-h-studio_minimal .container,
+.pad-h-studio_minimal .width-standard,
+.pad-h-studio_minimal .width-narrow,
+.pad-h-studio_minimal .cms-story-grid {
+  padding-left: clamp(1rem, 2vw, 1.5rem) !important;
+  padding-right: clamp(1rem, 2vw, 1.5rem) !important;
+}
+.pad-h-compact,
+.pad-h-compact .container,
+.pad-h-compact .width-standard,
+.pad-h-compact .width-narrow,
+.pad-h-compact .cms-story-grid {
+  padding-left: clamp(1.5rem, 4vw, 3rem) !important;
+  padding-right: clamp(1.5rem, 4vw, 3rem) !important;
+}
+.pad-h-editorial,
+.pad-h-editorial .container,
+.pad-h-editorial .width-standard,
+.pad-h-editorial .width-narrow,
+.pad-h-editorial .cms-story-grid {
+  padding-left: clamp(2.5rem, 8vw, 6rem) !important;
+  padding-right: clamp(2.5rem, 8vw, 6rem) !important;
+}
+.pad-h-grand,
+.pad-h-grand .container,
+.pad-h-grand .width-standard,
+.pad-h-grand .width-narrow,
+.pad-h-grand .cms-story-grid {
+  padding-left: clamp(4rem, 14vw, 12rem) !important;
+  padding-right: clamp(4rem, 14vw, 12rem) !important;
+}
+.pad-h-epic,
+.pad-h-epic .container,
+.pad-h-epic .width-standard,
+.pad-h-epic .width-narrow,
+.pad-h-epic .cms-story-grid {
+  padding-left: clamp(6rem, 20vw, 20rem) !important;
+  padding-right: clamp(6rem, 20vw, 20rem) !important;
+}
 
 .width-narrow {
-  max-width: 820px !important;
+  max-width: 820px;
   margin-left: auto !important;
   margin-right: auto !important;
   width: 100% !important;
@@ -1229,7 +1277,7 @@
   padding-right: 2rem !important;
 }
 .width-standard {
-  max-width: 1280px !important;
+  max-width: 1280px;
   margin-left: auto !important;
   margin-right: auto !important;
   width: 100% !important;
@@ -1237,7 +1285,7 @@
   padding-right: 2rem !important;
 }
 .width-full {
-  max-width: 100% !important;
+  max-width: 100%;
   width: 100% !important;
   padding-left: 0 !important;
   padding-right: 0 !important;

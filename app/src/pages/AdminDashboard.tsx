@@ -7,7 +7,7 @@ import { getProductCurrency } from '../lib/currency';
 import { 
   Search, Filter, X, LogOut, 
   TrendingUp, ShoppingBag, Box, Clock, CheckCircle, 
-  AlertCircle, Eye, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Compass, Sparkles,
+  AlertCircle, Eye, EyeOff, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Compass, Sparkles,
   Monitor, Tablet, Smartphone, Maximize2, Minimize2,
   Copy, ChevronDown, ChevronRight, Grid, Sliders, Settings, Link, Layers, Edit3
 } from 'lucide-react';
@@ -18,6 +18,251 @@ const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
 ];
+
+const CmsHeroSlider = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
+  const slides = block.data.slides || [];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const autoplayEnabled = block.data.autoplay_enabled !== false;
+  const autoplaySpeed = block.data.autoplay_speed || 4000;
+
+  useEffect(() => {
+    if (!autoplayEnabled || slides.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % slides.length);
+    }, autoplaySpeed);
+    return () => clearInterval(interval);
+  }, [slides.length, autoplayEnabled, autoplaySpeed]);
+
+  if (slides.length === 0) {
+    return (
+      <div style={{ padding: '4rem 2rem', textAlign: 'center', backgroundColor: 'var(--color-bg)', border: '1px dashed var(--color-border)', color: 'var(--color-gray)', fontSize: '0.85rem', ...style }}>
+        No slides configured. Open properties to add slides.
+      </div>
+    );
+  }
+
+  return (
+    <section 
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '420px',
+        overflow: 'hidden',
+        backgroundColor: '#000',
+        fontFamily: '"Outfit", sans-serif',
+        ...style
+      }}
+    >
+      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+        {slides.map((slide: any, idx: number) => {
+          const isActive = idx === activeIndex;
+          return (
+            <div
+              key={idx}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: isActive ? 1 : 0,
+                visibility: isActive ? 'visible' : 'hidden',
+                transition: 'opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.8s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundImage: `url(${slide.image_url})`,
+                  backgroundPosition: 'center',
+                  backgroundSize: 'cover',
+                  backgroundRepeat: 'no-repeat',
+                  transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  transition: 'transform 6s ease-out',
+                  zIndex: 1
+                }}
+              />
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  zIndex: 2
+                }}
+              />
+
+              <div 
+                style={{
+                  position: 'absolute',
+                  bottom: '3rem',
+                  left: '5%',
+                  right: '5%',
+                  zIndex: 3,
+                  color: '#fff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.4rem',
+                  alignItems: 'flex-start',
+                  textAlign: 'left'
+                }}
+              >
+                {slide.subtitle && (
+                  <span 
+                    style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: 600, 
+                      letterSpacing: '0.2em', 
+                      textTransform: 'uppercase',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? 'translateY(0)' : 'translateY(15px)',
+                      transition: 'opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s'
+                    }}
+                  >
+                    {slide.subtitle}
+                  </span>
+                )}
+                {slide.title && (
+                  <h2 
+                    style={{ 
+                      fontFamily: '"Cormorant Garamond", serif', 
+                      fontSize: '2rem', 
+                      fontWeight: 400, 
+                      margin: '0.15rem 0',
+                      letterSpacing: '0.03em',
+                      textTransform: 'uppercase',
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? 'translateY(0)' : 'translateY(15px)',
+                      transition: 'opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s'
+                    }}
+                  >
+                    {slide.title}
+                  </h2>
+                )}
+                {slide.cta_text && (
+                  <div 
+                    style={{ 
+                      marginTop: '0.5rem',
+                      padding: '0.5rem 1.4rem', 
+                      backgroundColor: '#fff', 
+                      color: '#000', 
+                      fontSize: '0.7rem', 
+                      fontWeight: 700, 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.15em',
+                      border: 'none'
+                    }}
+                  >
+                    {slide.cta_text}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {slides.length > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); setActiveIndex((prev) => (prev - 1 + slides.length) % slides.length); }}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '1rem',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(4px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem'
+            }}
+          >
+            ‹
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setActiveIndex((prev) => (prev + 1) % slides.length); }}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '1rem',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(4px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem'
+            }}
+          >
+            ›
+          </button>
+        </>
+      )}
+
+      {slides.length > 1 && (
+        <div 
+          style={{
+            position: 'absolute',
+            bottom: '1.25rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10,
+            display: 'flex',
+            gap: '0.4rem'
+          }}
+        >
+          {slides.map((_: any, idx: number) => {
+            const isActive = idx === activeIndex;
+            return (
+              <button
+                key={idx}
+                onClick={(e) => { e.stopPropagation(); setActiveIndex(idx); }}
+                style={{
+                  width: isActive ? '20px' : '5px',
+                  height: '5px',
+                  borderRadius: '3px',
+                  border: 'none',
+                  backgroundColor: isActive ? '#fff' : 'rgba(255, 255, 255, 0.4)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+};
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -163,6 +408,9 @@ const AdminDashboard = () => {
     };
   });
   const [selectedBlockId, setSelectedBlockId] = useState<string>("block_hero_01");
+  let renderEditMenuRef = (): React.ReactNode => null;
+  const [fullscreenSidebarWidth, setFullscreenSidebarWidth] = useState<number>(420);
+  const [showFullscreenSidebar, setShowFullscreenSidebar] = useState<boolean>(true);
 
   // Navigation state
   const [navMenus, setNavMenus] = useState<any>({
@@ -678,8 +926,12 @@ const AdminDashboard = () => {
         if (b.id === blockId) {
           if (index !== undefined) {
             const arr = b.data[fieldName] ? [...b.data[fieldName]] : [];
-            const currentItem = typeof arr[index] === 'string' ? { name: arr[index], image: '' } : arr[index];
-            arr[index] = { ...currentItem, image: url };
+            const currentItem = typeof arr[index] === 'string' ? { name: arr[index], image: '', image_url: '' } : arr[index];
+            if (b.block_type === 'HeroSlider' && fieldName === 'slides') {
+              arr[index] = { ...currentItem, image_url: url };
+            } else {
+              arr[index] = { ...currentItem, image: url };
+            }
             return {
               ...b,
               data: { ...b.data, [fieldName]: arr }
@@ -798,6 +1050,75 @@ const AdminDashboard = () => {
       defaultData = {
         height: 60
       };
+    } else if (type === 'LuxuryFaq') {
+      defaultData = {
+        title: "Frequently Asked Questions",
+        subtitle: "Customer Service & Polices",
+        faqs: [
+          { question: "What is your return policy?", answer: "We offer complimentary pickup and returns within 14 days of receipt for all unworn garments in their original packaging." },
+          { question: "Do you ship internationally?", answer: "Yes, we ship to over 80 countries worldwide via tracked express courier, with import duties calculated at checkout." },
+          { question: "Can I request custom tailoring?", answer: "Select outerwear pieces can be customized at our flagship design studio. Please contact concierge support to schedule a sizing appointment." }
+        ]
+      };
+    } else if (type === 'ReviewTestimonials') {
+      defaultData = {
+        title: "Client Impressions",
+        subtitle: "Voices of Aura Community",
+        reviews: [
+          { client_name: "Eleanor Vance", rating: 5, quote: "The architectural drape of the wool coat is unmatched. Truly heirloom quality.", client_avatar: "EV" },
+          { client_name: "Julian Brooks", rating: 5, quote: "Understated elegance, beautiful weight, and flawless minimalist finishing.", client_avatar: "JB" }
+        ]
+      };
+    } else if (type === 'LogoCloud') {
+      defaultData = {
+        title: "AS FEATURED IN",
+        logos: [
+          { name: "VOGUE", image_url: "" },
+          { name: "GQ", image_url: "" },
+          { name: "VANITY FAIR", image_url: "" },
+          { name: "WALLPAPER*", image_url: "" },
+          { name: "SENSE", image_url: "" }
+        ]
+      };
+    } else if (type === 'HeroGrid') {
+      defaultData = {
+        title: "AURA / MODERN MOSAIC",
+        subtitle: "PREMIUM LOOKBOOK CAPTURES",
+        description: "An interactive composition of structural forms and natural textures, highlighting the season's tactile landscape.",
+        image_left: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800",
+        image_right_top: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+        image_right_bottom: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=600",
+        cta_text: "DISCOVER CAMPAIGN",
+        cta_url: "/shop/all"
+      };
+    } else if (type === 'HeroSlider') {
+      defaultData = {
+        autoplay_speed: 4000,
+        autoplay_enabled: true,
+        slides: [
+          {
+            image_url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200",
+            title: "SUMMER SHIRTS",
+            subtitle: "STARTING AT ₹899",
+            cta_text: "SHOP NOW",
+            cta_url: "/shop/shirts"
+          },
+          {
+            image_url: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=1200",
+            title: "MUST-HAVE DENIMS",
+            subtitle: "BAGGY | RELAXED | STRAIGHT",
+            cta_text: "EXPLORE DENIM",
+            cta_url: "/shop/jeans"
+          },
+          {
+            image_url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200",
+            title: "FLAT 40% OFF",
+            subtitle: "18TH TO 25TH MAY",
+            cta_text: "SHOP SALE",
+            cta_url: "/shop/all"
+          }
+        ]
+      };
     }
 
     const newBlock = {
@@ -808,10 +1129,17 @@ const AdminDashboard = () => {
       semantic_tag: semanticTag,
       scheduling: { start_date: "", end_date: "" },
       layout_configuration: {
-        padding: { fluid_clamp: "py-[clamp(3rem,6vw,8rem)] px-[clamp(1rem,4vw,3rem)]", preset: "medium" },
+        padding: { 
+          fluid_clamp: "py-[clamp(3rem,6vw,8rem)] px-[clamp(1rem,4vw,3rem)]", 
+          preset: "medium",
+          horizontal_preset: "editorial",
+          horizontal_fluid_clamp: "px-[clamp(2rem,6vw,5rem)]"
+        },
         grid_setup: { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4, gap: "gap-8" },
         aspect_ratio: "portrait",
-        object_fit: "cover"
+        object_fit: "cover",
+        manual_height: "",
+        manual_width: ""
       },
       animation_orchestrator: {
         entry_trigger: "scroll_view",
@@ -1023,13 +1351,14 @@ const AdminDashboard = () => {
 
   const renderVisualBlocks = () => {
     return (
-      <div className="home-page animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0', pointerEvents: 'none', width: '100%' }}>
+      <div className="home-page animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0', pointerEvents: sandboxMode === 'edit' ? 'auto' : 'none', width: '100%' }}>
         {cmsPageConfig.blocks.map((block: any) => {
           const isSelected = block.id === selectedBlockId;
           const isScheduled = block.scheduling.start_date || block.scheduling.end_date;
           
           const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
           const padClass = block.data.sectionPadding ? `pad-${block.data.sectionPadding}` : 'pad-editorial';
+          const padHClass = block.data.sectionHorizontalPadding ? `pad-h-${block.data.sectionHorizontalPadding}` : '';
           const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
           const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
           const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
@@ -1042,13 +1371,27 @@ const AdminDashboard = () => {
             backgroundSize: 'cover'
           } : {};
 
+          const layConfig = block.layout_configuration || {};
+          const manualHeight = layConfig.manual_height;
+          const manualWidth = layConfig.manual_width;
+
+          const sectionStyle: React.CSSProperties = {
+            ...parallaxStyle,
+            ...(manualHeight ? { minHeight: `${manualHeight}px`, display: 'flex', flexDirection: 'column', justifyContent: 'center' } : {}),
+            ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
+          };
+
+          const containerStyle: React.CSSProperties = {
+            ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
+          };
+
           let blockContent = null;
 
           if (block.block_type === 'HeroBanner') {
             const isSplit = block.data.layout === 'split';
             blockContent = (
-              <section className={`cms-hero ${padClass} ${themeClass} ${alignClass}`} style={parallaxStyle as React.CSSProperties}>
-                <div className={widthClass}>
+              <section className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={widthClass} style={containerStyle}>
                   {isSplit ? (
                     <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)' }}>
                       <div className="cms-hero-left" style={{
@@ -1138,8 +1481,8 @@ const AdminDashboard = () => {
             );
           } else if (block.block_type === 'CategoryGrid') {
             blockContent = (
-              <section className={`cms-cat-section ${padClass} ${themeClass} ${alignClass}`}>
-                <div className={`container ${widthClass}`}>
+              <section className={`cms-cat-section ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={`container ${widthClass}`} style={containerStyle}>
                   <h2 className="featured-cat-title">
                     {block.data.title || 'Curated Categories'}
                   </h2>
@@ -1170,8 +1513,8 @@ const AdminDashboard = () => {
             const displayLimit = block.data.limit || 4;
             const displayList = products.slice(0, displayLimit);
             blockContent = (
-              <section className={`section new-arrivals ${padClass} ${themeClass} ${alignClass}`}>
-                <div className={`container ${widthClass}`}>
+              <section className={`section new-arrivals ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={`container ${widthClass}`} style={containerStyle}>
                   <div className="section-header mb-8" style={{ display: 'flex', flexDirection: 'column', alignItems: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
                     <h2 className="section-title" style={{ margin: 0 }}>
                       {block.data.title || 'Curated Classics'}
@@ -1204,8 +1547,8 @@ const AdminDashboard = () => {
             );
           } else if (block.block_type === 'BrandStory') {
             blockContent = (
-              <section className={`cms-story ${padClass} ${themeClass} ${alignClass}`}>
-                <div className={`cms-story-grid ${widthClass}`}>
+              <section className={`cms-story ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={`cms-story-grid ${widthClass}`} style={containerStyle}>
                   <div className="cms-story-left">
                     {block.data.subtitle && (
                       <span className="cms-story-subtitle">{block.data.subtitle}</span>
@@ -1230,8 +1573,8 @@ const AdminDashboard = () => {
             );
           } else if (block.block_type === 'EditorialGallery') {
             blockContent = (
-              <section className={`cms-gallery ${padClass} ${themeClass} ${alignClass}`}>
-                <div className={`container ${widthClass}`}>
+              <section className={`cms-gallery ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={`container ${widthClass}`} style={containerStyle}>
                   <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3.5rem' }}>
                     {block.data.subtitle && (
                       <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 600 }}>{block.data.subtitle}</span>
@@ -1254,8 +1597,8 @@ const AdminDashboard = () => {
             );
           } else if (block.block_type === 'NewsletterSubscribe') {
             blockContent = (
-              <section className={`cms-news ${padClass} ${themeClass} ${alignClass}`}>
-                <div className={widthClass} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+              <section className={`cms-news ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={widthClass} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', ...containerStyle }}>
                   <h3 className="cms-news-title">{block.data.title || 'JOIN THE CLUB'}</h3>
                   {block.data.subtitle && (
                     <p className="cms-news-subtitle">{block.data.subtitle}</p>
@@ -1273,6 +1616,100 @@ const AdminDashboard = () => {
             blockContent = (
               <div style={{ height: `${block.data.height || 60}px` }} />
             );
+          } else if (block.block_type === 'LuxuryFaq') {
+            blockContent = (
+              <section className={`cms-faq ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={widthClass} style={containerStyle}>
+                  <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '2.5rem' }}>
+                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-accent)' }}>{block.data.subtitle || 'QUESTIONS'}</span>
+                    <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0' }}>{block.data.title || 'FAQ'}</h3>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '800px', margin: '0 auto' }}>
+                    {(block.data.faqs || []).map((faq: any, fIdx: number) => (
+                      <div key={fIdx} style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                        <h4 style={{ fontWeight: 600, fontSize: '0.95rem', margin: '0 0 0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{faq.question}</span>
+                          <span style={{ color: 'var(--color-accent)' }}>+</span>
+                        </h4>
+                        <p style={{ color: 'var(--color-gray)', fontSize: '0.85rem', lineHeight: '1.5', margin: 0 }}>{faq.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'ReviewTestimonials') {
+            blockContent = (
+              <section className={`cms-reviews ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={widthClass} style={containerStyle}>
+                  <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3rem' }}>
+                    <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-accent)' }}>{block.data.subtitle}</span>
+                    <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0' }}>{block.data.title || 'Testimonials'}</h3>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                    {(block.data.reviews || []).map((rev: any, rIdx: number) => (
+                      <div key={rIdx} style={{ border: '1px solid var(--color-border)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+                        <div style={{ display: 'flex', gap: '2px', color: '#c5a880', fontSize: '1rem' }}>
+                          {Array.from({ length: rev.rating || 5 }).map(() => '★')}
+                        </div>
+                        <blockquote style={{ fontStyle: 'italic', fontSize: '0.9rem', color: 'var(--color-text)', margin: 0, flexGrow: 1 }}>"{rev.quote}"</blockquote>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>{rev.client_avatar || 'C'}</div>
+                          <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{rev.client_name}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'LogoCloud') {
+            blockContent = (
+              <section className={`cms-logocloud ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', ...sectionStyle }}>
+                <div className={widthClass} style={containerStyle}>
+                  {block.data.title && (
+                    <h5 style={{ textAlign: 'center', fontSize: '0.7rem', letterSpacing: '0.2em', color: 'var(--color-gray)', textTransform: 'uppercase', marginBottom: '1.5rem' }}>{block.data.title}</h5>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '3rem' }}>
+                    {(block.data.logos || []).map((logo: any, lIdx: number) => (
+                      <div key={lIdx} style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.15em', opacity: 0.65, fontFamily: '"Outfit", sans-serif', color: 'var(--color-text)' }}>
+                        {logo.image_url ? <img src={logo.image_url} alt={logo.name} style={{ height: '24px', filter: 'grayscale(100%)' }} /> : logo.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'HeroGrid') {
+            blockContent = (
+              <section className={`cms-herogrid ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                <div className={widthClass} style={containerStyle}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                      <img src={block.data.image_left} alt="Mosaic Left" style={{ width: '100%', height: '400px', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>{block.data.subtitle}</span>
+                        <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 1rem 0', textTransform: 'uppercase' }}>{block.data.title}</h2>
+                        <p style={{ color: 'var(--color-gray)', fontSize: '0.9rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>{block.data.description}</p>
+                        {block.data.cta_text && (
+                          <span style={{ borderBottom: '1px solid var(--color-text)', paddingBottom: '4px', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.1em', cursor: 'default' }}>{block.data.cta_text}</span>
+                        )}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <img src={block.data.image_right_top} alt="Mosaic Right Top" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                        <img src={block.data.image_right_bottom} alt="Mosaic Right Bottom" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          } else if (block.block_type === 'HeroSlider') {
+            blockContent = (
+              <CmsHeroSlider block={block} style={sectionStyle} />
+            );
           }
 
           return (
@@ -1284,7 +1721,8 @@ const AdminDashboard = () => {
                 position: 'relative', 
                 cursor: 'pointer',
                 margin: '0.5rem 0',
-                transition: 'all 0.15s' 
+                transition: 'all 0.15s',
+                ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
               }}
             >
               <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.35rem', alignItems: 'center', zIndex: 100 }}>
@@ -1662,10 +2100,17 @@ const AdminDashboard = () => {
               // Helper functions for dynamic configurations
               const getBlockLayoutConfig = (block: any) => {
                 const defaults = {
-                  padding: { fluid_clamp: "py-[clamp(3rem,6vw,8rem)] px-[clamp(1rem,4vw,3rem)]", preset: "editorial" },
+                  padding: { 
+                    fluid_clamp: "py-[clamp(3rem,6vw,8rem)] px-[clamp(1rem,4vw,3rem)]", 
+                    preset: "editorial",
+                    horizontal_preset: "editorial",
+                    horizontal_fluid_clamp: "px-[clamp(2rem,6vw,5rem)]"
+                  },
                   grid_setup: { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4, gap: "gap-8" },
                   aspect_ratio: block.data?.aspectRatio || "portrait",
-                  object_fit: "cover"
+                  object_fit: "cover",
+                  manual_height: "",
+                  manual_width: ""
                 };
                 if (!block.layout_configuration) return defaults;
                 return {
@@ -1745,11 +2190,15 @@ const AdminDashboard = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
                           {[
                             { type: 'HeroBanner', desc: 'Campaign Split Hero', tag: 'section' },
+                            { type: 'HeroSlider', desc: 'Auto Rotating Slideshow Banner', tag: 'section' },
+                            { type: 'HeroGrid', desc: 'Lookbook Editorial Mosaic Grid', tag: 'header' },
                             { type: 'PromotionalSlider', desc: 'Countdown Announcement Bar', tag: 'aside' },
                             { type: 'CategoryGrid', desc: 'Curated Categories Grid', tag: 'section' },
                             { type: 'FeaturedProducts', desc: 'Weekly Featured Products', tag: 'article' },
                             { type: 'BrandStory', desc: 'Editorial Narrative Highlight', tag: 'aside' },
+                            { type: 'ReviewTestimonials', desc: 'Luxury Client Testimonials Grid', tag: 'section' },
                             { type: 'EditorialGallery', desc: 'Lookbook Captures Slider', tag: 'section' },
+                            { type: 'LuxuryFaq', desc: 'Interactive Accordion FAQ', tag: 'section' },
                             { type: 'NewsletterSubscribe', desc: 'Minimal Join Club Input', tag: 'footer' },
                             { type: 'Spacer', desc: 'Geometric Layout Spacer', tag: 'div' }
                           ].map((preset) => (
@@ -1965,18 +2414,32 @@ const AdminDashboard = () => {
                             const dskCols = layConfig.grid_setup?.columns_desktop || 4;
 
                             const padClass = `pad-${pad}`;
+                            const padH = layConfig.padding?.horizontal_preset || '';
+                            const padHClass = padH ? `pad-h-${padH}` : '';
                             const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
                             const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
                             const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
                             const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+
+                            const manualHeight = layConfig.manual_height;
+                            const manualWidth = layConfig.manual_width;
+
+                            const sectionStyle: React.CSSProperties = {
+                              ...(manualHeight ? { minHeight: `${manualHeight}px`, display: 'flex', flexDirection: 'column', justifyContent: 'center' } : {}),
+                              ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
+                            };
+
+                            const containerStyle: React.CSSProperties = {
+                              ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
+                            };
 
                             let blockContent = null;
 
                             if (block.block_type === 'HeroBanner') {
                               const isSplit = block.data.layout === 'split';
                               blockContent = (
-                                <section className={`cms-hero ${padClass} ${themeClass} ${alignClass}`}>
-                                  <div className="width-standard">
+                                <section className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="width-standard" style={containerStyle}>
                                     {isSplit ? (
                                       <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)' }}>
                                         <div className="cms-hero-left" style={{ padding: '4rem 3rem' }}>
@@ -2010,14 +2473,14 @@ const AdminDashboard = () => {
                               );
                             } else if (block.block_type === 'PromotionalSlider') {
                               blockContent = (
-                                <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1rem', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
+                                <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1rem', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '0.05em', ...sectionStyle }}>
                                   <span>{block.data.slides?.[0]?.text || 'Private Collection Preview'}</span>
                                 </div>
                               );
                             } else if (block.block_type === 'CategoryGrid') {
                               blockContent = (
-                                <section className={`cms-cat-section ${padClass} ${themeClass} ${alignClass}`}>
-                                  <div className="container width-standard">
+                                <section className={`cms-cat-section ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="container width-standard" style={containerStyle}>
                                     <h2 className="featured-cat-title" style={{ fontFamily: 'var(--font-heading)' }}>{block.data.title || 'Curated Categories'}</h2>
                                     
                                     {/* Grid mapping columns slider values dynamically in style overrides */}
@@ -2056,8 +2519,8 @@ const AdminDashboard = () => {
                               const limit = block.data.limit || 4;
                               const displayList = products.slice(0, limit);
                               blockContent = (
-                                <section className={`section new-arrivals ${padClass} ${themeClass} ${alignClass}`}>
-                                  <div className="container width-standard">
+                                <section className={`section new-arrivals ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="container width-standard" style={containerStyle}>
                                     <h2 className="section-title" style={{ fontFamily: 'var(--font-heading)', marginBottom: '1.5rem' }}>{block.data.title || 'Curated Classics'}</h2>
                                     
                                     <div 
@@ -2088,8 +2551,8 @@ const AdminDashboard = () => {
                               );
                             } else if (block.block_type === 'BrandStory') {
                               blockContent = (
-                                <section className={`cms-story ${padClass} ${themeClass} ${alignClass}`}>
-                                  <div className="cms-story-grid width-standard">
+                                <section className={`cms-story ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="cms-story-grid width-standard" style={containerStyle}>
                                     <div className="cms-story-left">
                                       {block.data.subtitle && <span className="cms-story-subtitle">{block.data.subtitle}</span>}
                                       <h2 className="cms-story-title">{block.data.title || 'Brand Story'}</h2>
@@ -2104,8 +2567,8 @@ const AdminDashboard = () => {
                               );
                             } else if (block.block_type === 'EditorialGallery') {
                               blockContent = (
-                                <section className={`cms-gallery ${padClass} ${themeClass} ${alignClass}`}>
-                                  <div className="container width-standard">
+                                <section className={`cms-gallery ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="container width-standard" style={containerStyle}>
                                     <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', marginBottom: '2rem' }}>{block.data.title || 'Editorial Gallery'}</h3>
                                     <div 
                                       className={`cms-gallery-grid ${gapClass} ${hoverClass}`}
@@ -2128,8 +2591,8 @@ const AdminDashboard = () => {
                               );
                             } else if (block.block_type === 'NewsletterSubscribe') {
                               blockContent = (
-                                <section className={`cms-news ${padClass} ${themeClass} ${alignClass}`}>
-                                  <div className="width-standard" style={{ textAlign: 'center' }}>
+                                <section className={`cms-news ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="width-standard" style={{ textAlign: 'center', ...containerStyle }}>
                                     <h3 className="cms-news-title">{block.data.title || 'JOIN THE CLUB'}</h3>
                                     <p className="cms-news-subtitle">{block.data.subtitle}</p>
                                     <div className="cms-news-form">
@@ -2139,9 +2602,103 @@ const AdminDashboard = () => {
                                   </div>
                                 </section>
                               );
-                            } else if (block.block_type === 'Spacer') {
+                             } else if (block.block_type === 'Spacer') {
                               blockContent = (
                                 <div style={{ height: `${block.data.height || 60}px` }} />
+                              );
+                            } else if (block.block_type === 'LuxuryFaq') {
+                              blockContent = (
+                                <section className={`cms-faq ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="width-standard" style={containerStyle}>
+                                    <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '2.5rem' }}>
+                                      <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-accent)' }}>{block.data.subtitle || 'QUESTIONS'}</span>
+                                      <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0' }}>{block.data.title || 'FAQ'}</h3>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '800px', margin: '0 auto' }}>
+                                      {(block.data.faqs || []).map((faq: any, fIdx: number) => (
+                                        <div key={fIdx} style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                                          <h4 style={{ fontWeight: 600, fontSize: '0.95rem', margin: '0 0 0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
+                                            <span>{faq.question}</span>
+                                            <span style={{ color: 'var(--color-accent)' }}>+</span>
+                                          </h4>
+                                          <p style={{ color: 'var(--color-gray)', fontSize: '0.85rem', lineHeight: '1.5', margin: 0 }}>{faq.answer}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'ReviewTestimonials') {
+                              blockContent = (
+                                <section className={`cms-reviews ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="width-standard" style={containerStyle}>
+                                    <div style={{ textAlign: block.data.textAlign || 'center', marginBottom: '3rem' }}>
+                                      <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-accent)' }}>{block.data.subtitle}</span>
+                                      <h3 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0' }}>{block.data.title || 'Testimonials'}</h3>
+                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                                        {(block.data.reviews || []).map((rev: any, rIdx: number) => (
+                                          <div key={rIdx} style={{ border: '1px solid var(--color-border)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+                                            <div style={{ display: 'flex', gap: '2px', color: '#c5a880', fontSize: '1rem' }}>
+                                              {Array.from({ length: rev.rating || 5 }).map(() => '★')}
+                                            </div>
+                                            <blockquote style={{ fontStyle: 'italic', fontSize: '0.9rem', color: 'var(--color-text)', margin: 0, flexGrow: 1 }}>"{rev.quote}"</blockquote>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                                              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>{rev.client_avatar || 'C'}</div>
+                                              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{rev.client_name}</span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'LogoCloud') {
+                              blockContent = (
+                                <section className={`cms-logocloud ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', ...sectionStyle }}>
+                                  <div className="width-standard" style={containerStyle}>
+                                    {block.data.title && (
+                                      <h5 style={{ textAlign: 'center', fontSize: '0.7rem', letterSpacing: '0.2em', color: 'var(--color-gray)', textTransform: 'uppercase', marginBottom: '1.5rem' }}>{block.data.title}</h5>
+                                    )}
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '3rem' }}>
+                                      {(block.data.logos || []).map((logo: any, lIdx: number) => (
+                                        <div key={lIdx} style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.15em', opacity: 0.65, fontFamily: '"Outfit", sans-serif', color: 'var(--color-text)' }}>
+                                          {logo.image_url ? <img src={logo.image_url} alt={logo.name} style={{ height: '24px', filter: 'grayscale(100%)' }} /> : logo.name}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'HeroGrid') {
+                              blockContent = (
+                                <section className={`cms-herogrid ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
+                                  <div className="width-standard" style={containerStyle}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'center' }}>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                        <img src={block.data.image_left} alt="Mosaic Left" style={{ width: '100%', height: '400px', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                                        <div>
+                                          <span style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>{block.data.subtitle}</span>
+                                          <h2 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '2.5rem', fontWeight: 500, margin: '0.5rem 0 1rem 0', textTransform: 'uppercase' }}>{block.data.title}</h2>
+                                          <p style={{ color: 'var(--color-gray)', fontSize: '0.9rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>{block.data.description}</p>
+                                          {block.data.cta_text && (
+                                            <span style={{ borderBottom: '1px solid var(--color-text)', paddingBottom: '4px', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.1em', cursor: 'default' }}>{block.data.cta_text}</span>
+                                          )}
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                          <img src={block.data.image_right_top} alt="Mosaic Right Top" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                                          <img src={block.data.image_right_bottom} alt="Mosaic Right Bottom" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </section>
+                              );
+                            } else if (block.block_type === 'HeroSlider') {
+                              blockContent = (
+                                <CmsHeroSlider block={block} style={sectionStyle} />
                               );
                             }
 
@@ -2161,7 +2718,8 @@ const AdminDashboard = () => {
                                   cursor: sandboxMode === 'edit' ? 'pointer' : 'default',
                                   margin: '0.5rem 0',
                                   transition: 'all 0.2s',
-                                  pointerEvents: 'auto'
+                                  pointerEvents: 'auto',
+                                  ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
                                 }}
                               >
                                 {sandboxMode === 'edit' && (
@@ -2230,23 +2788,24 @@ const AdminDashboard = () => {
                   {/* 3. RIGHT COLUMN: ADVANCED COMPONENT CONTEXT CONFIGURATION */}
                   <div style={{ backgroundColor: 'var(--color-bg)', borderLeft: '1px solid var(--color-border)', paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     {(() => {
-                      const block = cmsPageConfig.blocks.find((b: any) => b.id === selectedBlockId);
-                      if (!block) {
+                      const editMenuFn = () => {
+                        const block = cmsPageConfig.blocks.find((b: any) => b.id === selectedBlockId);
+                        if (!block) {
+                          return (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--color-gray)', textAlign: 'center', gap: '0.5rem', padding: '1rem' }}>
+                              <Sliders size={24} />
+                              <span style={{ fontSize: '0.8rem' }}>Select a dynamic layout block on the structure tree or live canvas to orchestrate motion, constraints, and geometry.</span>
+                            </div>
+                          );
+                        }
+
+                        // Pre-fill helper configuration blocks
+                        const layConfig = getBlockLayoutConfig(block);
+                        const animConfig = getBlockAnimationConfig(block);
+                        const designSync = getBlockDesignSync(block);
+
                         return (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--color-gray)', textAlign: 'center', gap: '0.5rem', padding: '1rem' }}>
-                            <Sliders size={24} />
-                            <span style={{ fontSize: '0.8rem' }}>Select a dynamic layout block on the structure tree or live canvas to orchestrate motion, constraints, and geometry.</span>
-                          </div>
-                        );
-                      }
-
-                      // Pre-fill helper configuration blocks
-                      const layConfig = getBlockLayoutConfig(block);
-                      const animConfig = getBlockAnimationConfig(block);
-                      const designSync = getBlockDesignSync(block);
-
-                      return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
                           
                           {/* Selected Block Info */}
                           <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
@@ -3015,6 +3574,548 @@ const AdminDashboard = () => {
                                     </div>
                                   </>
                                 )}
+
+                                {block.block_type === 'HeroSlider' && (
+                                  <>
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                      <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={block.data.autoplay_enabled !== false}
+                                          onChange={e => handleUpdateBlockData(block.id, 'autoplay_enabled', e.target.checked)}
+                                        />
+                                        Autoplay Enabled
+                                      </label>
+                                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '120px' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Speed (ms)</span>
+                                        <input
+                                          type="number"
+                                          min="1000"
+                                          step="500"
+                                          value={block.data.autoplay_speed || 4000}
+                                          onChange={e => handleUpdateBlockData(block.id, 'autoplay_speed', Number(e.target.value))}
+                                          className="admin-input"
+                                          style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
+                                        />
+                                      </label>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Slideshow Banners ({block.data.slides?.length || 0})</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const current = block.data.slides || [];
+                                            const updated = [...current, {
+                                              image_url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200",
+                                              title: "NEW ARRIVAL",
+                                              subtitle: "SEASON COLLECTION",
+                                              cta_text: "SHOP NOW",
+                                              cta_url: "/shop/all"
+                                            }];
+                                            handleUpdateBlockData(block.id, 'slides', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '4px 10px', fontSize: '0.7rem', fontWeight: 600 }}
+                                        >
+                                          + Add Slide
+                                        </button>
+                                      </div>
+
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+                                        {(block.data.slides || []).map((slide: any, sIdx: number) => (
+                                          <div key={sIdx} style={{ border: '1px solid var(--color-border)', padding: '0.85rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.6rem', position: 'relative', backgroundColor: 'rgba(0,0,0,0.01)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--color-border)', paddingBottom: '0.35rem', marginBottom: '0.2rem' }}>
+                                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-gray)' }}>Slide #{sIdx + 1}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const updated = (block.data.slides || []).filter((_: any, i: number) => i !== sIdx);
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}
+                                              >
+                                                Delete Slide
+                                              </button>
+                                            </div>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Slide Heading</span>
+                                              <input
+                                                type="text"
+                                                value={slide.title || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], title: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Slide Subtitle</span>
+                                              <input
+                                                type="text"
+                                                value={slide.subtitle || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], subtitle: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Banner Image</span>
+                                              {slide.image_url && (
+                                                <img src={slide.image_url} alt="Slide Preview" style={{ width: '100%', height: '60px', objectFit: 'cover', border: '1px solid var(--color-border)', borderRadius: '2px', marginBottom: '0.25rem' }} />
+                                              )}
+                                              <input
+                                                type="text"
+                                                placeholder="https://example.com/image.jpg"
+                                                value={slide.image_url || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], image_url: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                              <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.15rem' }}>
+                                                <label className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', margin: 0, flex: 1, textAlign: 'center', display: 'inline-block' }}>
+                                                  {uploadingField === `slides_${sIdx}` ? 'Uploading...' : 'Upload Image File'}
+                                                  <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    style={{ display: 'none' }}
+                                                    onChange={async e => {
+                                                      const file = e.target.files?.[0];
+                                                      if (file) {
+                                                        await handleContentImageUpload(block.id, 'slides', file, sIdx);
+                                                      }
+                                                    }}
+                                                  />
+                                                </label>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    const urls = [
+                                                      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200",
+                                                      "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=1200",
+                                                      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200",
+                                                      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200"
+                                                    ];
+                                                    const rand = urls[Math.floor(Math.random() * urls.length)];
+                                                    const updated = [...(block.data.slides || [])];
+                                                    updated[sIdx] = { ...updated[sIdx], image_url: rand };
+                                                    handleUpdateBlockData(block.id, 'slides', updated);
+                                                  }}
+                                                  style={{ fontSize: '0.6rem', border: '1px solid var(--color-border)', background: 'transparent', padding: '2px 6px', cursor: 'pointer', color: 'var(--color-gray)' }}
+                                                >
+                                                  Preset Lookbook Image
+                                                </button>
+                                              </div>
+                                            </div>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>CTA Button Text</span>
+                                              <input
+                                                type="text"
+                                                value={slide.cta_text || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], cta_text: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>CTA Button Destination</span>
+                                              <input
+                                                type="text"
+                                                value={slide.cta_url || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], cta_url: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'LuxuryFaq' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>FAQ Section Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>FAQ Section Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600 }}>FAQ Accordion Items</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const current = block.data.faqs || [];
+                                            const updated = [...current, { question: 'New Question?', answer: 'Answer content here...' }];
+                                            handleUpdateBlockData(block.id, 'faqs', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '2px 8px', fontSize: '0.65rem' }}
+                                        >
+                                          + Add FAQ
+                                        </button>
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {(block.data.faqs || []).map((faq: any, fIdx: number) => (
+                                          <div key={fIdx} style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.25rem', position: 'relative' }}>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated = (block.data.faqs || []).filter((_: any, i: number) => i !== fIdx);
+                                                handleUpdateBlockData(block.id, 'faqs', updated);
+                                              }}
+                                              style={{ position: 'absolute', top: '4px', right: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}
+                                            >
+                                              ×
+                                            </button>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Question</span>
+                                              <input
+                                                type="text"
+                                                value={faq.question || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.faqs];
+                                                  updated[fIdx] = { ...updated[fIdx], question: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'faqs', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Answer</span>
+                                              <textarea
+                                                value={faq.answer || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.faqs];
+                                                  updated[fIdx] = { ...updated[fIdx], answer: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'faqs', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                                rows={2}
+                                              />
+                                            </label>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'ReviewTestimonials' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Testimonials Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Testimonials Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600 }}>Client Testimonials</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const current = block.data.reviews || [];
+                                            const updated = [...current, { client_name: 'Jane Doe', rating: 5, quote: 'Absolute perfection. A masterpiece of clothing.', client_avatar: '' }];
+                                            handleUpdateBlockData(block.id, 'reviews', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '2px 8px', fontSize: '0.65rem' }}
+                                        >
+                                          + Add Review
+                                        </button>
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {(block.data.reviews || []).map((rev: any, rIdx: number) => (
+                                          <div key={rIdx} style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.25rem', position: 'relative' }}>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated = (block.data.reviews || []).filter((_: any, i: number) => i !== rIdx);
+                                                handleUpdateBlockData(block.id, 'reviews', updated);
+                                              }}
+                                              style={{ position: 'absolute', top: '4px', right: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}
+                                            >
+                                              ×
+                                            </button>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Client Name</span>
+                                              <input
+                                                type="text"
+                                                value={rev.client_name || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.reviews];
+                                                  updated[rIdx] = { ...updated[rIdx], client_name: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'reviews', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                              <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Rating (1-5)</span>
+                                                <input
+                                                  type="number"
+                                                  min="1" max="5"
+                                                  value={rev.rating || 5}
+                                                  onChange={e => {
+                                                    const updated = [...block.data.reviews];
+                                                    updated[rIdx] = { ...updated[rIdx], rating: Number(e.target.value) };
+                                                    handleUpdateBlockData(block.id, 'reviews', updated);
+                                                  }}
+                                                  className="admin-input"
+                                                  style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                                />
+                                              </label>
+                                              <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Avatar Initials</span>
+                                                <input
+                                                  type="text"
+                                                  value={rev.client_avatar || ''}
+                                                  onChange={e => {
+                                                    const updated = [...block.data.reviews];
+                                                    updated[rIdx] = { ...updated[rIdx], client_avatar: e.target.value };
+                                                    handleUpdateBlockData(block.id, 'reviews', updated);
+                                                  }}
+                                                  className="admin-input"
+                                                  style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                                  placeholder="JD"
+                                                />
+                                              </label>
+                                            </div>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Quote</span>
+                                              <textarea
+                                                value={rev.quote || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.reviews];
+                                                  updated[rIdx] = { ...updated[rIdx], quote: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'reviews', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                                rows={2}
+                                              />
+                                            </label>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'LogoCloud' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Brand Cloud Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600 }}>Featured Brand Logos</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const current = block.data.logos || [];
+                                            const updated = [...current, { name: 'Vogue', image_url: '' }];
+                                            handleUpdateBlockData(block.id, 'logos', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '2px 8px', fontSize: '0.65rem' }}
+                                        >
+                                          + Add Logo
+                                        </button>
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {(block.data.logos || []).map((logo: any, lIdx: number) => (
+                                          <div key={lIdx} style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.25rem', position: 'relative' }}>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated = (block.data.logos || []).filter((_: any, i: number) => i !== lIdx);
+                                                handleUpdateBlockData(block.id, 'logos', updated);
+                                              }}
+                                              style={{ position: 'absolute', top: '4px', right: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}
+                                            >
+                                              ×
+                                            </button>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Brand Name</span>
+                                              <input
+                                                type="text"
+                                                value={logo.name || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.logos];
+                                                  updated[lIdx] = { ...updated[lIdx], name: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'logos', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Logo Image URL (Optional)</span>
+                                              <input
+                                                type="text"
+                                                value={logo.image_url || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.logos];
+                                                  updated[lIdx] = { ...updated[lIdx], image_url: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'logos', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                                placeholder="Paste URL..."
+                                              />
+                                            </label>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'HeroGrid' && (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Grid Hero Title</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.title || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Grid Hero Subtitle</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.subtitle || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'subtitle', e.target.value)}
+                                        className="admin-input"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Description Narrative</span>
+                                      <textarea
+                                        value={block.data.description || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'description', e.target.value)}
+                                        className="admin-input"
+                                        rows={3}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Left Highlight Image</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.image_left || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'image_left', e.target.value)}
+                                        className="admin-input"
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Top Right Auxiliary Image</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.image_right_top || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'image_right_top', e.target.value)}
+                                        className="admin-input"
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Bottom Right Auxiliary Image</span>
+                                      <input
+                                        type="text"
+                                        value={block.data.image_right_bottom || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'image_right_bottom', e.target.value)}
+                                        className="admin-input"
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA text</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.cta_text || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA link</span>
+                                        <input
+                                          type="text"
+                                          value={block.data.cta_url || ''}
+                                          onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)}
+                                          className="admin-input"
+                                        />
+                                      </label>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
 
@@ -3136,6 +4237,53 @@ const AdminDashboard = () => {
                                   </div>
                                 </div>
 
+                                {/* Horizontal Clamp Spacing Preset */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.75rem' }}>
+                                  <span style={{ fontWeight: 600 }}>Horizontal Spacing Preset</span>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.35rem' }}>
+                                    {[
+                                      { id: 'none', name: 'No Padding', formula: 'px-0' },
+                                      { id: 'studio_minimal', name: 'Studio Minimal', formula: 'px-[clamp(1rem,2vw,1.5rem)]' },
+                                      { id: 'compact', name: 'Compact', formula: 'px-[clamp(1rem,3vw,2.5rem)]' },
+                                      { id: 'editorial', name: 'Balanced Canvas', formula: 'px-[clamp(2rem,6vw,5rem)]' },
+                                      { id: 'grand', name: 'Grand Gallery', formula: 'px-[clamp(4rem,10vw,8rem)]' },
+                                      { id: 'epic', name: 'Epic Margins', formula: 'px-[clamp(6rem,15vw,12rem)]' }
+                                    ].map(opt => {
+                                      const currentPadding = layConfig.padding || {};
+                                      const isSel = (currentPadding.horizontal_preset || 'editorial') === opt.id;
+                                      return (
+                                        <button
+                                          key={opt.id}
+                                          type="button"
+                                          onClick={() => {
+                                            handleUpdateBlockLayout(block.id, 'padding', {
+                                              ...currentPadding,
+                                              horizontal_preset: opt.id,
+                                              horizontal_fluid_clamp: opt.formula
+                                            });
+                                            handleUpdateBlockData(block.id, 'sectionHorizontalPadding', opt.id);
+                                          }}
+                                          style={{
+                                            border: `1px solid ${isSel ? 'var(--color-text)' : 'var(--color-border)'}`,
+                                            padding: '0.4rem',
+                                            fontSize: '0.65rem',
+                                            fontWeight: '700',
+                                            backgroundColor: isSel ? 'var(--color-text)' : 'transparent',
+                                            color: isSel ? 'var(--color-bg)' : 'var(--color-text)',
+                                            cursor: 'pointer',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          {opt.name}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <div style={{ fontSize: '0.6rem', color: 'var(--color-gray)', fontFamily: 'monospace', overflowX: 'auto', backgroundColor: '#f4f4f5', padding: '4px', whiteSpace: 'nowrap' }}>
+                                    {layConfig.padding?.horizontal_fluid_clamp || 'px-[clamp(2rem,6vw,5rem)]'}
+                                  </div>
+                                </div>
+
                                 {/* Aspect-Ratio Locks */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
                                   <span style={{ fontWeight: 600 }}>Visual Aspect-Ratio Lock</span>
@@ -3160,6 +4308,88 @@ const AdminDashboard = () => {
                                     />
                                     <span style={{ fontSize: '0.75rem' }}>Force hardware-accelerated Object Cover Fill</span>
                                   </label>
+                                </div>
+
+                                {/* Manual Sizing Sliders */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                                  <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                    <Sliders size={13} style={{ color: 'var(--color-accent)' }} />
+                                    Manual Dimensions Engine
+                                  </span>
+
+                                  {/* Manual Height Slider */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                                      <span>Manual Height (px)</span>
+                                      <span style={{ fontWeight: 'bold' }}>{layConfig.manual_height ? `${layConfig.manual_height}px` : 'Auto / CSS Default'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                      <input 
+                                        type="range" 
+                                        min="100" 
+                                        max="1200" 
+                                        step="10"
+                                        value={layConfig.manual_height || 400} 
+                                        disabled={!layConfig.manual_height}
+                                        onChange={e => handleUpdateBlockLayout(block.id, 'manual_height', Number(e.target.value))}
+                                        style={{ flexGrow: 1, accentColor: 'var(--color-text)' }}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateBlockLayout(block.id, 'manual_height', layConfig.manual_height ? "" : "500");
+                                        }}
+                                        style={{
+                                          padding: '2px 8px',
+                                          fontSize: '0.65rem',
+                                          border: '1px solid var(--color-border)',
+                                          backgroundColor: layConfig.manual_height ? 'var(--color-text)' : 'transparent',
+                                          color: layConfig.manual_height ? 'var(--color-bg)' : 'var(--color-text)',
+                                          cursor: 'pointer',
+                                          fontWeight: 700
+                                        }}
+                                      >
+                                        {layConfig.manual_height ? 'Lock' : 'Set'}
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Manual Width Slider */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                                      <span>Manual Width (px)</span>
+                                      <span style={{ fontWeight: 'bold' }}>{layConfig.manual_width ? `${layConfig.manual_width}px` : 'Auto / CSS Default'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                      <input 
+                                        type="range" 
+                                        min="300" 
+                                        max="1920" 
+                                        step="20"
+                                        value={layConfig.manual_width || 1200} 
+                                        disabled={!layConfig.manual_width}
+                                        onChange={e => handleUpdateBlockLayout(block.id, 'manual_width', Number(e.target.value))}
+                                        style={{ flexGrow: 1, accentColor: 'var(--color-text)' }}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateBlockLayout(block.id, 'manual_width', layConfig.manual_width ? "" : "1200");
+                                        }}
+                                        style={{
+                                          padding: '2px 8px',
+                                          fontSize: '0.65rem',
+                                          border: '1px solid var(--color-border)',
+                                          backgroundColor: layConfig.manual_width ? 'var(--color-text)' : 'transparent',
+                                          color: layConfig.manual_width ? 'var(--color-bg)' : 'var(--color-text)',
+                                          cursor: 'pointer',
+                                          fontWeight: 700
+                                        }}
+                                      >
+                                        {layConfig.manual_width ? 'Lock' : 'Set'}
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
 
                                 {/* Multi-device responsive columns sliders */}
@@ -3406,7 +4636,10 @@ const AdminDashboard = () => {
                           </div>
                         </div>
                       );
-                    })()}
+                    };
+                    renderEditMenuRef = editMenuFn;
+                    return editMenuFn();
+                  })()}
                   </div>
 
                 </div>
@@ -4255,9 +5488,28 @@ const AdminDashboard = () => {
             backgroundColor: '#fff',
             boxShadow: '0 4px 30px rgba(0, 0, 0, 0.02)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
-              <span style={{ fontSize: '1rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Aura Fullscreen Canvas Preview</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                <span style={{ fontSize: '1rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Aura Fullscreen Canvas Preview</span>
+              </div>
+              {sandboxMode === 'edit' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid var(--color-border)', paddingLeft: '1.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Component:</span>
+                  <select
+                    value={selectedBlockId}
+                    onChange={(e) => setSelectedBlockId(e.target.value)}
+                    className="admin-select"
+                    style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: '#fff', cursor: 'pointer' }}
+                  >
+                    {cmsPageConfig.blocks.map((b: any) => (
+                      <option key={b.id} value={b.id}>
+                        {b.block_type} ({b.id.replace('block_', '')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             
             {/* Device Toggles */}
@@ -4324,105 +5576,201 @@ const AdminDashboard = () => {
               </button>
             </div>
 
-            {/* Exit Fullscreen */}
-            <button 
-              onClick={() => setIsCanvasFullscreen(false)} 
-              className="btn btn-outline"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.6rem 1.2rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                cursor: 'pointer'
-              }}
-            >
-              <Minimize2 size={15} /> Minimize View
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              {sandboxMode === 'edit' && (
+                <button
+                  onClick={() => setShowFullscreenSidebar(!showFullscreenSidebar)}
+                  className="btn btn-outline"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.6rem 1.2rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    cursor: 'pointer',
+                    borderColor: 'var(--color-border)',
+                    backgroundColor: showFullscreenSidebar ? 'rgba(0,0,0,0.03)' : 'transparent'
+                  }}
+                >
+                  {showFullscreenSidebar ? <EyeOff size={15} /> : <Eye size={15} />}
+                  <span>{showFullscreenSidebar ? "Hide Menu" : "Show Menu"}</span>
+                </button>
+              )}
+
+              {/* Exit Fullscreen */}
+              <button 
+                onClick={() => setIsCanvasFullscreen(false)} 
+                className="btn btn-outline"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.6rem 1.2rem',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  cursor: 'pointer'
+                }}
+              >
+                <Minimize2 size={15} /> Minimize View
+              </button>
+            </div>
           </div>
 
           {/* Simulator Content Area */}
           <div style={{
             flex: 1,
-            overflowY: 'auto',
-            padding: '3rem 1.5rem',
             display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
+            flexDirection: 'row',
+            overflow: 'hidden',
             backgroundColor: '#f5f5f4'
           }}>
-            <div 
-              style={{ 
-                width: previewMode === 'desktop' ? '1280px' : previewMode === 'tablet' ? '768px' : '375px',
-                maxWidth: '100%',
-                border: previewMode === 'desktop' ? '1px solid var(--color-border)' : '16px solid #1c1917',
-                borderRadius: previewMode === 'desktop' ? '8px' : previewMode === 'tablet' ? '28px' : '40px',
-                backgroundColor: 'var(--color-bg)',
-                boxShadow: '0 30px 100px rgba(0,0,0,0.12)',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden'
-              }}
-            >
-              {/* Top Notch for mobile/tablet view */}
-              {(previewMode === 'mobile' || previewMode === 'tablet') && (
-                <div style={{ 
-                  position: 'absolute', 
-                  top: '0', 
-                  left: '50%', 
-                  transform: 'translateX(-50%)', 
-                  width: '120px', 
-                  height: '18px', 
-                  backgroundColor: '#1c1917', 
-                  borderBottomLeftRadius: '12px', 
-                  borderBottomRightRadius: '12px', 
-                  zIndex: 100, 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center' 
-                }}>
-                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#27272a', marginRight: '6px' }}></span>
-                  <span style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#27272a' }}></span>
-                </div>
-              )}
-
-              {/* Browser bar */}
-              <div style={{ 
-                backgroundColor: 'rgba(0,0,0,0.02)', 
-                padding: (previewMode === 'mobile' || previewMode === 'tablet') ? '1.25rem 1.25rem 0.5rem 1.25rem' : '0.65rem 1.25rem', 
-                borderBottom: '1px solid var(--color-border)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem', 
-                zIndex: 5 
-              }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.7rem', color: 'var(--color-gray)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Aura Visual Simulator (Active Config Canvas)
-                </span>
-              </div>
-
-              {/* Page Visual Blocks */}
+            {/* Simulator Preview Pane (Left) */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '3rem 1.5rem',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start'
+            }}>
               <div 
-                className={`preview-container-wrap ${previewMode === 'mobile' ? 'preview-mobile' : previewMode === 'tablet' ? 'preview-tablet' : 'preview-desktop'}`}
                 style={{ 
-                  padding: '2rem', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '2rem', 
-                  backgroundColor: '#fff' 
+                  width: previewMode === 'desktop' ? '1280px' : previewMode === 'tablet' ? '768px' : '375px',
+                  maxWidth: '100%',
+                  border: previewMode === 'desktop' ? '1px solid var(--color-border)' : '16px solid #1c1917',
+                  borderRadius: previewMode === 'desktop' ? '8px' : previewMode === 'tablet' ? '28px' : '40px',
+                  backgroundColor: 'var(--color-bg)',
+                  boxShadow: '0 30px 100px rgba(0,0,0,0.12)',
+                  transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
                 }}
               >
-                {renderVisualBlocks()}
+                {/* Top Notch for mobile/tablet view */}
+                {(previewMode === 'mobile' || previewMode === 'tablet') && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '0', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)', 
+                    width: '120px', 
+                    height: '18px', 
+                    backgroundColor: '#1c1917', 
+                    borderBottomLeftRadius: '12px', 
+                    borderBottomRightRadius: '12px', 
+                    zIndex: 100, 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center' 
+                  }}>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#27272a', marginRight: '6px' }}></span>
+                    <span style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#27272a' }}></span>
+                  </div>
+                )}
+
+                {/* Browser bar */}
+                <div style={{ 
+                  backgroundColor: 'rgba(0,0,0,0.02)', 
+                  padding: (previewMode === 'mobile' || previewMode === 'tablet') ? '1.25rem 1.25rem 0.5rem 1.25rem' : '0.65rem 1.25rem', 
+                  borderBottom: '1px solid var(--color-border)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  zIndex: 5 
+                }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                  <span style={{ marginLeft: '0.75rem', fontSize: '0.7rem', color: 'var(--color-gray)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Aura Visual Simulator (Active Config Canvas)
+                  </span>
+                </div>
+
+                {/* Page Visual Blocks */}
+                <div 
+                  className={`preview-container-wrap ${previewMode === 'mobile' ? 'preview-mobile' : previewMode === 'tablet' ? 'preview-tablet' : 'preview-desktop'}`}
+                  style={{ 
+                    padding: '2rem', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '2rem', 
+                    backgroundColor: '#fff' 
+                  }}
+                >
+                  {renderVisualBlocks()}
+                </div>
               </div>
             </div>
+
+            {/* Config Sidebar Pane (Right) - Only in edit mode and visible */}
+            {sandboxMode === 'edit' && showFullscreenSidebar && (
+              <div style={{
+                width: `${fullscreenSidebarWidth}px`,
+                borderLeft: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-bg)',
+                padding: '1.5rem',
+                overflowY: 'auto',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                boxShadow: '-10px 0 30px rgba(0,0,0,0.02)',
+                transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Sliders size={16} style={{ color: 'var(--color-accent)' }} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Component Properties</span>
+                    </div>
+                    {/* Size Selector Control */}
+                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                      <button 
+                        onClick={() => setFullscreenSidebarWidth(320)}
+                        style={{ padding: '2px 6px', fontSize: '0.65rem', fontWeight: 600, border: '1px solid var(--color-border)', backgroundColor: fullscreenSidebarWidth === 320 ? 'var(--color-text)' : 'transparent', color: fullscreenSidebarWidth === 320 ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', borderRadius: '2px' }}
+                        title="Compact Width (320px)"
+                      >
+                        S
+                      </button>
+                      <button 
+                        onClick={() => setFullscreenSidebarWidth(420)}
+                        style={{ padding: '2px 6px', fontSize: '0.65rem', fontWeight: 600, border: '1px solid var(--color-border)', backgroundColor: fullscreenSidebarWidth === 420 ? 'var(--color-text)' : 'transparent', color: fullscreenSidebarWidth === 420 ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', borderRadius: '2px' }}
+                        title="Standard Width (420px)"
+                      >
+                        M
+                      </button>
+                      <button 
+                        onClick={() => setFullscreenSidebarWidth(550)}
+                        style={{ padding: '2px 6px', fontSize: '0.65rem', fontWeight: 600, border: '1px solid var(--color-border)', backgroundColor: fullscreenSidebarWidth === 550 ? 'var(--color-text)' : 'transparent', color: fullscreenSidebarWidth === 550 ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', borderRadius: '2px' }}
+                        title="Wide Width (550px)"
+                      >
+                        L
+                      </button>
+                    </div>
+                  </div>
+                  {/* Fine grain width adjustment slider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Width: {fullscreenSidebarWidth}px</span>
+                    <input 
+                      type="range" 
+                      min="300" 
+                      max="700" 
+                      value={fullscreenSidebarWidth} 
+                      onChange={(e) => setFullscreenSidebarWidth(Number(e.target.value))} 
+                      style={{ flex: 1, height: '3px', cursor: 'ew-resize', accentColor: 'var(--color-accent)' }} 
+                    />
+                  </div>
+                </div>
+                {renderEditMenuRef()}
+              </div>
+            )}
           </div>
         </div>
       )}
