@@ -288,6 +288,8 @@ const AdminDashboard = () => {
   const [showVault, setShowVault] = useState(false);
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
   const [searchCtaQuery, setSearchCtaQuery] = useState('');
+  const [dbTableMissing, setDbTableMissing] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [cmsPageConfig, setCmsPageConfig] = useState<any>(() => {
     const saved = localStorage.getItem('aura_cms_homepage');
     if (saved) {
@@ -539,10 +541,121 @@ const AdminDashboard = () => {
   }, [user]);
 
   useEffect(() => {
-    if (cmsPageConfig) {
-      localStorage.setItem('aura_cms_homepage', JSON.stringify(cmsPageConfig));
+    const loadCmsConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'homepage_global')
+          .maybeSingle();
+        
+        if (error) {
+          if (error.code === 'PGRST205') {
+            setDbTableMissing(true);
+          }
+          throw error;
+        }
+
+        if (data && data.config) {
+          setCmsPageConfig(data.config);
+          localStorage.setItem('aura_cms_homepage', JSON.stringify(data.config));
+        }
+      } catch (err) {
+        console.error("Failed to load storefront config from database:", err);
+      }
+    };
+    
+    if (isAdmin) {
+      loadCmsConfig();
     }
-  }, [cmsPageConfig]);
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!cmsPageConfig) return;
+    
+    // Save to local storage immediately
+    localStorage.setItem('aura_cms_homepage', JSON.stringify(cmsPageConfig));
+
+    if (dbTableMissing) return;
+
+    // Debounce database sync to 1.5s to prevent API spamming during drags
+    const handler = setTimeout(async () => {
+      try {
+        const { data, error: checkError } = await supabase
+          .from('storefront_config')
+          .select('id')
+          .eq('id', 'homepage_global')
+          .maybeSingle();
+
+        if (checkError) {
+          if (checkError.code === 'PGRST205') {
+            setDbTableMissing(true);
+          }
+          return;
+        }
+
+        if (data) {
+          await supabase
+            .from('storefront_config')
+            .update({ config: cmsPageConfig, updated_at: new Date().toISOString() })
+            .eq('id', 'homepage_global');
+        } else {
+          await supabase
+            .from('storefront_config')
+            .insert({ id: 'homepage_global', config: cmsPageConfig, updated_at: new Date().toISOString() });
+        }
+      } catch (err) {
+        console.error("Auto-syncing config to database failed:", err);
+      }
+    }, 1500);
+
+    return () => clearTimeout(handler);
+  }, [cmsPageConfig, dbTableMissing]);
+
+  const publishStorefrontConfig = async () => {
+    setPublishing(true);
+    try {
+      const { data, error: selectError } = await supabase
+        .from('storefront_config')
+        .select('id')
+        .eq('id', 'homepage_global')
+        .maybeSingle();
+
+      if (selectError && selectError.code === 'PGRST205') {
+        setDbTableMissing(true);
+        throw new Error("The storefront_config table does not exist in your database yet.");
+      }
+
+      let error = null;
+      if (data) {
+        const { error: updateError } = await supabase
+          .from('storefront_config')
+          .update({ 
+            config: cmsPageConfig,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', 'homepage_global');
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('storefront_config')
+          .insert({ 
+            id: 'homepage_global', 
+            config: cmsPageConfig,
+            updated_at: new Date().toISOString()
+          });
+        error = insertError;
+      }
+
+      if (error) throw error;
+      showToast("Storefront changes published to live website successfully!", "success");
+    } catch (err: any) {
+      console.error("Error publishing storefront configurations:", err);
+      showToast(err.message || "Failed to publish storefront configuration.", "error");
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToastMessage(msg);
@@ -2078,21 +2191,108 @@ const AdminDashboard = () => {
         {activeTab === 'cms' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
             {/* CMS Sub-tabs */}
-            <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
-              {(['visual', 'static', 'navigation', 'media'] as const).map(tab => (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '1.5rem' }}>
+                {(['visual', 'static', 'navigation', 'media'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setCmsSubTab(tab)}
+                    style={{
+                      background: 'none', border: 'none', padding: '0.5rem 0', fontSize: '0.9rem', fontWeight: cmsSubTab === tab ? '700' : '400',
+                      color: cmsSubTab === tab ? 'var(--color-text)' : 'var(--color-gray)', borderBottom: cmsSubTab === tab ? '2px solid var(--color-text)' : 'none',
+                      cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
+                    }}
+                  >
+                    {tab === 'visual' ? 'Storefront Builder' : tab === 'static' ? 'Static & SEO' : tab === 'navigation' ? 'Global Navigation' : 'Media Library'}
+                  </button>
+                ))}
+              </div>
+              
+              {cmsSubTab === 'visual' && (
                 <button
-                  key={tab}
-                  onClick={() => setCmsSubTab(tab)}
+                  onClick={publishStorefrontConfig}
+                  className="btn btn-primary"
+                  disabled={publishing}
                   style={{
-                    background: 'none', border: 'none', padding: '0.5rem 0', fontSize: '0.9rem', fontWeight: cmsSubTab === tab ? '700' : '400',
-                    color: cmsSubTab === tab ? 'var(--color-text)' : 'var(--color-gray)', borderBottom: cmsSubTab === tab ? '2px solid var(--color-text)' : 'none',
-                    cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
+                    padding: '0.45rem 1.25rem',
+                    fontSize: '0.8rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    borderRadius: '4px',
+                    boxShadow: '0 4px 12px rgba(197, 168, 128, 0.25)',
+                    opacity: publishing ? 0.7 : 1,
+                    cursor: publishing ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {tab === 'visual' ? 'Storefront Builder' : tab === 'static' ? 'Static & SEO' : tab === 'navigation' ? 'Global Navigation' : 'Media Library'}
+                  <Globe size={14} className={publishing ? 'animate-spin' : ''} />
+                  <span>{publishing ? 'Publishing...' : 'Publish Live'}</span>
                 </button>
-              ))}
+              )}
             </div>
+
+            {/* DB Table Missing Alert */}
+            {dbTableMissing && (
+              <div style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: '6px',
+                padding: '1rem 1.25rem',
+                color: '#ef4444',
+                fontSize: '0.85rem',
+                lineHeight: '1.5',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                marginBottom: '1rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+                  <AlertCircle size={16} />
+                  <span>DATABASE SYNCHRONIZATION RUNNING IN OFFLINE FALLBACK MODE</span>
+                </div>
+                <p style={{ margin: 0, opacity: 0.9 }}>
+                  The <code>storefront_config</code> table was not found in your Supabase database. 
+                  Your modifications are currently saved only in your local browser storage (<code>localStorage</code>) and will <strong>not</strong> show on other devices or mobile.
+                </p>
+                <div style={{ marginTop: '0.5rem' }}>
+                  <details>
+                    <summary style={{ cursor: 'pointer', fontWeight: 600, outline: 'none' }}>
+                      Show SQL command to run in your Supabase SQL Editor
+                    </summary>
+                    <pre style={{
+                      backgroundColor: 'var(--color-bg)',
+                      color: 'var(--color-text)',
+                      padding: '0.75rem',
+                      borderRadius: '4px',
+                      overflowX: 'auto',
+                      fontSize: '0.75rem',
+                      marginTop: '0.5rem',
+                      border: '1px solid var(--color-border)',
+                      fontFamily: 'monospace'
+                    }}>
+{`CREATE TABLE public.storefront_config (
+  id TEXT PRIMARY KEY DEFAULT 'homepage_global',
+  config JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.storefront_config ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view storefront config" ON public.storefront_config 
+  FOR SELECT USING (true);
+
+CREATE POLICY "Admins can update storefront config" ON public.storefront_config 
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+    )
+  );`}
+                    </pre>
+                  </details>
+                </div>
+              </div>
+            )}
 
             {/* Visual Canvas (Split Screen Workspace) */}
             {/* Visual Canvas (Three Column Workspace) */}

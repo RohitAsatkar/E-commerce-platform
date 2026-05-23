@@ -182,3 +182,17 @@ CREATE POLICY "Admins can update order items" ON public.order_items FOR UPDATE U
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );
 
+-- STOREFRONT CONFIG
+CREATE TABLE public.storefront_config (
+  id TEXT PRIMARY KEY DEFAULT 'homepage_global',
+  config JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.storefront_config ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view storefront config" ON public.storefront_config FOR SELECT USING (true);
+
+CREATE POLICY "Admins can update storefront config" ON public.storefront_config FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+);

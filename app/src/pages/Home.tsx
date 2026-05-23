@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
 import { Sparkles } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import './Home.css';
 
 const DEFAULT_CMS_CONFIG = {
@@ -400,25 +401,49 @@ const Home = () => {
   const [pageConfig, setPageConfig] = useState<any>(null);
 
   useEffect(() => {
-    const loadConfig = () => {
+    const loadConfig = async () => {
+      // 1. Try local storage cache first for instant load
       const saved = localStorage.getItem('aura_cms_homepage');
       if (saved) {
         try {
           setPageConfig(JSON.parse(saved));
         } catch (e) {
-          console.error("Error loading saved layout configs:", e);
+          console.error("Error parsing saved layout cache:", e);
+        }
+      }
+
+      // 2. Load latest live storefront config from Supabase database
+      try {
+        const { data, error } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'homepage_global')
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data && data.config) {
+          setPageConfig(data.config);
+          localStorage.setItem('aura_cms_homepage', JSON.stringify(data.config));
+        } else if (!saved) {
+          // If no database config and no cache, use default
           setPageConfig(DEFAULT_CMS_CONFIG);
         }
-      } else {
-        setPageConfig(DEFAULT_CMS_CONFIG);
+      } catch (err) {
+        console.error("Failed to fetch live storefront config from Supabase, using cache/default:", err);
+        if (!saved) {
+          setPageConfig(DEFAULT_CMS_CONFIG);
+        }
       }
     };
 
     loadConfig();
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'aura_cms_homepage') {
-        loadConfig();
+      if (e.key === 'aura_cms_homepage' && e.newValue) {
+        try {
+          setPageConfig(JSON.parse(e.newValue));
+        } catch (err) {}
       }
     };
     window.addEventListener('storage', handleStorageChange);
