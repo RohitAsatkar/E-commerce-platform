@@ -14,6 +14,16 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [addressInfo, setAddressInfo] = useState({ firstName: '', lastName: '', address: '', city: '', postal: '', email: '' });
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [giftWrap, setGiftWrap] = useState(false);
+
+  useEffect(() => {
+    const promo = localStorage.getItem('cart_promo_code');
+    const wrap = localStorage.getItem('cart_gift_wrap');
+    if (promo) setAppliedPromo(promo);
+    if (wrap) setGiftWrap(wrap === 'true');
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -26,14 +36,51 @@ const Checkout = () => {
       // Fetch profile to auto-fill
       const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (profileData) {
-        setAddressInfo({
-          firstName: profileData.first_name || '',
-          lastName: profileData.last_name || '',
-          address: profileData.address || '',
-          city: profileData.city || '',
-          postal: profileData.postal_code || '',
-          email: profileData.email || user.email || ''
-        });
+        let addresses: any[] = [];
+        if (profileData.address) {
+          try {
+            if (profileData.address.trim().startsWith('[')) {
+              addresses = JSON.parse(profileData.address);
+            } else {
+              addresses = [{
+                id: 'default',
+                recipient_name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Default Recipient',
+                street_address: profileData.address,
+                city: profileData.city || '',
+                postal_code: profileData.postal_code || '',
+                phone: '',
+                state: '',
+                country: 'India',
+                address_type: 'Home',
+                is_default: true
+              }];
+            }
+          } catch (e) {}
+        }
+        
+        setSavedAddresses(addresses);
+        
+        const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
+        if (defaultAddr) {
+          const names = (defaultAddr.recipient_name || '').split(' ');
+          setAddressInfo({
+            firstName: names[0] || '',
+            lastName: names.slice(1).join(' ') || '',
+            address: defaultAddr.street_address || '',
+            city: defaultAddr.city || '',
+            postal: defaultAddr.postal_code || '',
+            email: profileData.email || user.email || ''
+          });
+        } else {
+          setAddressInfo({
+            firstName: profileData.first_name || '',
+            lastName: profileData.last_name || '',
+            address: profileData.address || '',
+            city: profileData.city || '',
+            postal: profileData.postal_code || '',
+            email: profileData.email || user.email || ''
+          });
+        }
       } else {
         setAddressInfo(prev => ({ ...prev, email: user.email || '' }));
       }
@@ -55,6 +102,22 @@ const Checkout = () => {
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const currSymbol = cartItems.length > 0 ? getProductCurrency(cartItems[0].product) : '₹';
 
+  const giftWrapCost = currSymbol === '₹' ? 250 : 5;
+  const freeShippingThreshold = currSymbol === '₹' ? 10000 : 150;
+
+  // Calculate Promo Discount
+  let discount = 0;
+  if (appliedPromo === 'WELCOME10') {
+    discount = subtotal * 0.10;
+  } else if (appliedPromo === 'LUXURY20') {
+    discount = subtotal * 0.20;
+  } else if (appliedPromo === 'FREE500') {
+    discount = currSymbol === '₹' ? 500 : 7;
+    if (discount > subtotal) discount = subtotal;
+  }
+
+  const finalTotal = Math.max(0, subtotal - discount + (giftWrap ? giftWrapCost : 0));
+
   const handlePlaceOrder = async (e: FormEvent) => {
     e.preventDefault();
     if (!user || cartItems.length === 0) return;
@@ -65,7 +128,7 @@ const Checkout = () => {
       const shippingAddress = `${addressInfo.firstName} ${addressInfo.lastName}, ${addressInfo.address}, ${addressInfo.city}, ${addressInfo.postal}`;
       const { data: orderData, error: orderError } = await supabase.from('orders').insert({
         user_id: user.id,
-        total: subtotal,
+        total: finalTotal,
         shipping_address: shippingAddress
       }).select().single();
 
@@ -83,8 +146,10 @@ const Checkout = () => {
       const { error: itemsError } = await supabase.from('order_items').insert(orderItemsToInsert);
       if (itemsError) throw itemsError;
 
-      // 3. Clear cart
+      // 3. Clear cart and storage promo settings
       await supabase.from('cart_items').delete().eq('user_id', user.id);
+      localStorage.removeItem('cart_promo_code');
+      localStorage.removeItem('cart_gift_wrap');
 
       alert('Order placed successfully! Redirecting to account...');
       navigate('/account');
@@ -120,9 +185,68 @@ const Checkout = () => {
               
               <div>
                 <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Shipping Address</h2>
+                {savedAddresses.length > 0 && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+                      Select a Saved Address
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                      {savedAddresses.map((addr) => {
+                        const isSelected = 
+                          addressInfo.address === addr.street_address && 
+                          addressInfo.city === addr.city && 
+                          addressInfo.postal === addr.postal_code;
+                        
+                        return (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => {
+                              const names = (addr.recipient_name || '').split(' ');
+                              setAddressInfo({
+                                firstName: names[0] || '',
+                                lastName: names.slice(1).join(' ') || '',
+                                address: addr.street_address,
+                                city: addr.city,
+                                postal: addr.postal_code,
+                                email: addressInfo.email
+                              });
+                            }}
+                            style={{
+                              padding: '0.75rem 1rem',
+                              fontSize: '0.85rem',
+                              borderRadius: '4px',
+                              border: '1px solid',
+                              borderColor: isSelected ? 'var(--color-text)' : 'var(--color-border)',
+                              backgroundColor: isSelected ? 'rgba(0, 0, 0, 0.02)' : 'transparent',
+                              color: 'var(--color-text)',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              minWidth: '200px',
+                              flexShrink: 0,
+                              transition: 'all 0.15s'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+                              <span>{addr.recipient_name}</span>
+                              <span style={{ color: 'var(--color-gray)', fontSize: '0.7rem' }}>{addr.address_type}</span>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-gray)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {addr.street_address}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>
+                              {addr.city}, {addr.postal_code}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 {addressInfo.firstName && addressInfo.address && (
-                  <p style={{ fontSize: '0.8rem', color: '#2e7d32', marginBottom: '1rem', padding: '0.5rem 0.75rem', backgroundColor: '#e8f5e9' }}>
-                    ✓ Auto-filled from your saved profile. You can edit below if needed.
+                  <p style={{ fontSize: '0.8rem', color: '#2e7d32', marginBottom: '1rem', padding: '0.5rem 0.75rem', backgroundColor: '#e8f5e9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>✓ Shipping form is populated. You can edit details below if needed.</span>
+                    <button type="button" onClick={() => setAddressInfo({ firstName: '', lastName: '', address: '', city: '', postal: '', email: addressInfo.email })} style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}>Clear All</button>
                   </p>
                 )}
                 <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr' }}>
@@ -146,7 +270,7 @@ const Checkout = () => {
               </div>
               
               <button type="submit" className="btn btn-primary" disabled={processing} style={{ marginTop: '1rem', padding: '1rem' }}>
-                {processing ? 'Processing...' : `Place Order — ${currSymbol}${subtotal.toFixed(2)}`}
+                {processing ? 'Processing...' : `Place Order — ${currSymbol}${finalTotal.toFixed(2)}`}
               </button>
             </form>
           </div>
@@ -174,13 +298,35 @@ const Checkout = () => {
                 <span style={{ color: 'var(--color-gray)', fontSize: '0.9rem' }}>Subtotal</span>
                 <span style={{ fontSize: '0.9rem' }}>{currSymbol}{subtotal.toFixed(2)}</span>
               </div>
+              
+              {discount > 0 && (
+                <div className="flex justify-between mb-2" style={{ color: '#2e7d32', fontSize: '0.9rem', fontWeight: 500 }}>
+                  <span>Discount ({appliedPromo})</span>
+                  <span>-{currSymbol}{discount.toFixed(2)}</span>
+                </div>
+              )}
+
+              {giftWrap && (
+                <div className="flex justify-between mb-2" style={{ fontSize: '0.9rem' }}>
+                  <span style={{ color: 'var(--color-gray)' }}>Gift Wrapping</span>
+                  <span>+{currSymbol}{giftWrapCost.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between mb-4">
                 <span style={{ color: 'var(--color-gray)', fontSize: '0.9rem' }}>Shipping</span>
-                <span style={{ fontSize: '0.9rem' }}>Free</span>
+                <span style={{ fontSize: '0.9rem' }}>
+                  {subtotal >= freeShippingThreshold ? (
+                    <span style={{ color: '#2e7d32', fontWeight: 500 }}>Free Express</span>
+                  ) : (
+                    <span>Free</span>
+                  )}
+                </span>
               </div>
+              
               <div className="flex justify-between" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem', fontWeight: 'bold', fontSize: '1.1rem' }}>
                 <span>Total</span>
-                <span>{currSymbol}{subtotal.toFixed(2)}</span>
+                <span>{currSymbol}{finalTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>

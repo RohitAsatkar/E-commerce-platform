@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -14,7 +14,20 @@ import {
 import './AdminDashboard.css';
 import './Home.css';
 
-const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const FOOTWEAR_SIZES = ['6', '7', '8', '9', '10', '11', '12'];
+const ACCESSORY_SIZES = ['One Size'];
+const ALL_SIZES = [...CLOTHING_SIZES, ...FOOTWEAR_SIZES, ...ACCESSORY_SIZES];
+
+const getAvailableSizesForCategory = (category: string) => {
+  if (category === 'footwear') {
+    return FOOTWEAR_SIZES;
+  }
+  if (['accessories', 'jewelry', 'beauty', 'watch', 'bags'].includes(category)) {
+    return ACCESSORY_SIZES;
+  }
+  return CLOTHING_SIZES;
+};
 const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
 ];
@@ -463,16 +476,86 @@ const AdminDashboard = () => {
   });
 
   // WYSIWYG / Static pages manager state
+  const [selectedStaticTab, setSelectedStaticTab] = useState<'content' | 'seo' | 'analyzer'>('content');
+  const [socialPreviewTab, setSocialPreviewTab] = useState<'google' | 'facebook' | 'twitter'>('google');
   const [staticPages, setStaticPages] = useState<any[]>([
-    { id: "page_faq", title: "Frequently Asked Questions", slug: "faq", content: "<h2>Shipping & Delivery</h2><p>Standard shipping takes 3-5 business days.</p>" },
-    { id: "page_terms", title: "Terms of Service", slug: "terms", content: "<h2>Terms & Conditions</h2><p>Please review our policy guidelines before placing orders.</p>" }
+    { 
+      id: "page_faq", 
+      title: "Frequently Asked Questions", 
+      slug: "faq", 
+      content: "<h2>Shipping & Delivery</h2><p>Standard shipping takes 3-5 business days.</p>",
+      meta_title: "FAQ - Shipping, Returns, and Orders | Aura Studio",
+      meta_description: "Find answers to frequently asked questions about our luxury fashion products, insured global delivery, return policies, and secure checkout processes.",
+      focus_keywords: "faq, shipping, returns, order tracking",
+      indexing: "index, follow",
+      schema_markup: '{\n  "@context": "https://schema.org",\n  "@type": "FAQPage",\n  "mainEntity": []\n}'
+    },
+    { 
+      id: "page_terms", 
+      title: "Terms of Service", 
+      slug: "terms", 
+      content: "<h2>Terms & Conditions</h2><p>Please review our policy guidelines before placing orders.</p>",
+      meta_title: "Terms of Service & Usage Agreement | Aura Studio",
+      meta_description: "Read the terms of service, membership rules, and purchasing agreement guidelines for shopping online at Aura Studio luxury ecommerce portal.",
+      focus_keywords: "terms, conditions, agreement, legal",
+      indexing: "index, follow",
+      schema_markup: '{\n  "@context": "https://schema.org",\n  "@type": "WebPage",\n  "name": "Terms of Service"\n}'
+    }
   ]);
   const [selectedStaticPageId, setSelectedStaticPageId] = useState<string>("page_faq");
-  
+
+  const handleCreateStaticPage = () => {
+    const newId = `page_${Date.now()}`;
+    const newPage = {
+      id: newId,
+      title: "New Custom Page",
+      slug: `custom-page-${Date.now().toString().slice(-4)}`,
+      content: "<h2>New Custom Page</h2><p>Start writing rich content here...</p>",
+      meta_title: "New Custom Page | Aura Studio",
+      meta_description: "Add a high quality description to improve your page rank on search engine results.",
+      focus_keywords: "custom, page",
+      indexing: "index, follow",
+      schema_markup: '{\n  "@context": "https://schema.org",\n  "@type": "WebPage",\n  "name": "New Custom Page"\n}'
+    };
+    setStaticPages([...staticPages, newPage]);
+    setSelectedStaticPageId(newId);
+    showToast("New static page created!");
+  };
+
+  const handleDeleteStaticPage = (id: string) => {
+    if (staticPages.length <= 1) {
+      showToast("Cannot delete the last remaining page.");
+      return;
+    }
+    const updated = staticPages.filter(p => p.id !== id);
+    setStaticPages(updated);
+    setSelectedStaticPageId(updated[0].id);
+    showToast("Page deleted successfully.");
+  };
+
+  // Global SEO files configuration states
+  const [robotsTxt, setRobotsTxt] = useState<string>(
+    "User-agent: *\nAllow: /\nDisallow: /checkout\nDisallow: /account\n\nSitemap: https://aura.studio/sitemap.xml"
+  );
+  const [newSitemapUrl, setNewSitemapUrl] = useState<string>("");
+  const [customSitemapUrls, setCustomSitemapUrls] = useState<string[]>([
+    "https://aura.studio/",
+    "https://aura.studio/shop",
+    "https://aura.studio/about",
+    "https://aura.studio/faq",
+    "https://aura.studio/terms"
+  ]);
+
   // Search, Filter & Sort States
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Newest');
+  
+  // Product Filter, Search & Sort States
+  const [productSearch, setProductSearch] = useState('');
+  const [productCategoryFilter, setProductCategoryFilter] = useState('all');
+  const [productStockFilter, setProductStockFilter] = useState('all');
+  const [productSort, setProductSort] = useState('name-asc');
 
   // Selected Order for Detail Drawer
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -489,17 +572,31 @@ const AdminDashboard = () => {
     stock: 100, sku: '', tags: '', currency: 'INR'
   });
   const [selectedSizes, setSelectedSizes] = useState<Record<string, { enabled: boolean; priceAdjust: number }>>({
+    // Clothing
     XS: { enabled: false, priceAdjust: 0 },
     S: { enabled: true, priceAdjust: 0 },
     M: { enabled: true, priceAdjust: 0 },
     L: { enabled: true, priceAdjust: 0 },
     XL: { enabled: false, priceAdjust: 0 },
     XXL: { enabled: false, priceAdjust: 0 },
+    // Footwear
+    '6': { enabled: false, priceAdjust: 0 },
+    '7': { enabled: true, priceAdjust: 0 },
+    '8': { enabled: true, priceAdjust: 0 },
+    '9': { enabled: true, priceAdjust: 0 },
+    '10': { enabled: true, priceAdjust: 0 },
+    '11': { enabled: false, priceAdjust: 0 },
+    '12': { enabled: false, priceAdjust: 0 },
+    // Accessories
+    'One Size': { enabled: true, priceAdjust: 0 }
   });
+  const [activeFormTab, setActiveFormTab] = useState<'info' | 'pricing' | 'media'>('info');
   const [savingProduct, setSavingProduct] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageMode, setImageMode] = useState<'upload' | 'url'>('upload');
+  const [additionalImages, setAdditionalImages] = useState<string[]>([]);
+  const [newAdditionalImageUrl, setNewAdditionalImageUrl] = useState<string>('');
   
   // Login states
   const [email, setEmail] = useState('');
@@ -734,6 +831,61 @@ const AdminDashboard = () => {
     }
   };
 
+  // Product list filter stats and calculation
+  const totalUniqueProducts = products.length;
+  const lowStockCount = products.filter(p => (p.stock ?? 100) < 10 && (p.stock ?? 100) > 0).length;
+  const outOfStockCount = products.filter(p => (p.stock ?? 100) === 0).length;
+  const totalInventoryValue = products.reduce((sum, p) => sum + (p.price * (p.stock ?? 100)), 0);
+
+  const filteredProducts = useMemo(() => {
+    let result = [...products];
+
+    // 1. Search filter (Name or SKU)
+    if (productSearch.trim()) {
+      const q = productSearch.toLowerCase().trim();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.sku && p.sku.toLowerCase().includes(q))
+      );
+    }
+
+    // 2. Category filter
+    if (productCategoryFilter !== 'all') {
+      result = result.filter(p => p.category === productCategoryFilter);
+    }
+
+    // 3. Stock level filter
+    if (productStockFilter === 'low') {
+      result = result.filter(p => (p.stock ?? 100) < 10 && (p.stock ?? 100) > 0);
+    } else if (productStockFilter === 'out') {
+      result = result.filter(p => (p.stock ?? 100) === 0);
+    } else if (productStockFilter === 'instock') {
+      result = result.filter(p => (p.stock ?? 100) >= 10);
+    }
+
+    // 4. Sorting logic
+    result.sort((a, b) => {
+      switch (productSort) {
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
+        case 'price-asc':
+          return a.price - b.price;
+        case 'price-desc':
+          return b.price - a.price;
+        case 'stock-asc':
+          return (a.stock ?? 100) - (b.stock ?? 100);
+        case 'stock-desc':
+          return (b.stock ?? 100) - (a.stock ?? 100);
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [products, productSearch, productCategoryFilter, productStockFilter, productSort]);
+
   const handleAdminLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoggingIn(true);
@@ -799,10 +951,23 @@ const AdminDashboard = () => {
     return data.publicUrl;
   };
 
+  const generateSKU = () => {
+    const prefix = (productForm.category || 'GEN').slice(0, 3).toUpperCase();
+    const cleanName = (productForm.name || 'PROD')
+      .slice(0, 3)
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, 'X');
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const sku = `AU-${prefix}-${cleanName}-${randomSuffix}`;
+    setProductForm(prev => ({ ...prev, sku }));
+    showToast("SKU auto-generated!");
+  };
+
   const handleOpenModal = (product: any = null) => {
     setImageFile(null);
     setImagePreview(null);
     setImageMode('upload');
+    setActiveFormTab('info');
     if (product) {
       setEditingProduct(product);
       setProductForm({
@@ -822,17 +987,25 @@ const AdminDashboard = () => {
         });
       }
       setSelectedSizes(restored);
+
+      const imagesObj = Array.isArray(product.variants) ? product.variants.find((v: any) => v.is_images) : null;
+      setAdditionalImages(imagesObj?.urls || []);
+      setNewAdditionalImageUrl('');
     } else {
       setEditingProduct(null);
-      setProductForm({ name: '', price: 0, category: 'men', is_new: false, image: '', description: '', stock: 100, sku: '', tags: '', currency: 'INR' });
-      setSelectedSizes({
-        XS: { enabled: false, priceAdjust: 0 },
-        S: { enabled: true, priceAdjust: 0 },
-        M: { enabled: true, priceAdjust: 0 },
-        L: { enabled: true, priceAdjust: 0 },
-        XL: { enabled: false, priceAdjust: 0 },
-        XXL: { enabled: false, priceAdjust: 0 },
-      });
+      setProductForm({ name: '', price: 0, category: 'shirts', is_new: false, image: '', description: '', stock: 100, sku: '', tags: '', currency: 'INR' });
+      const restored: Record<string, { enabled: boolean; priceAdjust: number }> = {};
+      ALL_SIZES.forEach(s => { restored[s] = { enabled: false, priceAdjust: 0 }; });
+      restored['S'] = { enabled: true, priceAdjust: 0 };
+      restored['M'] = { enabled: true, priceAdjust: 0 };
+      restored['L'] = { enabled: true, priceAdjust: 0 };
+      restored['7'] = { enabled: true, priceAdjust: 0 };
+      restored['8'] = { enabled: true, priceAdjust: 0 };
+      restored['9'] = { enabled: true, priceAdjust: 0 };
+      restored['One Size'] = { enabled: true, priceAdjust: 0 };
+      setSelectedSizes(restored);
+      setAdditionalImages([]);
+      setNewAdditionalImageUrl('');
     }
     setShowProductModal(true);
   };
@@ -841,6 +1014,32 @@ const AdminDashboard = () => {
     e.preventDefault();
     setSavingProduct(true);
     try {
+      // 1. General validations
+      if (!productForm.name.trim()) {
+        showToast('Product Name is required.', 'error');
+        setActiveFormTab('info');
+        setSavingProduct(false);
+        return;
+      }
+      if (!productForm.description.trim()) {
+        showToast('Product Description is required.', 'error');
+        setActiveFormTab('info');
+        setSavingProduct(false);
+        return;
+      }
+      if (productForm.price <= 0) {
+        showToast('Base Price must be greater than 0.', 'error');
+        setActiveFormTab('pricing');
+        setSavingProduct(false);
+        return;
+      }
+      if (productForm.stock < 0) {
+        showToast('Stock Level cannot be negative.', 'error');
+        setActiveFormTab('pricing');
+        setSavingProduct(false);
+        return;
+      }
+
       let finalImageUrl = productForm.image;
 
       if (imageFile) {
@@ -848,15 +1047,23 @@ const AdminDashboard = () => {
       }
 
       if (!finalImageUrl) {
-        showToast('Please upload an image or provide an image URL.', 'error');
+        showToast('Please upload an image or provide an image URL on the Product Media tab.', 'error');
+        setActiveFormTab('media');
         setSavingProduct(false);
         return;
       }
 
       const tagsArray = productForm.tags.split(',').map(t => t.trim()).filter(Boolean);
-      const variantsArray = ALL_SIZES
+      
+      const availableSizes = getAvailableSizesForCategory(productForm.category);
+      const sizeVariants = availableSizes
         .filter(s => selectedSizes[s]?.enabled)
         .map(s => ({ size: s, priceAdjust: selectedSizes[s]?.priceAdjust || 0, currency: productForm.currency }));
+      
+      const variantsArray = [
+        ...sizeVariants,
+        { is_images: true, urls: additionalImages }
+      ];
       
       const payload = {
         name: productForm.name,
@@ -907,6 +1114,8 @@ const AdminDashboard = () => {
   const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
   const pendingCount = orders.filter(o => o.status === 'Processing').length;
   const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+
 
   // Search & Filter execution for Orders
   const filteredOrders = orders.filter((order: any) => {
@@ -1283,15 +1492,7 @@ const AdminDashboard = () => {
 
 
 
-  const handleUpdateSeo = (field: string, value: string) => {
-    setCmsPageConfig({
-      ...cmsPageConfig,
-      seo: {
-        ...cmsPageConfig.seo,
-        [field]: value
-      }
-    });
-  };
+
 
   const handleSaveCmsConfig = () => {
     // Persist configuration locally to sync with storefront page
@@ -1387,7 +1588,15 @@ const AdminDashboard = () => {
       }
       return page;
     }));
-    showToast("Static content changes saved!");
+  };
+
+  const handleUpdateStaticPageField = (id: string, field: string, value: any) => {
+    setStaticPages(staticPages.map(page => {
+      if (page.id === id) {
+        return { ...page, [field]: value };
+      }
+      return page;
+    }));
   };
 
   // Media Optimization Mock Helpers
@@ -1979,6 +2188,126 @@ const AdminDashboard = () => {
               <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)' }}>Product Catalog</h2>
               <button onClick={() => handleOpenModal()} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>+ Add Product</button>
             </div>
+
+            {/* Product Statistics Summary Bar */}
+            <div className="admin-stats-grid" style={{ marginBottom: '1.5rem' }}>
+              <div className="admin-stat-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="admin-stat-label">Unique Products</span>
+                  <Grid size={20} style={{ color: 'var(--color-accent)' }} />
+                </div>
+                <p className="admin-stat-value">{totalUniqueProducts}</p>
+              </div>
+              <div className="admin-stat-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="admin-stat-label">Low Stock Alerts</span>
+                  <AlertCircle size={20} style={{ color: lowStockCount > 0 ? '#d97706' : 'var(--color-gray)' }} />
+                </div>
+                <p className="admin-stat-value" style={{ color: lowStockCount > 0 ? '#d97706' : 'inherit' }}>{lowStockCount}</p>
+              </div>
+              <div className="admin-stat-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="admin-stat-label">Out of Stock</span>
+                  <X size={20} style={{ color: outOfStockCount > 0 ? '#dc2626' : 'var(--color-gray)' }} />
+                </div>
+                <p className="admin-stat-value" style={{ color: outOfStockCount > 0 ? '#dc2626' : 'inherit' }}>{outOfStockCount}</p>
+              </div>
+              <div className="admin-stat-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="admin-stat-label">Total Inventory Valuation</span>
+                  <TrendingUp size={20} style={{ color: '#16a34a' }} />
+                </div>
+                <p className="admin-stat-value">₹{totalInventoryValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              </div>
+            </div>
+
+            {/* Product Controls Toolbar */}
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem',
+              padding: '1rem',
+              backgroundColor: 'rgba(0,0,0,0.01)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px'
+            }}>
+              <div style={{ display: 'flex', gap: '0.75rem', flex: 1, minWidth: '280px', position: 'relative' }}>
+                <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray)' }} />
+                <input
+                  type="text"
+                  placeholder="Search by name, SKU..."
+                  value={productSearch}
+                  onChange={e => setProductSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.5rem 0.5rem 2.2rem',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text)',
+                    fontSize: '0.9rem'
+                  }}
+                />
+                {productSearch && (
+                  <button
+                    onClick={() => setProductSearch('')}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-gray)' }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* Category selector */}
+                <select
+                  value={productCategoryFilter}
+                  onChange={e => setProductCategoryFilter(e.target.value)}
+                  style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.9rem' }}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="shirts">Shirts</option>
+                  <option value="t-shirts">T-Shirts</option>
+                  <option value="polo">POLO</option>
+                  <option value="jeans">Jeans</option>
+                  <option value="trousers">Trousers</option>
+                  <option value="linen">LINEN</option>
+                  <option value="cargo-pants">Cargo Pants</option>
+                  <option value="joggers">Joggers</option>
+                  <option value="shorts">SHORTS</option>
+                  <option value="overshirts">Overshirts</option>
+                  <option value="footwear">Footwear</option>
+                </select>
+
+                {/* Stock Level selector */}
+                <select
+                  value={productStockFilter}
+                  onChange={e => setProductStockFilter(e.target.value)}
+                  style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.9rem' }}
+                >
+                  <option value="all">All Stock Status</option>
+                  <option value="instock">In Stock</option>
+                  <option value="low">Low Stock (&lt; 10)</option>
+                  <option value="out">Out of Stock (0)</option>
+                </select>
+
+                {/* Sorting selector */}
+                <select
+                  value={productSort}
+                  onChange={e => setProductSort(e.target.value)}
+                  style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.9rem' }}
+                >
+                  <option value="name-asc">Name (A - Z)</option>
+                  <option value="name-desc">Name (Z - A)</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="stock-asc">Stock: Low to High</option>
+                  <option value="stock-desc">Stock: High to Low</option>
+                </select>
+              </div>
+            </div>
             
             <div className="admin-table-container">
               <table className="admin-table">
@@ -1986,6 +2315,7 @@ const AdminDashboard = () => {
                   <tr>
                     <th>Image</th>
                     <th>Name</th>
+                    <th>SKU</th>
                     <th>Price</th>
                     <th>Stock</th>
                     <th>Category</th>
@@ -1993,27 +2323,46 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map(p => {
-                    const firstVariant = p.variants?.[0];
-                    const symbol = firstVariant?.currency ? CURRENCIES.find(c => c.code === firstVariant.currency)?.symbol : '₹';
-                    return (
-                      <tr key={p.id}>
-                        <td><img src={p.image} alt={p.name} style={{ width: '44px', height: '56px', objectFit: 'cover' }} /></td>
-                        <td style={{ fontWeight: '500' }}>{p.name}</td>
-                        <td>{symbol}{p.price}</td>
-                        <td style={{ color: (p.stock || 0) < 10 ? '#dc2626' : 'inherit', fontWeight: (p.stock || 0) < 10 ? '600' : 'normal' }}>
-                          {p.stock ?? 100}
-                        </td>
-                        <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                            <button onClick={() => handleOpenModal(p)} style={{ background: 'none', border: 'none', color: 'var(--color-text)', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: '0.9rem' }}>Edit</button>
-                            <button onClick={() => handleDeleteProduct(p.id)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: '0.9rem' }}>Delete</button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-gray)' }}>
+                        No products match your search or filter criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProducts.map(p => {
+                      const sizeVariant = Array.isArray(p.variants) ? p.variants.find((v: any) => v.size) : null;
+                      const symbol = sizeVariant?.currency ? CURRENCIES.find(c => c.code === sizeVariant.currency)?.symbol : '₹';
+                      const isLow = (p.stock ?? 100) < 10 && (p.stock ?? 100) > 0;
+                      const isOut = (p.stock ?? 100) === 0;
+
+                      return (
+                        <tr key={p.id}>
+                          <td><img src={p.image} alt={p.name} style={{ width: '44px', height: '56px', objectFit: 'cover', borderRadius: '2px' }} /></td>
+                          <td style={{ fontWeight: '500' }}>
+                            {p.name}
+                            {p.is_new && <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', padding: '0.15rem 0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New</span>}
+                          </td>
+                          <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{p.sku || '-'}</td>
+                          <td>{symbol}{p.price}</td>
+                          <td style={{ 
+                            color: isOut ? '#dc2626' : isLow ? '#d97706' : 'inherit', 
+                            fontWeight: (isOut || isLow) ? '600' : 'normal' 
+                          }}>
+                            {p.stock ?? 100}
+                            {isOut ? ' (Out of Stock)' : isLow ? ' (Low Stock)' : ''}
+                          </td>
+                          <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                              <button onClick={() => handleOpenModal(p)} style={{ background: 'none', border: 'none', color: 'var(--color-text)', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: '0.9rem' }}>Edit</button>
+                              <button onClick={() => handleDeleteProduct(p.id)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: '0.9rem' }}>Delete</button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -4851,123 +5200,501 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
                 {/* Static editor */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Selected Static Page
-                      <select
-                        value={selectedStaticPageId}
-                        onChange={e => setSelectedStaticPageId(e.target.value)}
-                        className="admin-select"
-                      >
-                        {staticPages.map(p => <option key={p.id} value={p.id}>{p.title} (/{p.slug})</option>)}
-                      </select>
-                    </label>
-                  </div>
-
                   {(() => {
                     const page = staticPages.find(p => p.id === selectedStaticPageId);
                     if (!page) return null;
+
+                    // Real-time SEO analysis computations
+                    const titleLength = (page.meta_title || '').length;
+                    const descLength = (page.meta_description || '').length;
+                    const hasH1 = /<h1|h2|h3/i.test(page.content || '');
+                    const wordCount = (page.content || '').replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+                    const slugHasKeyword = page.focus_keywords ? page.focus_keywords.split(',').map((k: string) => k.trim()).some((kw: string) => page.slug.includes(kw)) : false;
+                    const titleHasKeyword = page.focus_keywords ? page.focus_keywords.split(',').map((k: string) => k.trim()).some((kw: string) => page.meta_title?.toLowerCase().includes(kw.toLowerCase())) : false;
+                    const descHasKeyword = page.focus_keywords ? page.focus_keywords.split(',').map((k: string) => k.trim()).some((kw: string) => page.meta_description?.toLowerCase().includes(kw.toLowerCase())) : false;
+
+                    const analysisChecks = [
+                      { label: 'Meta Title Length (30-60 chars)', pass: titleLength >= 30 && titleLength <= 60, detail: `Current: ${titleLength} chars` },
+                      { label: 'Meta Description Length (120-160 chars)', pass: descLength >= 120 && descLength <= 160, detail: `Current: ${descLength} chars` },
+                      { label: 'Content Headings (H1/H2/H3 Tag Present)', pass: hasH1, detail: hasH1 ? 'Found headings' : 'No headings found' },
+                      { label: 'Focus Keywords in URL Slug', pass: slugHasKeyword, detail: slugHasKeyword ? 'Found keyword' : 'Focus keyword not in slug' },
+                      { label: 'Focus Keywords in Meta Title', pass: titleHasKeyword, detail: titleHasKeyword ? 'Found keyword' : 'Focus keyword not in title' },
+                      { label: 'Focus Keywords in Meta Description', pass: descHasKeyword, detail: descHasKeyword ? 'Found keyword' : 'Focus keyword not in description' },
+                      { label: 'Content Word Count (> 150 words)', pass: wordCount >= 150, detail: `Current: ${wordCount} words` }
+                    ];
+
+                    const passCount = analysisChecks.filter(c => c.pass).length;
+                    const seoScore = Math.round((passCount / analysisChecks.length) * 100);
+
+                    let isJsonValid = true;
+                    try {
+                      if (page.schema_markup) {
+                        JSON.parse(page.schema_markup);
+                      }
+                    } catch (e) {
+                      isJsonValid = false;
+                    }
+
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Page Title
-                          <input type="text" value={page.title} onChange={e => {
-                            setStaticPages(staticPages.map(p => p.id === page.id ? { ...p, title: e.target.value } : p));
-                          }} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                        </label>
-                        
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>URL Slug
-                          <input type="text" value={page.slug} onChange={e => {
-                            setStaticPages(staticPages.map(p => p.id === page.id ? { ...p, slug: e.target.value } : p));
-                          }} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                        </label>
+                        {/* Selector and Actions Bar */}
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                          <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>
+                            Selected Page
+                            <select
+                              value={selectedStaticPageId}
+                              onChange={e => setSelectedStaticPageId(e.target.value)}
+                              className="admin-select"
+                              style={{ width: '100%', padding: '0.65rem' }}
+                            >
+                              {staticPages.map(p => <option key={p.id} value={p.id}>{p.title} (/{p.slug})</option>)}
+                            </select>
+                          </label>
+                          <button 
+                            type="button" 
+                            onClick={handleCreateStaticPage}
+                            className="btn btn-primary"
+                            style={{ alignSelf: 'flex-end', height: '40px', padding: '0 1rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <Plus size={14} /> Add Page
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => handleDeleteStaticPage(page.id)}
+                            className="btn btn-outline"
+                            style={{ alignSelf: 'flex-end', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #d32f2f', color: '#d32f2f', padding: 0 }}
+                            title="Delete current page"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
 
-                        {/* Text Editor Container */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          <span style={{ fontWeight: '500' }}>Headless Rich-Text Content WYSIWYG Pane</span>
-                          <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ backgroundColor: 'rgba(0,0,0,0.03)', padding: '0.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--color-border)' }}>
-                              <button type="button" onClick={() => showToast("Format Bold Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>B</button>
-                              <button type="button" onClick={() => showToast("Format Italic Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontStyle: 'italic', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>I</button>
-                              <button type="button" onClick={() => showToast("Format Underline Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', textDecoration: 'underline', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>U</button>
-                              <button type="button" onClick={() => showToast("Format Heading 2 Added")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>H2</button>
-                              <button type="button" onClick={() => showToast("Format List Added")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>List</button>
+                        {/* Internal Subtabs */}
+                        <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaticTab('content')}
+                            style={{
+                              padding: '0.75rem 0',
+                              border: 'none',
+                              borderBottom: selectedStaticTab === 'content' ? '2px solid var(--color-text)' : '2px solid transparent',
+                              fontWeight: selectedStaticTab === 'content' ? '600' : '400',
+                              color: selectedStaticTab === 'content' ? 'var(--color-text)' : 'var(--color-gray)',
+                              fontSize: '0.85rem',
+                              backgroundColor: 'transparent',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <Edit3 size={14} /> Content Editor
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaticTab('seo')}
+                            style={{
+                              padding: '0.75rem 0',
+                              border: 'none',
+                              borderBottom: selectedStaticTab === 'seo' ? '2px solid var(--color-text)' : '2px solid transparent',
+                              fontWeight: selectedStaticTab === 'seo' ? '600' : '400',
+                              color: selectedStaticTab === 'seo' ? 'var(--color-text)' : 'var(--color-gray)',
+                              fontSize: '0.85rem',
+                              backgroundColor: 'transparent',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <Globe size={14} /> SEO & Schema Tags
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaticTab('analyzer')}
+                            style={{
+                              padding: '0.75rem 0',
+                              border: 'none',
+                              borderBottom: selectedStaticTab === 'analyzer' ? '2px solid var(--color-text)' : '2px solid transparent',
+                              fontWeight: selectedStaticTab === 'analyzer' ? '600' : '400',
+                              color: selectedStaticTab === 'analyzer' ? 'var(--color-text)' : 'var(--color-gray)',
+                              fontSize: '0.85rem',
+                              backgroundColor: 'transparent',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <Sliders size={14} /> SEO Analyzer
+                            <span style={{ fontSize: '0.7rem', backgroundColor: seoScore >= 70 ? '#2e7d32' : '#c2410c', color: '#fff', padding: '0.1rem 0.4rem', borderRadius: '10px', marginLeft: '0.25rem' }}>
+                              {seoScore}%
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Content Tab Content */}
+                        {selectedStaticTab === 'content' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Page Title
+                              <input type="text" value={page.title} onChange={e => {
+                                setStaticPages(staticPages.map(p => p.id === page.id ? { ...p, title: e.target.value } : p));
+                              }} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                            </label>
+                            
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>URL Slug
+                              <input type="text" value={page.slug} onChange={e => {
+                                setStaticPages(staticPages.map(p => p.id === page.id ? { ...p, slug: e.target.value } : p));
+                              }} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+                            </label>
+
+                            {/* Text Editor Container */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              <span style={{ fontWeight: '500' }}>Headless Rich-Text Content WYSIWYG Pane</span>
+                              <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ backgroundColor: 'rgba(0,0,0,0.03)', padding: '0.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                                  <button type="button" onClick={() => showToast("Format Bold Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontWeight: 'bold', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>B</button>
+                                  <button type="button" onClick={() => showToast("Format Italic Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', fontStyle: 'italic', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>I</button>
+                                  <button type="button" onClick={() => showToast("Format Underline Applied")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', textDecoration: 'underline', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>U</button>
+                                  <button type="button" onClick={() => showToast("Format Heading 2 Added")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>H2</button>
+                                  <button type="button" onClick={() => showToast("Format List Added")} style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text)' }}>List</button>
+                                </div>
+                                <textarea
+                                  value={page.content}
+                                  onChange={e => handleSaveStaticPage(page.id, e.target.value)}
+                                  rows={10}
+                                  style={{ width: '100%', padding: '1rem', border: 'none', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.85rem', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                                />
+                              </div>
                             </div>
-                            <textarea
-                              value={page.content}
-                              onChange={e => handleSaveStaticPage(page.id, e.target.value)}
-                              rows={10}
-                              style={{ width: '100%', padding: '1rem', border: 'none', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.85rem', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-                            />
-                          </div>
-                        </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <button onClick={() => showToast("Static page saved successfully!")} className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>Save Page Changes</button>
-                        </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                              <button onClick={() => showToast("Static page saved successfully!")} className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>Save Page Changes</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SEO Tab Content */}
+                        {selectedStaticTab === 'seo' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                                <span style={{ fontWeight: '500' }}>Meta Title</span>
+                                <span style={{ color: titleLength > 60 ? '#dc2626' : 'var(--color-gray)' }}>
+                                  {titleLength}/60 chars
+                                </span>
+                              </div>
+                              <input
+                                type="text"
+                                value={page.meta_title || ''}
+                                onChange={e => handleUpdateStaticPageField(page.id, 'meta_title', e.target.value)}
+                                placeholder="Catchy page-specific search title"
+                                style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                              />
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                                <span style={{ fontWeight: '500' }}>Meta Description</span>
+                                <span style={{ color: descLength > 160 ? '#dc2626' : 'var(--color-gray)' }}>
+                                  {descLength}/160 chars
+                                </span>
+                              </div>
+                              <textarea
+                                value={page.meta_description || ''}
+                                onChange={e => handleUpdateStaticPageField(page.id, 'meta_description', e.target.value)}
+                                placeholder="Write page specific description overview to display under search link..."
+                                rows={3}
+                                style={{ padding: '0.65rem', border: '1px solid var(--color-border)', resize: 'none', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                              />
+                            </div>
+
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Focus Keywords (Comma-separated)
+                              <input
+                                type="text"
+                                value={page.focus_keywords || ''}
+                                onChange={e => handleUpdateStaticPageField(page.id, 'focus_keywords', e.target.value)}
+                                placeholder="e.g. faq, orders, delivery, policy"
+                                style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                              />
+                            </label>
+
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Search Crawler Indexing Directive (robots meta)
+                              <select
+                                value={page.indexing || 'index, follow'}
+                                onChange={e => handleUpdateStaticPageField(page.id, 'indexing', e.target.value)}
+                                className="admin-select"
+                                style={{ padding: '0.65rem' }}
+                              >
+                                <option value="index, follow">index, follow (Standard recommendation)</option>
+                                <option value="noindex, follow">noindex, follow (Hide page, keep link value)</option>
+                                <option value="index, nofollow">index, nofollow (Show page, ignore outgoing links)</option>
+                                <option value="noindex, nofollow">noindex, nofollow (Complete hide & block)</option>
+                              </select>
+                            </label>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontWeight: '500', fontSize: '0.8rem' }}>JSON-LD Schema Markup (Structured Data)</span>
+                                <span style={{ fontSize: '0.7rem', color: isJsonValid ? '#2e7d32' : '#dc2626', fontWeight: 'bold' }}>
+                                  {isJsonValid ? '✓ Valid JSON-LD' : '✗ Invalid JSON Schema'}
+                                </span>
+                              </div>
+                              <textarea
+                                value={page.schema_markup || ''}
+                                onChange={e => handleUpdateStaticPageField(page.id, 'schema_markup', e.target.value)}
+                                placeholder='{ "@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [] }'
+                                rows={5}
+                                style={{ padding: '0.65rem', border: '1px solid var(--color-border)', fontFamily: 'monospace', fontSize: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text)', resize: 'vertical' }}
+                              />
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                              <button onClick={() => showToast("SEO properties saved successfully!")} className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>Save SEO Settings</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SEO Analyzer Tab Content */}
+                        {selectedStaticTab === 'analyzer' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            <div style={{ border: '1px solid var(--color-border)', padding: '1rem', borderRadius: '4px', backgroundColor: 'rgba(0,0,0,0.01)', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                              <div style={{ width: '64px', height: '64px', borderRadius: '50%', border: '4px solid', borderColor: seoScore >= 70 ? '#2e7d32' : seoScore >= 40 ? '#c2410c' : '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--color-text)' }}>{seoScore}%</span>
+                              </div>
+                              <div>
+                                <span style={{ fontWeight: '600', display: 'block', fontSize: '0.9rem', color: 'var(--color-text)' }}>Real-time SEO Score</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>
+                                  {seoScore >= 70 ? 'Excellent! This page complies with modern SEO standards.' : seoScore >= 40 ? 'Needs attention. Correct the warnings below to rank higher.' : 'Critical issues found. SEO tags must be populated.'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05rem', color: 'var(--color-gray)' }}>SEO Checklist Analysis</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {analysisChecks.map((check, index) => (
+                                  <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', border: '1px solid var(--color-border)', borderRadius: '2px', backgroundColor: check.pass ? 'rgba(46, 125, 50, 0.02)' : 'rgba(220, 38, 38, 0.02)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      {check.pass ? (
+                                        <CheckCircle size={16} color="#2e7d32" style={{ flexShrink: 0 }} />
+                                      ) : (
+                                        <AlertCircle size={16} color="#c2410c" style={{ flexShrink: 0 }} />
+                                      )}
+                                      <span style={{ fontSize: '0.8rem', fontWeight: '500', color: 'var(--color-text)' }}>{check.label}</span>
+                                    </div>
+                                    <span style={{ fontSize: '0.75rem', color: check.pass ? '#2e7d32' : 'var(--color-gray)' }}>{check.detail}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
                 </div>
 
                 {/* SEO Panel Wrapper */}
-                <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Globe size={16} /> SEO & Open Graph Tags</h3>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                      <span style={{ fontWeight: '500' }}>Meta Title</span>
-                      <span style={{ color: (cmsPageConfig.seo.meta_title || '').length > 60 ? '#dc2626' : 'var(--color-gray)' }}>
-                        {(cmsPageConfig.seo.meta_title || '').length}/60 chars
-                      </span>
+                {(() => {
+                  const page = staticPages.find(p => p.id === selectedStaticPageId) || staticPages[0];
+                  if (!page) return null;
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      {/* Realtime SERP & Social Preview Card */}
+                      <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <Globe size={16} /> Search & Social Previews
+                        </h3>
+                        
+                        {/* Preview Mode Selector */}
+                        <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'rgba(0,0,0,0.02)', padding: '0.25rem', borderRadius: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSocialPreviewTab('google')}
+                            style={{
+                              flex: 1,
+                              padding: '0.4rem',
+                              fontSize: '0.75rem',
+                              fontWeight: socialPreviewTab === 'google' ? '600' : '400',
+                              backgroundColor: socialPreviewTab === 'google' ? 'var(--color-bg)' : 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              borderRadius: '2px',
+                              color: 'var(--color-text)'
+                            }}
+                          >
+                            Google SERP
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSocialPreviewTab('facebook')}
+                            style={{
+                              flex: 1,
+                              padding: '0.4rem',
+                              fontSize: '0.75rem',
+                              fontWeight: socialPreviewTab === 'facebook' ? '600' : '400',
+                              backgroundColor: socialPreviewTab === 'facebook' ? 'var(--color-bg)' : 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              borderRadius: '2px',
+                              color: 'var(--color-text)'
+                            }}
+                          >
+                            Facebook
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSocialPreviewTab('twitter')}
+                            style={{
+                              flex: 1,
+                              padding: '0.4rem',
+                              fontSize: '0.75rem',
+                              fontWeight: socialPreviewTab === 'twitter' ? '600' : '400',
+                              backgroundColor: socialPreviewTab === 'twitter' ? 'var(--color-bg)' : 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              borderRadius: '2px',
+                              color: 'var(--color-text)'
+                            }}
+                          >
+                            Twitter
+                          </button>
+                        </div>
+
+                        {socialPreviewTab === 'google' && (
+                          <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', backgroundColor: 'var(--color-bg)', marginTop: '0.5rem' }}>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05rem', display: 'block', marginBottom: '0.5rem' }}>Google SERP Mock Render</span>
+                            <span style={{ fontSize: '0.85rem', color: '#1a0dab', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', fontWeight: '500' }}>
+                              {page.meta_title || `${page.title} | Aura Studio`}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: '#006621', display: 'block', marginBottom: '0.2rem' }}>
+                              https://aura.studio/{page.slug}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', opacity: 0.8 }}>
+                              {page.meta_description || 'Add a meta description here to preview how your page will appear on search results.'}
+                            </span>
+                          </div>
+                        )}
+
+                        {socialPreviewTab === 'facebook' && (
+                          <div style={{ border: '1px solid var(--color-border)', borderRadius: '6px', overflow: 'hidden', backgroundColor: 'var(--color-bg)', marginTop: '0.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-bg)', fontSize: '0.75rem', fontWeight: 'bold' }}>A</div>
+                              <div>
+                                <span style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', color: 'var(--color-text)' }}>Aura Studio</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Sponsored · Paid Partnership</span>
+                              </div>
+                            </div>
+                            <div style={{ padding: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text)' }}>
+                              Check out our latest update: <strong>{page.title}</strong> is now live on our official store!
+                            </div>
+                            <div style={{ width: '100%', height: '180px', backgroundColor: 'rgba(0,0,0,0.05)', backgroundImage: `url(${cmsPageConfig.seo.open_graph_image || 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200'})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                            <div style={{ padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--color-border)' }}>
+                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', textTransform: 'uppercase' }}>AURA.STUDIO</span>
+                              <span style={{ fontSize: '0.85rem', fontWeight: '600', display: 'block', margin: '0.2rem 0', color: 'var(--color-text)', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                {page.meta_title || page.title}
+                              </span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                {page.meta_description || 'Add a meta description to preview social snippet.'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {socialPreviewTab === 'twitter' && (
+                          <div style={{ border: '1px solid var(--color-border)', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'var(--color-bg)', marginTop: '0.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)' }}>
+                              <div style={{ width: '120px', height: '120px', backgroundColor: 'rgba(0,0,0,0.05)', backgroundImage: `url(${cmsPageConfig.seo.open_graph_image || 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=1200'})`, backgroundSize: 'cover', backgroundPosition: 'center', flexShrink: 0 }} />
+                              <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>aura.studio</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', margin: '0.2rem 0', color: 'var(--color-text)', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                  {page.meta_title || page.title}
+                                </span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  {page.meta_description || 'Discover luxury fashion releases.'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sitemap & robots.txt Panel */}
+                      <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <Settings size={16} /> Global SEO Files Config
+                        </h3>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>robots.txt File Content</span>
+                          <textarea
+                            value={robotsTxt}
+                            onChange={e => setRobotsTxt(e.target.value)}
+                            rows={4}
+                            style={{ padding: '0.5rem', border: '1px solid var(--color-border)', fontFamily: 'monospace', fontSize: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>XML Sitemap Paths</span>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input
+                              type="text"
+                              value={newSitemapUrl}
+                              onChange={e => setNewSitemapUrl(e.target.value)}
+                              placeholder="https://aura.studio/custom-path"
+                              style={{ flex: 1, padding: '0.5rem', fontSize: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!newSitemapUrl) return;
+                                if (customSitemapUrls.includes(newSitemapUrl)) {
+                                  showToast("URL already exists in sitemap.");
+                                  return;
+                                }
+                                setCustomSitemapUrls([...customSitemapUrls, newSitemapUrl]);
+                                setNewSitemapUrl("");
+                                showToast("Path added to sitemap!");
+                              }}
+                              style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', border: '1px solid var(--color-border)', cursor: 'pointer' }}
+                            >
+                              Add
+                            </button>
+                          </div>
+
+                          <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid var(--color-border)', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            {customSitemapUrls.map((url, idx) => (
+                              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', padding: '0.2rem', backgroundColor: 'rgba(0,0,0,0.02)' }}>
+                                <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{url}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCustomSitemapUrls(customSitemapUrls.filter(u => u !== url));
+                                    showToast("Path removed from sitemap.");
+                                  }}
+                                  style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '0.65rem' }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => showToast("Robots.txt & Sitemap compiled and successfully deployed live!")}
+                          className="btn btn-primary"
+                          style={{ width: '100%', fontSize: '0.8rem', padding: '0.65rem' }}
+                        >
+                          Publish robots.txt & sitemap.xml
+                        </button>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      value={cmsPageConfig.seo.meta_title}
-                      onChange={e => handleUpdateSeo('meta_title', e.target.value)}
-                      placeholder="Catchy marketing title"
-                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                      <span style={{ fontWeight: '500' }}>Meta Description</span>
-                      <span style={{ color: (cmsPageConfig.seo.meta_description || '').length > 160 ? '#dc2626' : 'var(--color-gray)' }}>
-                        {(cmsPageConfig.seo.meta_description || '').length}/160 chars
-                      </span>
-                    </div>
-                    <textarea
-                      value={cmsPageConfig.seo.meta_description}
-                      onChange={e => handleUpdateSeo('meta_description', e.target.value)}
-                      placeholder="Brief page meta overview summary..."
-                      rows={3}
-                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', resize: 'none', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-                    />
-                  </div>
-
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>Open Graph Image URL
-                    <input
-                      type="text"
-                      value={cmsPageConfig.seo.open_graph_image}
-                      onChange={e => handleUpdateSeo('open_graph_image', e.target.value)}
-                      placeholder="/media/seo/preview.jpg"
-                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-                    />
-                  </label>
-
-                  {/* Mock Google Search Preview Card */}
-                  <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', backgroundColor: '#f9f9f9', marginTop: '0.5rem' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05rem', display: 'block', marginBottom: '0.5rem' }}>Google SERP Mock Render</span>
-                    <span style={{ fontSize: '0.75rem', color: '#1a0dab', display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', fontWeight: '500' }}>
-                      {cmsPageConfig.seo.meta_title || 'Please fill meta title'}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: '#006621', display: 'block', marginBottom: '0.2rem' }}>
-                      https://aura.studio/{cmsPageConfig.slug}
-                    </span>
-                    <span style={{ fontSize: '0.75rem', color: '#545454', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {cmsPageConfig.seo.meta_description || 'Please fill meta description details.'}
-                    </span>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -5547,116 +6274,453 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
       {showProductModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
           <div style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '2.5rem', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
-            <h2 style={{ marginBottom: '1.5rem', fontSize: '1.75rem', fontFamily: 'var(--font-heading)' }}>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-            <form onSubmit={handleSaveProduct} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>Name
-                <input type="text" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} required style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <span style={{ fontWeight: '500' }}>Price</span>
-                <div style={{ display: 'flex', gap: '0' }}>
-                  <select value={productForm.currency} onChange={e => setProductForm({...productForm, currency: e.target.value})} style={{ padding: '0.75rem', border: '1px solid var(--color-border)', borderRight: 'none', backgroundColor: 'rgba(0,0,0,0.03)', color: 'var(--color-text)', fontWeight: '600', width: '90px' }}>
-                    {CURRENCIES.map(c => <option key={c.code} value={c.code} style={{ backgroundColor: 'var(--color-bg)' }}>{c.symbol} {c.code}</option>)}
-                  </select>
-                  <input type="number" step="0.01" value={productForm.price} onChange={e => setProductForm({...productForm, price: Number(e.target.value)})} required style={{ padding: '0.75rem', border: '1px solid var(--color-border)', flex: 1, backgroundColor: 'transparent', color: 'var(--color-text)' }} />
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.75rem', fontFamily: 'var(--font-heading)', margin: 0 }}>
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
+              </h2>
+              <span style={{ fontSize: '0.85rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {productForm.sku ? `SKU: ${productForm.sku}` : 'New Draft'}
+              </span>
+            </div>
+
+            {/* Step Tabs Indicator */}
+            <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem', paddingBottom: '0.5rem' }}>
+              {(['info', 'pricing', 'media'] as const).map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setActiveFormTab(t)}
+                  style={{
+                    paddingBottom: '0.75rem',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: activeFormTab === t ? '2px solid var(--color-text)' : '2px solid transparent',
+                    color: activeFormTab === t ? 'var(--color-text)' : 'var(--color-gray)',
+                    fontWeight: activeFormTab === t ? '600' : '400',
+                    fontSize: '0.85rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    paddingLeft: 0,
+                    paddingRight: 0
+                  }}
+                >
+                  {t === 'info' ? '1. General Info' : t === 'pricing' ? '2. Sizing & Pricing' : '3. Product Media'}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              
+              {/* TAB 1: GENERAL INFO */}
+              {activeFormTab === 'info' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: '1 / -1' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Product Name</span>
+                    <input 
+                      type="text" 
+                      value={productForm.name} 
+                      onChange={e => setProductForm({...productForm, name: e.target.value})} 
+                      placeholder="e.g., Silk Linen Overshirt"
+                      style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }} 
+                    />
+                  </label>
+                  
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</span>
+                    <select 
+                      value={productForm.category} 
+                      onChange={e => setProductForm({...productForm, category: e.target.value})} 
+                      style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }}
+                    >
+                      <option value="shirts" style={{ backgroundColor: 'var(--color-bg)' }}>Shirts</option>
+                      <option value="t-shirts" style={{ backgroundColor: 'var(--color-bg)' }}>T-Shirts</option>
+                      <option value="polo" style={{ backgroundColor: 'var(--color-bg)' }}>POLO</option>
+                      <option value="jeans" style={{ backgroundColor: 'var(--color-bg)' }}>Jeans</option>
+                      <option value="trousers" style={{ backgroundColor: 'var(--color-bg)' }}>Trousers</option>
+                      <option value="linen" style={{ backgroundColor: 'var(--color-bg)' }}>LINEN</option>
+                      <option value="cargo-pants" style={{ backgroundColor: 'var(--color-bg)' }}>Cargo Pants</option>
+                      <option value="joggers" style={{ backgroundColor: 'var(--color-bg)' }}>Joggers</option>
+                      <option value="shorts" style={{ backgroundColor: 'var(--color-bg)' }}>SHORTS</option>
+                      <option value="overshirts" style={{ backgroundColor: 'var(--color-bg)' }}>Overshirts</option>
+                      <option value="footwear" style={{ backgroundColor: 'var(--color-bg)' }}>Footwear</option>
+                    </select>
+                  </label>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SKU Code</span>
+                      <button 
+                        type="button" 
+                        onClick={generateSKU} 
+                        style={{ background: 'none', border: 'none', color: 'var(--color-gray)', textDecoration: 'underline', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}
+                      >
+                        Auto-Generate SKU
+                      </button>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={productForm.sku} 
+                      onChange={e => setProductForm({...productForm, sku: e.target.value})} 
+                      placeholder="e.g., AU-SHI-SILK-4819"
+                      style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }} 
+                    />
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: '1 / -1' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tags (comma separated)</span>
+                    <input 
+                      type="text" 
+                      placeholder="e.g., summer, linen, organic, featured" 
+                      value={productForm.tags} 
+                      onChange={e => setProductForm({...productForm, tags: e.target.value})} 
+                      style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }} 
+                    />
+                  </label>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: '1 / -1' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</span>
+                    <textarea 
+                      value={productForm.description} 
+                      onChange={e => setProductForm({...productForm, description: e.target.value})} 
+                      rows={5} 
+                      placeholder="Describe the material, cut, design history, and architectural lines of this piece..."
+                      style={{ padding: '0.85rem', border: '1px solid var(--color-border)', resize: 'vertical', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', lineHeight: '1.6' }} 
+                    />
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', gridColumn: '1 / -1', cursor: 'pointer', marginTop: '0.5rem' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={productForm.is_new} 
+                      onChange={e => setProductForm({...productForm, is_new: e.target.checked})} 
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>Mark as a new arrival on storefront</span>
+                  </label>
                 </div>
-              </div>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>Category
-                <select value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})} required style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}>
-                  <option value="shirts" style={{ backgroundColor: 'var(--color-bg)' }}>Shirts</option>
-                  <option value="t-shirts" style={{ backgroundColor: 'var(--color-bg)' }}>T-Shirts</option>
-                  <option value="polo" style={{ backgroundColor: 'var(--color-bg)' }}>POLO</option>
-                  <option value="jeans" style={{ backgroundColor: 'var(--color-bg)' }}>Jeans</option>
-                  <option value="trousers" style={{ backgroundColor: 'var(--color-bg)' }}>Trousers</option>
-                  <option value="linen" style={{ backgroundColor: 'var(--color-bg)' }}>LINEN</option>
-                  <option value="cargo-pants" style={{ backgroundColor: 'var(--color-bg)' }}>Cargo Pants</option>
-                  <option value="joggers" style={{ backgroundColor: 'var(--color-bg)' }}>Joggers</option>
-                  <option value="shorts" style={{ backgroundColor: 'var(--color-bg)' }}>SHORTS</option>
-                  <option value="overshirts" style={{ backgroundColor: 'var(--color-bg)' }}>Overshirts</option>
-                  <option value="footwear" style={{ backgroundColor: 'var(--color-bg)' }}>Footwear</option>
-                </select>
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>SKU
-                <input type="text" value={productForm.sku} onChange={e => setProductForm({...productForm, sku: e.target.value})} style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>Stock Level
-                <input type="number" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: Number(e.target.value)})} required style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-              </label>
-              <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <span style={{ fontWeight: '500' }}>Size Variants</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                  {ALL_SIZES.map(size => {
-                    const curr = CURRENCIES.find(c => c.code === productForm.currency);
-                    const sym = curr?.symbol || '₹';
-                    return (
-                      <div key={size} style={{ border: `1px solid ${selectedSizes[size]?.enabled ? 'var(--color-text)' : 'var(--color-border)'}`, padding: '0.75rem', minWidth: '110px', backgroundColor: selectedSizes[size]?.enabled ? 'rgba(0,0,0,0.02)' : 'transparent', transition: 'all 0.15s' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: selectedSizes[size]?.enabled ? '600' : '400' }}>
-                          <input type="checkbox" checked={selectedSizes[size]?.enabled || false} onChange={e => setSelectedSizes(prev => ({ ...prev, [size]: { ...prev[size], enabled: e.target.checked } }))} />
-                          {size}
-                        </label>
-                        {selectedSizes[size]?.enabled && (
-                          <div style={{ marginTop: '0.5rem' }}>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>Price adjust ({sym})</span>
-                            <input type="number" step="0.01" value={selectedSizes[size]?.priceAdjust || 0} onChange={e => setSelectedSizes(prev => ({ ...prev, [size]: { ...prev[size], priceAdjust: Number(e.target.value) } }))} style={{ width: '100%', padding: '0.35rem', border: '1px solid var(--color-border)', marginTop: '0.25rem', fontSize: '0.85rem', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                            <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', marginTop: '0.15rem', display: 'block' }}>Final: {sym}{(productForm.price + (selectedSizes[size]?.priceAdjust || 0)).toFixed(2)}</span>
+              )}
+
+              {/* TAB 2: PRICING & SIZING */}
+              {activeFormTab === 'pricing' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Base Price</span>
+                      <div style={{ display: 'flex', gap: '0' }}>
+                        <select 
+                          value={productForm.currency} 
+                          onChange={e => setProductForm({...productForm, currency: e.target.value})} 
+                          style={{ padding: '0.85rem', border: '1px solid var(--color-border)', borderRight: 'none', backgroundColor: 'rgba(0,0,0,0.03)', color: 'var(--color-text)', fontWeight: '600', width: '95px', borderRadius: '2px 0 0 2px' }}
+                        >
+                          {CURRENCIES.map(c => <option key={c.code} value={c.code} style={{ backgroundColor: 'var(--color-bg)' }}>{c.symbol} {c.code}</option>)}
+                        </select>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          value={productForm.price || ''} 
+                          onChange={e => setProductForm({...productForm, price: Number(e.target.value)})} 
+                          placeholder="0.00"
+                          style={{ padding: '0.85rem', border: '1px solid var(--color-border)', flex: 1, backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '0 2px 2px 0' }} 
+                        />
+                      </div>
+                    </div>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stock Level</span>
+                      <input 
+                        type="number" 
+                        value={productForm.stock} 
+                        onChange={e => setProductForm({...productForm, stock: Number(e.target.value)})} 
+                        placeholder="100"
+                        style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }} 
+                      />
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Size Variants Adjustment 
+                      <span style={{ color: 'var(--color-gray)', fontSize: '0.75rem', textTransform: 'none', marginLeft: '0.5rem' }}>
+                        ({productForm.category === 'footwear' ? 'Footwear Chart' : productForm.category === 'accessories' ? 'Accessory Chart' : 'Apparel Chart'})
+                      </span>
+                    </span>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
+                      {getAvailableSizesForCategory(productForm.category).map(size => {
+                        const curr = CURRENCIES.find(c => c.code === productForm.currency);
+                        const sym = curr?.symbol || '₹';
+                        const isEnabled = selectedSizes[size]?.enabled;
+                        return (
+                          <div 
+                            key={size} 
+                            style={{ 
+                              border: `1px solid ${isEnabled ? 'var(--color-text)' : 'var(--color-border)'}`, 
+                              padding: '1rem', 
+                              borderRadius: '4px',
+                              backgroundColor: isEnabled ? 'rgba(0,0,0,0.02)' : 'transparent', 
+                              transition: 'all 0.15s',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: isEnabled ? '600' : '400', fontSize: '0.9rem' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={isEnabled || false} 
+                                onChange={e => setSelectedSizes(prev => ({ ...prev, [size]: { ...prev[size], enabled: e.target.checked } }))} 
+                                style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                              />
+                              {size}
+                            </label>
+                            
+                            {isEnabled && (
+                              <div style={{ marginTop: '0.25rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.5rem' }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', display: 'block', marginBottom: '0.25rem' }}>Price Adjust ({sym})</span>
+                                <input 
+                                  type="number" 
+                                  step="0.01" 
+                                  value={selectedSizes[size]?.priceAdjust || 0} 
+                                  onChange={e => setSelectedSizes(prev => ({ ...prev, [size]: { ...prev[size], priceAdjust: Number(e.target.value) } }))} 
+                                  style={{ width: '100%', padding: '0.4rem', border: '1px solid var(--color-border)', fontSize: '0.8rem', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }} 
+                                />
+                                <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', marginTop: '0.35rem', display: 'block', fontWeight: '500' }}>
+                                  Final: {sym}{(productForm.price + (selectedSizes[size]?.priceAdjust || 0)).toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: PRODUCT MEDIA */}
+              {activeFormTab === 'media' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                  
+                  {/* Primary Image Upload */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Primary Catalog Image</span>
+                      <div style={{ display: 'flex', gap: '0.25rem', border: '1px solid var(--color-border)', borderRadius: '2px', padding: '2px' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => setImageMode('upload')} 
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', border: 'none', background: imageMode === 'upload' ? 'var(--color-text)' : 'transparent', color: imageMode === 'upload' ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s' }}
+                        >
+                          Upload File
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setImageMode('url')} 
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', border: 'none', background: imageMode === 'url' ? 'var(--color-text)' : 'transparent', color: imageMode === 'url' ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s' }}
+                        >
+                          Paste URL
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {imageMode === 'upload' ? (
+                      <div
+                        onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--color-text)'; }}
+                        onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                        onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--color-border)'; const f = e.dataTransfer.files[0]; if (f) handleImageFileChange(f); }}
+                        style={{ 
+                          border: '2px dashed var(--color-border)', 
+                          padding: '2.5rem 1rem', 
+                          textAlign: 'center', 
+                          cursor: 'pointer', 
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(0,0,0,0.01)', 
+                          transition: 'all 0.2s' 
+                        }}
+                        onClick={() => document.getElementById('product-image-input')?.click()}
+                      >
+                        <input id="product-image-input" type="file" accept="image/*" onChange={e => handleImageFileChange(e.target.files?.[0] || null)} style={{ display: 'none' }} />
+                        {imagePreview ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', justifyContent: 'center' }}>
+                            <img src={imagePreview} alt="Preview" style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--color-border)' }} />
+                            <div style={{ textAlign: 'left' }}>
+                              <p style={{ fontWeight: '600', fontSize: '0.9rem', marginBottom: '0.25rem' }}>{imageFile ? imageFile.name : 'Current Image'}</p>
+                              <p style={{ color: 'var(--color-gray)', fontSize: '0.75rem' }}>{imageFile ? `${(imageFile.size / 1024).toFixed(1)} KB` : 'Drop a new file here to swap'}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <span style={{ fontSize: '1.5rem', color: 'var(--color-gray)', display: 'block', marginBottom: '0.5rem' }}>↑</span>
+                            <p style={{ fontWeight: '600', marginBottom: '0.25rem', fontSize: '0.9rem' }}>Click or drag a cover image here</p>
+                            <p style={{ color: 'var(--color-gray)', fontSize: '0.75rem' }}>Supporting JPEG, PNG, or WEBP up to 5MB</p>
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: '500' }}>Product Image</span>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button type="button" onClick={() => setImageMode('upload')} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', border: '1px solid var(--color-border)', background: imageMode === 'upload' ? 'var(--color-text)' : 'transparent', color: imageMode === 'upload' ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', borderRadius: '2px' }}>Upload File</button>
-                    <button type="button" onClick={() => setImageMode('url')} style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', border: '1px solid var(--color-border)', background: imageMode === 'url' ? 'var(--color-text)' : 'transparent', color: imageMode === 'url' ? 'var(--color-bg)' : 'var(--color-text)', cursor: 'pointer', borderRadius: '2px' }}>Paste URL</button>
-                  </div>
-                </div>
-                
-                {imageMode === 'upload' ? (
-                  <div
-                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--color-text)'; }}
-                    onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                    onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--color-border)'; const f = e.dataTransfer.files[0]; if (f) handleImageFileChange(f); }}
-                    style={{ border: '2px dashed var(--color-border)', padding: '2rem', textAlign: 'center', cursor: 'pointer', position: 'relative', backgroundColor: 'rgba(0,0,0,0.01)', transition: 'border-color 0.2s' }}
-                    onClick={() => document.getElementById('product-image-input')?.click()}
-                  >
-                    <input id="product-image-input" type="file" accept="image/*" onChange={e => handleImageFileChange(e.target.files?.[0] || null)} style={{ display: 'none' }} />
-                    {imagePreview ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', justifyContent: 'center' }}>
-                        <img src={imagePreview} alt="Preview" style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '2px' }} />
-                        <div style={{ textAlign: 'left' }}>
-                          <p style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{imageFile ? imageFile.name : 'Current image'}</p>
-                          <p style={{ color: 'var(--color-gray)', fontSize: '0.8rem' }}>{imageFile ? `${(imageFile.size / 1024).toFixed(1)} KB` : 'Click or drag to replace'}</p>
-                        </div>
-                      </div>
                     ) : (
-                      <div>
-                        <p style={{ fontWeight: '500', marginBottom: '0.25rem' }}>Click to upload or drag & drop</p>
-                        <p style={{ color: 'var(--color-gray)', fontSize: '0.8rem' }}>PNG, JPG, WEBP up to 5MB</p>
-                      </div>
+                      <input 
+                        type="url" 
+                        placeholder="https://images.unsplash.com/photo-..." 
+                        value={productForm.image} 
+                        onChange={e => setProductForm({...productForm, image: e.target.value})} 
+                        style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }} 
+                      />
                     )}
                   </div>
-                ) : (
-                  <input type="url" placeholder="https://example.com/image.jpg" value={productForm.image} onChange={e => setProductForm({...productForm, image: e.target.value})} style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-                )}
+
+                  {/* Multi-Image Gallery */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Additional Gallery Images
+                    </span>
+                    
+                    {additionalImages.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', border: '1px solid var(--color-border)', padding: '1rem', borderRadius: '4px', backgroundColor: 'rgba(0,0,0,0.01)' }}>
+                        {additionalImages.map((imgUrl, index) => (
+                          <div key={index} style={{ position: 'relative', width: '90px', height: '110px', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <img src={imgUrl} alt={`Gallery ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button
+                              type="button"
+                              onClick={() => setAdditionalImages(additionalImages.filter((_, idx) => idx !== index))}
+                              style={{
+                                position: 'absolute',
+                                top: '4px',
+                                right: '4px',
+                                width: '22px',
+                                height: '22px',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(220, 38, 38, 0.95)',
+                                color: '#fff',
+                                border: 'none',
+                                fontSize: '0.7rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                padding: 0
+                              }}
+                              title="Delete this image"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch' }}>
+                      <input
+                        type="url"
+                        placeholder="Paste image URL here..."
+                        value={newAdditionalImageUrl}
+                        onChange={e => setNewAdditionalImageUrl(e.target.value)}
+                        style={{ flex: 1, padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!newAdditionalImageUrl) return;
+                          setAdditionalImages([...additionalImages, newAdditionalImageUrl]);
+                          setNewAdditionalImageUrl('');
+                          showToast("Gallery image added!");
+                        }}
+                        style={{ padding: '0 1.25rem', fontSize: '0.8rem', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em', borderRadius: '2px' }}
+                      >
+                        Add URL
+                      </button>
+                      <label
+                        style={{
+                          padding: '0 1.25rem',
+                          fontSize: '0.8rem',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'transparent',
+                          color: 'var(--color-text)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          cursor: 'pointer',
+                          justifyContent: 'center',
+                          textTransform: 'uppercase',
+                          fontWeight: '600',
+                          letterSpacing: '0.05em',
+                          borderRadius: '2px'
+                        }}
+                      >
+                        Upload Files
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={async e => {
+                            const files = Array.from(e.target.files || []);
+                            if (files.length === 0) return;
+                            showToast(`Uploading ${files.length} images...`);
+                            try {
+                              const uploadedUrls = await Promise.all(
+                                files.map(async file => await uploadImage(file))
+                              );
+                              setAdditionalImages(prev => [...prev, ...uploadedUrls]);
+                              showToast("All images uploaded successfully!");
+                            } catch (err: any) {
+                              showToast("Upload failed: " + err.message, "error");
+                            }
+                          }}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* Form Actions Footer */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem', marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  {activeFormTab !== 'info' ? (
+                    <button 
+                      type="button" 
+                      onClick={() => setActiveFormTab(activeFormTab === 'media' ? 'pricing' : 'info')}
+                      style={{ padding: '0.75rem 1.5rem', background: 'none', border: '1px solid var(--color-border)', color: 'var(--color-text)', cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.05em', fontWeight: '600' }}
+                    >
+                      ← Back
+                    </button>
+                  ) : <div />}
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowProductModal(false)} 
+                    className="btn btn-outline" 
+                    style={{ padding: '0.75rem 2rem', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.05em' }}
+                  >
+                    Cancel
+                  </button>
+                  
+                  {activeFormTab !== 'media' ? (
+                    <button 
+                      type="button" 
+                      onClick={() => setActiveFormTab(activeFormTab === 'info' ? 'pricing' : 'media')}
+                      className="btn btn-primary"
+                      style={{ padding: '0.75rem 2rem', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.05em' }}
+                    >
+                      Next Step →
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      disabled={savingProduct} 
+                      className="btn btn-primary" 
+                      style={{ padding: '0.75rem 2rem', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.05em' }}
+                    >
+                      {savingProduct ? 'Saving...' : 'Save Product'}
+                    </button>
+                  )}
+                </div>
               </div>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: '1 / -1' }}>Tags (comma separated)
-                <input type="text" placeholder="e.g., summer, featured, casual" value={productForm.tags} onChange={e => setProductForm({...productForm, tags: e.target.value})} style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: '1 / -1' }}>Description
-                <textarea value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} rows={4} required style={{ padding: '0.75rem', border: '1px solid var(--color-border)', resize: 'vertical', backgroundColor: 'transparent', color: 'var(--color-text)' }} />
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', gridColumn: '1 / -1' }}>
-                <input type="checkbox" checked={productForm.is_new} onChange={e => setProductForm({...productForm, is_new: e.target.checked})} />
-                Mark as "New Arrival"
-              </label>
-              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button type="button" onClick={() => setShowProductModal(false)} className="btn btn-outline" style={{ padding: '0.75rem 2rem' }}>Cancel</button>
-                <button type="submit" disabled={savingProduct} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>{savingProduct ? 'Saving...' : 'Save Product'}</button>
-              </div>
+
             </form>
           </div>
         </div>

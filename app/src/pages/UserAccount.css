@@ -670,3 +670,20 @@
     width: 100%;
   }
 }
+
+/* Multiple Addresses Grid Styles */
+.addresses-grid > div {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.addresses-grid > div:hover {
+  border-color: var(--color-text) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+.addresses-grid > div[onClick]:hover {
+  background-color: rgba(0, 0, 0, 0.01) !important;
+  border-style: dashed !important;
+}
+[data-theme="dark"] .addresses-grid > div:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}

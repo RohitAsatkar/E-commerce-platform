@@ -161,3 +161,16 @@ input:focus, select:focus, textarea:focus {
 .delay-1 { animation-delay: 0.1s; }
 .delay-2 { animation-delay: 0.2s; }
 .delay-3 { animation-delay: 0.3s; }
+
+/* Cart Split Layout */
+.cart-split-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 992px) {
+  .cart-split-layout {
+    grid-template-columns: 1.6fr 1fr;
+  }
+}
