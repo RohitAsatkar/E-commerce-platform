@@ -85,9 +85,65 @@ const CustomDynamicPage = () => {
     );
   }
 
-  // Filter products by selected product IDs
+  // 1. Dynamic document SEO updates
+  useEffect(() => {
+    if (!page) return;
+    const originalTitle = document.title;
+    document.title = page.seoTitle || `${page.title} | Aura Luxury`;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    const originalDesc = metaDesc ? metaDesc.getAttribute('content') : '';
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', page.seoDescription || page.bannerDesc || 'Exquisite custom luxury products curation.');
+
+    return () => {
+      document.title = originalTitle;
+      if (metaDesc) {
+        if (originalDesc) {
+          metaDesc.setAttribute('content', originalDesc);
+        } else {
+          metaDesc.remove();
+        }
+      }
+    };
+  }, [page]);
+
+  // 2. Active date range validation
+  const now = new Date().getTime();
+  const isBefore = page.startDate && new Date(page.startDate).getTime() > now;
+  const isAfter = page.endDate && new Date(page.endDate).getTime() < now;
+
+  if (isBefore) {
+    return (
+      <div className="container text-center" style={{ paddingTop: '160px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--color-accent)', fontWeight: 'bold', marginBottom: '1rem' }}>Coming Soon</span>
+        <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', marginBottom: '1.25rem' }}>{page.title}</h2>
+        <p style={{ color: 'var(--color-gray)', maxWidth: '500px', marginBottom: '2rem' }}>This curated selection will be launched on <strong>{new Date(page.startDate).toLocaleString()}</strong>. Check back soon!</p>
+        <Link to="/shop" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>Browse Shop Catalog</Link>
+      </div>
+    );
+  }
+
+  if (isAfter) {
+    return (
+      <div className="container text-center" style={{ paddingTop: '160px', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#dc2626', fontWeight: 'bold', marginBottom: '1rem' }}>Closed / Expired</span>
+        <h2 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', marginBottom: '1.25rem' }}>{page.title}</h2>
+        <p style={{ color: 'var(--color-gray)', maxWidth: '500px', marginBottom: '2rem' }}>This custom event concluded on <strong>{new Date(page.endDate).toLocaleString()}</strong>. Explore our latest arrivals instead.</p>
+        <Link to="/shop" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>Explore New Arrivals</Link>
+      </div>
+    );
+  }
+
+  // 3. Filter and sequence catalog showcase matching page.productIds custom sequence
   const pageProductIds = page.productIds || [];
-  let displayedProducts = products.filter(p => pageProductIds.includes(p.id.toString()));
+  let displayedProducts = pageProductIds
+    .map((pId: string) => products.find(p => p.id.toString() === pId))
+    .filter((p: any) => !!p);
 
   // Apply sorting
   if (sortOption === 'Price: Low to High') {
@@ -108,63 +164,154 @@ const CustomDynamicPage = () => {
     });
   }
 
-  // Determine banner colors & design variables
   const bannerBg = page.bgColor || '#121212';
   const hasBannerImage = !!page.bannerImage;
+  const bannerStyle = page.bannerStyle || 'minimal';
 
   return (
     <div style={{ minHeight: '90vh', paddingBottom: '4rem' }}>
       {/* Banner Block */}
-      <div 
-        style={{
-          position: 'relative',
-          padding: '5rem 2rem',
-          backgroundColor: bannerBg,
-          backgroundImage: hasBannerImage ? `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url(${page.bannerImage})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          color: '#ffffff',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '260px',
-          marginTop: '60px',
-          boxShadow: 'inset 0 0 100px rgba(0,0,0,0.2)'
-        }}
-      >
-        <span 
-          style={{ 
-            fontSize: '0.8rem', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.2em', 
-            color: '#dc2626', 
-            backgroundColor: '#ffffff',
-            padding: '0.25rem 0.75rem',
-            fontWeight: 'bold',
-            borderRadius: '2px',
-            marginBottom: '1rem',
-            fontFamily: 'Outfit, sans-serif'
+      {bannerStyle === 'split' && hasBannerImage ? (
+        <div 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(300px, 1.2fr) minmax(300px, 0.8fr)',
+            backgroundColor: bannerBg,
+            color: '#ffffff',
+            marginTop: '60px',
+            minHeight: '320px',
+            boxShadow: 'inset 0 0 100px rgba(0,0,0,0.15)'
+          }}
+          className="split-banner-grid"
+        >
+          <div style={{ padding: '4rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#000000', backgroundColor: '#ffffff', padding: '0.25rem 0.75rem', fontWeight: 'bold', borderRadius: '2px', marginBottom: '1rem', fontFamily: 'Outfit, sans-serif' }}>
+              {page.type === 'sale' ? 'Markdown Sale' : page.type === 'offer' ? 'Special Offer' : page.type === 'collection' ? 'Curated Collection' : 'Brand Showcase'}
+            </span>
+            <h1 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>{page.title}</h1>
+            {page.bannerTitle && (
+              <h2 style={{ fontSize: '1.2rem', fontFamily: 'Outfit, sans-serif', fontWeight: 600, color: '#facc15', margin: '0 0 0.75rem 0', letterSpacing: '0.05em' }}>{page.bannerTitle}</h2>
+            )}
+            {page.bannerDesc && (
+              <p style={{ maxWidth: '550px', margin: '0 0 1.5rem 0', fontSize: '0.95rem', opacity: 0.9, lineHeight: '1.6' }}>{page.bannerDesc}</p>
+            )}
+            {page.ctaText && (
+              <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                {page.ctaText}
+              </a>
+            )}
+          </div>
+          <div style={{ backgroundImage: `url(${page.bannerImage})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '260px' }} />
+        </div>
+      ) : bannerStyle === 'glass' && hasBannerImage ? (
+        <div 
+          style={{
+            position: 'relative',
+            padding: '6rem 2rem',
+            backgroundImage: `url(${page.bannerImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '320px',
+            marginTop: '60px',
           }}
         >
-          {page.type === 'sale' ? 'Markdown Sale' : page.type === 'offer' ? 'Special Offer' : page.type === 'collection' ? 'Curated Collection' : 'Brand Showcase'}
-        </span>
-        <h1 style={{ fontSize: '3rem', fontFamily: 'var(--font-heading)', margin: '0 0 0.5rem 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{page.title}</h1>
-        {page.bannerTitle && (
-          <h2 style={{ fontSize: '1.25rem', fontFamily: 'Outfit, sans-serif', fontWeight: 600, color: '#eab308', margin: '0 0 0.75rem 0', letterSpacing: '0.05em' }}>
-            {page.bannerTitle}
-          </h2>
-        )}
-        {page.bannerDesc && (
-          <p style={{ maxWidth: '600px', margin: 0, fontSize: '0.95rem', opacity: 0.9, lineHeight: '1.6' }}>
-            {page.bannerDesc}
-          </p>
-        )}
-      </div>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.3)', zIndex: 1 }} />
+          <div 
+            style={{ 
+              position: 'relative', 
+              zIndex: 2, 
+              backgroundColor: 'rgba(255, 255, 255, 0.08)', 
+              backdropFilter: 'blur(16px)', 
+              border: '1px solid rgba(255, 255, 255, 0.15)', 
+              padding: '3rem 2.5rem', 
+              borderRadius: '8px', 
+              maxWidth: '650px', 
+              textAlign: 'center', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)' 
+            }}
+          >
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#000', backgroundColor: '#ffffff', padding: '0.2rem 0.6rem', fontWeight: 'bold', borderRadius: '2px', marginBottom: '1rem', fontFamily: 'Outfit, sans-serif' }}>
+              {page.type === 'sale' ? 'Markdown Sale' : page.type === 'offer' ? 'Special Offer' : page.type === 'collection' ? 'Curated Collection' : 'Brand Showcase'}
+            </span>
+            <h1 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>{page.title}</h1>
+            {page.bannerTitle && (
+              <h2 style={{ fontSize: '1.15rem', fontFamily: 'Outfit, sans-serif', fontWeight: 600, color: '#facc15', margin: '0 0 0.75rem 0', letterSpacing: '0.05em' }}>{page.bannerTitle}</h2>
+            )}
+            {page.bannerDesc && (
+              <p style={{ margin: page.ctaText ? '0 0 1.5rem 0' : '0', fontSize: '0.9rem', opacity: 0.95, lineHeight: '1.6' }}>{page.bannerDesc}</p>
+            )}
+            {page.ctaText && (
+              <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                {page.ctaText}
+              </a>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Default minimal or immersive center banner */
+        <div 
+          style={{
+            position: 'relative',
+            padding: '5rem 2rem',
+            backgroundColor: bannerBg,
+            backgroundImage: hasBannerImage ? `linear-gradient(rgba(0, 0, 0, ${bannerStyle === 'immersive' ? 0.6 : 0.45}), rgba(0, 0, 0, ${bannerStyle === 'immersive' ? 0.6 : 0.45})), url(${page.bannerImage})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: '#ffffff',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '280px',
+            marginTop: '60px',
+            boxShadow: 'inset 0 0 100px rgba(0,0,0,0.2)'
+          }}
+        >
+          <span 
+            style={{ 
+              fontSize: '0.8rem', 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.2em', 
+              color: '#000000', 
+              backgroundColor: '#ffffff',
+              padding: '0.25rem 0.75rem',
+              fontWeight: 'bold',
+              borderRadius: '2px',
+              marginBottom: '1rem',
+              fontFamily: 'Outfit, sans-serif'
+            }}
+          >
+            {page.type === 'sale' ? 'Markdown Sale' : page.type === 'offer' ? 'Special Offer' : page.type === 'collection' ? 'Curated Collection' : 'Brand Showcase'}
+          </span>
+          <h1 style={{ fontSize: '3rem', fontFamily: 'var(--font-heading)', margin: '0 0 0.5rem 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{page.title}</h1>
+          {page.bannerTitle && (
+            <h2 style={{ fontSize: '1.25rem', fontFamily: 'Outfit, sans-serif', fontWeight: 600, color: '#facc15', margin: '0 0 0.75rem 0', letterSpacing: '0.05em' }}>
+              {page.bannerTitle}
+            </h2>
+          )}
+          {page.bannerDesc && (
+            <p style={{ maxWidth: '600px', margin: page.ctaText ? '0 0 1.5rem 0' : '0', fontSize: '0.95rem', opacity: 0.9, lineHeight: '1.6' }}>
+              {page.bannerDesc}
+            </p>
+          )}
+          {page.ctaText && (
+            <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+              {page.ctaText}
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Grid Content Section */}
-      <div className="container" style={{ marginTop: '3rem' }}>
+      <div id="products" className="container" style={{ marginTop: '3rem' }}>
         <div className="flex justify-between items-center mb-8" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
           <p style={{ color: 'var(--color-gray)' }}>{displayedProducts.length} Results</p>
           <div className="flex gap-4">
@@ -182,7 +329,7 @@ const CustomDynamicPage = () => {
 
         {displayedProducts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-gray)' }}>
-            No products are currently featured in this campaign.
+            No products are currently featured in this catalog.
           </div>
         ) : (
           <div 
@@ -193,7 +340,7 @@ const CustomDynamicPage = () => {
               ['--grid-cols-mobile' as any]: gridColumns.mobile,
             }}
           >
-            {displayedProducts.map(product => {
+            {displayedProducts.map((product: any) => {
               const activeSale = getActiveProductSale(product);
               const hasSale = activeSale !== null;
 

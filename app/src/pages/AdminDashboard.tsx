@@ -319,6 +319,15 @@ const AdminDashboard = () => {
   const [newPageBgColor, setNewPageBgColor] = useState('#121212');
   const [newPageBannerImage, setNewPageBannerImage] = useState('');
   const [newPageSelectedProducts, setNewPageSelectedProducts] = useState<string[]>([]);
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [newPageBannerStyle, setNewPageBannerStyle] = useState<'minimal' | 'immersive' | 'split' | 'glass'>('minimal');
+  const [newPageCtaText, setNewPageCtaText] = useState('');
+  const [newPageCtaUrl, setNewPageCtaUrl] = useState('');
+  const [newPageCtaColor, setNewPageCtaColor] = useState('#ffffff');
+  const [newPageStartDate, setNewPageStartDate] = useState('');
+  const [newPageEndDate, setNewPageEndDate] = useState('');
+  const [newPageSeoTitle, setNewPageSeoTitle] = useState('');
+  const [newPageSeoDescription, setNewPageSeoDescription] = useState('');
 
   // Advanced Promotional Sales Campaigns State
   const [salesCampaigns, setSalesCampaigns] = useState<any[]>(() => {
@@ -426,6 +435,25 @@ const AdminDashboard = () => {
     } catch (e) {
       console.error("Failed to sync sales campaigns to DB:", e);
     }
+  };
+
+  const resetCustomPageForm = () => {
+    setEditingPageId(null);
+    setNewPageTitle('');
+    setNewPageSlug('');
+    setNewPageBannerTitle('');
+    setNewPageBannerDesc('');
+    setNewPageBgColor('#121212');
+    setNewPageBannerImage('');
+    setNewPageSelectedProducts([]);
+    setNewPageBannerStyle('minimal');
+    setNewPageCtaText('');
+    setNewPageCtaUrl('');
+    setNewPageCtaColor('#ffffff');
+    setNewPageStartDate('');
+    setNewPageEndDate('');
+    setNewPageSeoTitle('');
+    setNewPageSeoDescription('');
   };
 
   const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -6503,240 +6531,689 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Custom Pages Manager */}
             {cmsSubTab === 'custom_pages' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
-                {/* Create Dynamic Custom Page Form */}
-                <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-heading)' }}>Create Dynamic Custom Page</h3>
-                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-gray)' }}>Create custom pages like Clearance Sales, Festival Specials, or curated Collections with selected products.</p>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Title *
-                      <input
-                        type="text"
-                        placeholder="e.g. Summer Clearance"
-                        value={newPageTitle}
-                        onChange={e => {
-                          setNewPageTitle(e.target.value);
-                          setNewPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
-                        }}
-                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
-                      />
-                    </label>
-
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page URL Path Slug *
-                      <input
-                        type="text"
-                        placeholder="e.g. summer-clearance"
-                        value={newPageSlug}
-                        onChange={e => setNewPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}
-                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
-                      />
-                    </label>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Category / Type
-                      <select
-                        value={newPageType}
-                        onChange={e => setNewPageType(e.target.value as any)}
-                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
-                      >
-                        <option value="collection">Curated Collection</option>
-                        <option value="sale">Markdown Sale Page</option>
-                        <option value="offer">Promotional Offers Page</option>
-                        <option value="custom">Custom Brand Page</option>
-                      </select>
-                    </label>
-
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Text / Subtitle
-                      <input
-                        type="text"
-                        placeholder="e.g. Exclusive 30% Off Selected Styles"
-                        value={newPageBannerTitle}
-                        onChange={e => setNewPageBannerTitle(e.target.value)}
-                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
-                      />
-                    </label>
-                  </div>
-
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Subtext / Description
-                    <textarea
-                      placeholder="Enter a brief summary that describes this page..."
-                      value={newPageBannerDesc}
-                      onChange={e => setNewPageBannerDesc(e.target.value)}
-                      rows={3}
-                      style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', resize: 'vertical', fontFamily: 'inherit', fontWeight: 'normal' }}
-                    />
-                  </label>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Color (Background Hex)
-                      <input
-                        type="color"
-                        value={newPageBgColor}
-                        onChange={e => setNewPageBgColor(e.target.value)}
-                        style={{ padding: '0.2rem 0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', width: '100%', height: '42px', cursor: 'pointer', borderRadius: '2px' }}
-                      />
-                    </label>
-
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Custom Image URL (Optional)
-                      <input
-                        type="text"
-                        placeholder="e.g. https://images.unsplash.com/..."
-                        value={newPageBannerImage}
-                        onChange={e => setNewPageBannerImage(e.target.value)}
-                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
-                      />
-                    </label>
-                  </div>
-
-                  {/* Product Selector Checklist */}
-                  <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Products to Showcase ({newPageSelectedProducts.length} Selected)</span>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                
+                {/* Main Workspace: 2 Column Editor & Live Preview */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
+                  
+                  {/* Left Column: Form Panel */}
+                  <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-heading)' }}>
+                          {editingPageId ? 'Edit Custom Page' : 'Create Dynamic Custom Page'}
+                        </h3>
+                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-gray)' }}>
+                          Design and launch layout-curated pages with live schedules, custom banners, custom SEO, and specific product sequencing.
+                        </p>
+                      </div>
+                      {editingPageId && (
                         <button
                           type="button"
-                          onClick={() => setNewPageSelectedProducts(products.map(p => p.id.toString()))}
-                          style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-accent)' }}
+                          onClick={resetCustomPageForm}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: '#f3f4f6',
+                            color: '#4b5563',
+                            fontWeight: '600',
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                            borderRadius: '2px',
+                            transition: 'all 0.2s'
+                          }}
                         >
-                          Select All
+                          Cancel Edit
                         </button>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-border)' }}>|</span>
-                        <button
-                          type="button"
-                          onClick={() => setNewPageSelectedProducts([])}
-                          style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-gray)' }}
-                        >
-                          Deselect All
-                        </button>
+                      )}
+                    </div>
+
+                    {/* Section 1: Page Configurations */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>1. Page Setup</span>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Title *
+                          <input
+                            type="text"
+                            placeholder="e.g. Summer Clearance"
+                            value={newPageTitle}
+                            onChange={e => {
+                              setNewPageTitle(e.target.value);
+                              if (!editingPageId) {
+                                setNewPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+                              }
+                            }}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          />
+                        </label>
+
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page URL Path Slug *
+                          <input
+                            type="text"
+                            placeholder="e.g. summer-clearance"
+                            value={newPageSlug}
+                            onChange={e => setNewPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          />
+                        </label>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Category / Type
+                          <select
+                            value={newPageType}
+                            onChange={e => setNewPageType(e.target.value as any)}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          >
+                            <option value="collection">Curated Collection</option>
+                            <option value="sale">Markdown Sale Page</option>
+                            <option value="offer">Promotional Offers Page</option>
+                            <option value="custom">Custom Brand Page</option>
+                          </select>
+                        </label>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Start Date (Optional)
+                            <input
+                              type="datetime-local"
+                              value={newPageStartDate}
+                              onChange={e => setNewPageStartDate(e.target.value)}
+                              style={{ padding: '0.7rem 0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 'normal' }}
+                            />
+                          </label>
+                          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>End Date (Optional)
+                            <input
+                              type="datetime-local"
+                              value={newPageEndDate}
+                              onChange={e => setNewPageEndDate(e.target.value)}
+                              style={{ padding: '0.7rem 0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontSize: '0.8rem', fontWeight: 'normal' }}
+                            />
+                          </label>
+                        </div>
                       </div>
                     </div>
 
-                    <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
-                      {products.map(p => {
-                        const isSelected = newPageSelectedProducts.includes(p.id.toString());
-                        return (
-                          <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', border: '1px solid rgba(0,0,0,0.02)', cursor: 'pointer', transition: 'background 0.2s', backgroundColor: isSelected ? '#fafafa' : 'transparent', borderRadius: '2px' }}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={e => {
-                                if (e.target.checked) {
-                                  setNewPageSelectedProducts([...newPageSelectedProducts, p.id.toString()]);
-                                } else {
-                                  setNewPageSelectedProducts(newPageSelectedProducts.filter(id => id !== p.id.toString()));
-                                }
-                              }}
-                              style={{ transform: 'scale(1.1)', cursor: 'pointer' }}
-                            />
-                            <img src={p.image} alt={p.name} style={{ width: '32px', height: '40px', objectFit: 'cover', borderRadius: '2px' }} />
-                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.name}</span>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>{p.category} — ₹{p.price}</span>
+                    {/* Section 2: Banner Hero Settings */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>2. Hero Banner Design</span>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Title / Subtitle
+                          <input
+                            type="text"
+                            placeholder="e.g. Exclusive 30% Off Selected Styles"
+                            value={newPageBannerTitle}
+                            onChange={e => setNewPageBannerTitle(e.target.value)}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          />
+                        </label>
+
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Layout Style
+                          <select
+                            value={newPageBannerStyle}
+                            onChange={e => setNewPageBannerStyle(e.target.value as any)}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          >
+                            <option value="minimal">Minimal Color Block Layout</option>
+                            <option value="immersive">Immersive Dark Overlay Layout</option>
+                            <option value="split">Split Canvas Layout (Left Content, Right Image)</option>
+                            <option value="glass">Glassmorphism Card Layout Overlay</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Subtext / Description
+                        <textarea
+                          placeholder="Enter a brief summary that describes this page..."
+                          value={newPageBannerDesc}
+                          onChange={e => setNewPageBannerDesc(e.target.value)}
+                          rows={2}
+                          style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', resize: 'vertical', fontFamily: 'inherit', fontWeight: 'normal' }}
+                        />
+                      </label>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Background Color
+                          <input
+                            type="color"
+                            value={newPageBgColor}
+                            onChange={e => setNewPageBgColor(e.target.value)}
+                            style={{ padding: '0.2rem 0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', width: '100%', height: '42px', cursor: 'pointer', borderRadius: '2px' }}
+                          />
+                        </label>
+
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Image URL (Unsplash or direct link)
+                          <input
+                            type="text"
+                            placeholder="e.g. https://images.unsplash.com/..."
+                            value={newPageBannerImage}
+                            onChange={e => setNewPageBannerImage(e.target.value)}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          />
+                        </label>
+                      </div>
+
+                      {/* CTA Button Settings */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '600' }}>CTA Button Text
+                          <input
+                            type="text"
+                            placeholder="e.g. Shop Now (Optional)"
+                            value={newPageCtaText}
+                            onChange={e => setNewPageCtaText(e.target.value)}
+                            style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: '#fff', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal', fontSize: '0.8rem' }}
+                          />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '600' }}>CTA Button URL Destination
+                          <input
+                            type="text"
+                            placeholder="e.g. #products"
+                            value={newPageCtaUrl}
+                            onChange={e => setNewPageCtaUrl(e.target.value)}
+                            style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: '#fff', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal', fontSize: '0.8rem' }}
+                          />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '600' }}>CTA Color (Accent/Hex)
+                          <input
+                            type="color"
+                            value={newPageCtaColor}
+                            onChange={e => setNewPageCtaColor(e.target.value)}
+                            style={{ padding: '0.2rem', border: '1px solid var(--color-border)', backgroundColor: '#fff', width: '100%', height: '32px', cursor: 'pointer', borderRadius: '2px' }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Section 3: SEO Optimization Suite */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>3. SEO Tags Optimization</span>
+                        <span style={{ fontSize: '0.7rem', color: '#15803d', backgroundColor: '#dcfce7', padding: '0.1rem 0.4rem', borderRadius: '2px', fontWeight: 'bold' }}>AUTO SEO ENABLED</span>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>SEO Meta Title (Optional)
+                          <input
+                            type="text"
+                            placeholder={`e.g. ${newPageTitle || 'Summer Clearance'} | Aura Luxury`}
+                            value={newPageSeoTitle}
+                            onChange={e => setNewPageSeoTitle(e.target.value)}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          />
+                        </label>
+
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>SEO Meta Description (Optional)
+                          <input
+                            type="text"
+                            placeholder="e.g. Discover handpicked luxury items in our clearance catalog with up to 50% discount..."
+                            value={newPageSeoDescription}
+                            onChange={e => setNewPageSeoDescription(e.target.value)}
+                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Section 4: Product Selector & Sequencing */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>4. Product Showcase Catalog</span>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
+                        
+                        {/* Selector Checklist */}
+                        <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Available Catalog ({products.length})</span>
+                            <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.7rem' }}>
+                              <button
+                                type="button"
+                                onClick={() => setNewPageSelectedProducts(products.map(p => p.id.toString()))}
+                                style={{ border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-accent)', fontWeight: 'bold' }}
+                              >
+                                All
+                              </button>
+                              <span style={{ color: 'var(--color-border)' }}>|</span>
+                              <button
+                                type="button"
+                                onClick={() => setNewPageSelectedProducts([])}
+                                style={{ border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-gray)' }}
+                              >
+                                None
+                              </button>
                             </div>
-                          </label>
-                        );
-                      })}
+                          </div>
+
+                          <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                            {products.map(p => {
+                              const isSelected = newPageSelectedProducts.includes(p.id.toString());
+                              return (
+                                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem', cursor: 'pointer', backgroundColor: isSelected ? '#f8fafc' : 'transparent', border: '1px solid rgba(0,0,0,0.01)', borderRadius: '2px', transition: 'all 0.2s' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={e => {
+                                      if (e.target.checked) {
+                                        setNewPageSelectedProducts([...newPageSelectedProducts, p.id.toString()]);
+                                      } else {
+                                        setNewPageSelectedProducts(newPageSelectedProducts.filter(id => id !== p.id.toString()));
+                                      }
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                  />
+                                  <img src={p.image} alt={p.name} style={{ width: '24px', height: '30px', objectFit: 'cover', borderRadius: '1px' }} />
+                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{p.name}</span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>₹{p.price}</span>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Sequence Sequencing list */}
+                        <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#fcfcfc' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-accent)' }}>Sequence Ordering ({newPageSelectedProducts.length} Featured)</span>
+                          {newPageSelectedProducts.length === 0 ? (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', border: '1px dashed var(--color-border)', borderRadius: '2px', color: 'var(--color-gray)', fontSize: '0.75rem', fontStyle: 'italic', textAlign: 'center', padding: '1rem' }}>
+                              Select products on the left catalog checklist to change their display sequence.
+                            </div>
+                          ) : (
+                            <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                              {newPageSelectedProducts.map((pId, idx) => {
+                                const prod = products.find(p => p.id.toString() === pId);
+                                if (!prod) return null;
+                                return (
+                                  <div key={pId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem', border: '1px solid var(--color-border)', borderRadius: '2px', backgroundColor: '#fff', fontSize: '0.8rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                                      <span style={{ fontWeight: 'bold', color: 'var(--color-accent)', minWidth: '16px' }}>{idx + 1}</span>
+                                      <img src={prod.image} alt={prod.name} style={{ width: '20px', height: '24px', objectFit: 'cover' }} />
+                                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '110px' }}>{prod.name}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.2rem' }}>
+                                      <button
+                                        type="button"
+                                        disabled={idx === 0}
+                                        onClick={() => {
+                                          const newSeq = [...newPageSelectedProducts];
+                                          const temp = newSeq[idx];
+                                          newSeq[idx] = newSeq[idx - 1];
+                                          newSeq[idx - 1] = temp;
+                                          setNewPageSelectedProducts(newSeq);
+                                        }}
+                                        style={{ border: 'none', background: '#f3f4f6', cursor: idx === 0 ? 'not-allowed' : 'pointer', padding: '0.2rem 0.4rem', borderRadius: '2px', fontSize: '0.7rem', opacity: idx === 0 ? 0.3 : 1 }}
+                                      >
+                                        ▲
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={idx === newPageSelectedProducts.length - 1}
+                                        onClick={() => {
+                                          const newSeq = [...newPageSelectedProducts];
+                                          const temp = newSeq[idx];
+                                          newSeq[idx] = newSeq[idx + 1];
+                                          newSeq[idx + 1] = temp;
+                                          setNewPageSelectedProducts(newSeq);
+                                        }}
+                                        style={{ border: 'none', background: '#f3f4f6', cursor: idx === newPageSelectedProducts.length - 1 ? 'not-allowed' : 'pointer', padding: '0.2rem 0.4rem', borderRadius: '2px', fontSize: '0.7rem', opacity: idx === newPageSelectedProducts.length - 1 ? 0.3 : 1 }}
+                                      >
+                                        ▼
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Publish/Update Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newPageTitle.trim() || !newPageSlug.trim()) {
+                          alert('Title and Slug are required!');
+                          return;
+                        }
+                        if (newPageSelectedProducts.length === 0) {
+                          alert('Please select at least one product!');
+                          return;
+                        }
+                        // Check duplicate slug if creating or if slug changed
+                        const isDuplicate = customPages.some(page => page.slug === newPageSlug && page.id !== editingPageId);
+                        if (isDuplicate) {
+                          alert('A custom page with this URL slug already exists!');
+                          return;
+                        }
+
+                        let updatedPages = [];
+                        if (editingPageId) {
+                          // Edit existing page
+                          updatedPages = customPages.map(page => {
+                            if (page.id === editingPageId) {
+                              return {
+                                ...page,
+                                title: newPageTitle,
+                                slug: newPageSlug,
+                                type: newPageType,
+                                bannerTitle: newPageBannerTitle,
+                                bannerDesc: newPageBannerDesc,
+                                bgColor: newPageBgColor,
+                                bannerImage: newPageBannerImage,
+                                productIds: newPageSelectedProducts,
+                                bannerStyle: newPageBannerStyle,
+                                ctaText: newPageCtaText,
+                                ctaUrl: newPageCtaUrl,
+                                ctaColor: newPageCtaColor,
+                                startDate: newPageStartDate,
+                                endDate: newPageEndDate,
+                                seoTitle: newPageSeoTitle,
+                                seoDescription: newPageSeoDescription,
+                                updatedAt: new Date().toISOString()
+                              };
+                            }
+                            return page;
+                          });
+                          alert('Custom Page updated successfully!');
+                        } else {
+                          // Create new page
+                          const newPage = {
+                            id: `page_${Date.now()}`,
+                            title: newPageTitle,
+                            slug: newPageSlug,
+                            type: newPageType,
+                            bannerTitle: newPageBannerTitle,
+                            bannerDesc: newPageBannerDesc,
+                            bgColor: newPageBgColor,
+                            bannerImage: newPageBannerImage,
+                            productIds: newPageSelectedProducts,
+                            bannerStyle: newPageBannerStyle,
+                            ctaText: newPageCtaText,
+                            ctaUrl: newPageCtaUrl,
+                            ctaColor: newPageCtaColor,
+                            startDate: newPageStartDate,
+                            endDate: newPageEndDate,
+                            seoTitle: newPageSeoTitle,
+                            seoDescription: newPageSeoDescription,
+                            createdAt: new Date().toISOString()
+                          };
+                          updatedPages = [...customPages, newPage];
+                          alert('Dynamic custom page published successfully!');
+                        }
+
+                        setCustomPages(updatedPages);
+                        localStorage.setItem('aura_custom_pages', JSON.stringify(updatedPages));
+                        syncCustomPages(updatedPages);
+                        resetCustomPageForm();
+                      }}
+                      className="btn btn-primary"
+                      style={{ padding: '0.85rem', fontWeight: 'bold', width: '100%', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}
+                    >
+                      {editingPageId ? 'Save Custom Page Updates' : 'Publish Custom Page & Live Stream Products'}
+                    </button>
+
+                  </div>
+
+                  {/* Right Column: Live Viewport Preview Simulator & Layout info */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '100px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-gray)' }}>Live Simulator Preview</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--color-accent)', fontWeight: 'bold', backgroundColor: '#eef2ff', padding: '0.2rem 0.5rem', borderRadius: '20px' }}>Real-time updates</span>
+                    </div>
+
+                    {/* Simulated Viewport Device */}
+                    <div style={{ border: '8px solid #1e293b', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)', backgroundColor: '#f8fafc' }}>
+                      {/* Browser Bar */}
+                      <div style={{ backgroundColor: '#1e293b', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'block' }}></span>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'block' }}></span>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'block' }}></span>
+                        </div>
+                        <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '4px', flex: 1, padding: '0.15rem 0.5rem', fontSize: '0.65rem', color: '#cbd5e1', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'monospace' }}>
+                          aura.luxury/page/{newPageSlug || 'clearance-sale'}
+                        </div>
+                      </div>
+
+                      {/* Simulated Banner Container */}
+                      <div style={{
+                        minHeight: '180px',
+                        backgroundColor: newPageBgColor,
+                        backgroundImage: newPageBannerImage ? `url(${newPageBannerImage})` : 'none',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        color: '#fff',
+                        position: 'relative',
+                        padding: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center',
+                        justifyContent: 'center',
+                        textAlign: newPageBannerStyle === 'split' ? 'left' : 'center'
+                      }}>
+                        {/* Immersive Overlay */}
+                        {newPageBannerStyle === 'immersive' && newPageBannerImage && (
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1 }} />
+                        )}
+
+                        {/* Glassmorphism Card Backdrop */}
+                        {newPageBannerStyle === 'glass' && (
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)', zIndex: 1 }} />
+                        )}
+
+                        {/* Split Canvas Style overlay */}
+                        {newPageBannerStyle === 'split' && (
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.1))', zIndex: 1 }} />
+                        )}
+
+                        {/* Banner Contents */}
+                        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center', maxWidth: '90%' }}>
+                          <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '0.1em', backgroundColor: '#fff', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '1px', fontWeight: '800', marginBottom: '0.5rem' }}>
+                            {newPageType}
+                          </span>
+                          
+                          <h4 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: '0 0 0.2rem 0', fontWeight: 'bold' }}>
+                            {newPageTitle || 'Untargeted Custom Page'}
+                          </h4>
+
+                          {newPageBannerTitle && (
+                            <h5 style={{ fontSize: '0.75rem', margin: '0 0 0.4rem 0', color: '#facc15', fontWeight: '600' }}>
+                              {newPageBannerTitle}
+                            </h5>
+                          )}
+
+                          {newPageBannerDesc && (
+                            <p style={{ fontSize: '0.65rem', margin: '0 0 0.75rem 0', opacity: 0.85, lineHeight: '1.4' }}>
+                              {newPageBannerDesc}
+                            </p>
+                          )}
+
+                          {/* CTA Button Render */}
+                          {newPageCtaText && (
+                            <div style={{
+                              display: 'inline-block',
+                              padding: '0.35rem 0.75rem',
+                              backgroundColor: newPageCtaColor,
+                              color: '#000',
+                              fontSize: '0.65rem',
+                              fontWeight: '700',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              borderRadius: '2px',
+                              cursor: 'pointer',
+                              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                            }}>
+                              {newPageCtaText}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Simulated Product Grid */}
+                      <div style={{ padding: '1rem', backgroundColor: '#fff' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', borderBottom: '1px solid #f3f4f6', paddingBottom: '0.25rem' }}>
+                          <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                            Showing {newPageSelectedProducts.length} products
+                          </span>
+                          <span style={{ fontSize: '0.65rem', color: '#0f172a', fontWeight: 'bold' }}>
+                            Sort by: Featured
+                          </span>
+                        </div>
+
+                        {newPageSelectedProducts.length === 0 ? (
+                          <div style={{ padding: '2rem 1rem', textAlign: 'center', fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                            No products are featured. Grid is empty.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                            {newPageSelectedProducts.slice(0, 4).map(pId => {
+                              const prod = products.find(p => p.id.toString() === pId);
+                              if (!prod) return null;
+                              return (
+                                <div key={pId} style={{ border: '1px solid #f1f5f9', padding: '0.35rem', borderRadius: '4px' }}>
+                                  <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '2px' }} />
+                                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', marginTop: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.name}</div>
+                                  <div style={{ fontSize: '0.6rem', color: '#64748b' }}>₹{prod.price}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {newPageSelectedProducts.length > 4 && (
+                          <div style={{ textAlign: 'center', fontSize: '0.65rem', color: '#64748b', marginTop: '0.5rem', fontWeight: 'bold' }}>
+                            + {newPageSelectedProducts.length - 4} more products
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* SEO Tag Live Preview */}
+                    <div style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', color: '#475569', letterSpacing: '0.05em' }}>Google Search Result Preview</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ color: '#1a0dab', fontSize: '0.85rem', fontWeight: '500', textDecoration: 'underline', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {newPageSeoTitle || `${newPageTitle || 'Summer Clearance'} | Aura Luxury E-Commerce`}
+                        </span>
+                        <span style={{ color: '#006621', fontSize: '0.7rem' }}>
+                          https://aura.luxury/page/{newPageSlug || 'clearance-sale'}
+                        </span>
+                        <span style={{ color: '#545454', fontSize: '0.7rem', lineHeight: '1.3' }}>
+                          {newPageSeoDescription || newPageBannerDesc || 'Discover curated selections, exclusive prices, and premium clothing styles in our dedicated brand showcase catalog.'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newPageTitle.trim() || !newPageSlug.trim()) {
-                        alert('Title and Slug are required!');
-                        return;
-                      }
-                      if (newPageSelectedProducts.length === 0) {
-                        alert('Please select at least one product!');
-                        return;
-                      }
-                      // Check for duplicate slug
-                      if (customPages.some(page => page.slug === newPageSlug)) {
-                        alert('A custom page with this URL slug already exists!');
-                        return;
-                      }
-
-                      const newPage = {
-                        id: `page_${Date.now()}`,
-                        title: newPageTitle,
-                        slug: newPageSlug,
-                        type: newPageType,
-                        bannerTitle: newPageBannerTitle,
-                        bannerDesc: newPageBannerDesc,
-                        bgColor: newPageBgColor,
-                        bannerImage: newPageBannerImage,
-                        productIds: newPageSelectedProducts,
-                        createdAt: new Date().toISOString()
-                      };
-
-                      const updatedPages = [...customPages, newPage];
-                      setCustomPages(updatedPages);
-                      localStorage.setItem('aura_custom_pages', JSON.stringify(updatedPages));
-                      syncCustomPages(updatedPages);
-
-                      // Reset fields
-                      setNewPageTitle('');
-                      setNewPageSlug('');
-                      setNewPageBannerTitle('');
-                      setNewPageBannerDesc('');
-                      setNewPageBgColor('#121212');
-                      setNewPageBannerImage('');
-                      setNewPageSelectedProducts([]);
-
-                      alert('Dynamic custom page published successfully!');
-                    }}
-                    className="btn btn-primary"
-                    style={{ padding: '0.75rem', fontWeight: 'bold', width: '100%', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                  >
-                    Publish Custom Page & Live Stream Products
-                  </button>
                 </div>
 
-                {/* Published Custom Pages list */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Published Pages ({customPages.length})</h3>
+                {/* Bottom Row: List of Published Custom Pages */}
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: '0 0 1.25rem 0', fontWeight: 'bold' }}>Published Dynamic Pages ({customPages.length})</h3>
                   {customPages.length === 0 ? (
-                    <div style={{ padding: '2.5rem', textAlign: 'center', border: '1px dashed var(--color-border)', backgroundColor: '#fff', borderRadius: '4px', color: 'var(--color-gray)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                    <div style={{ padding: '3rem', textAlign: 'center', border: '1px dashed var(--color-border)', backgroundColor: '#fff', borderRadius: '4px', color: 'var(--color-gray)', fontSize: '0.9rem', fontStyle: 'italic' }}>
                       No dynamic custom pages built yet.
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {customPages.map(page => (
-                        <div key={page.id} style={{ border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fff', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '700' }}>{page.title}</h4>
-                              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 'bold' }}>{page.type}</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                      {customPages.map(page => {
+                        // Check if the page is currently active (scheduling check)
+                        const now = new Date().getTime();
+                        let isLive = true;
+                        if (page.startDate && new Date(page.startDate).getTime() > now) isLive = false;
+                        if (page.endDate && new Date(page.endDate).getTime() < now) isLive = false;
+
+                        return (
+                          <div key={page.id} style={{ border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: editingPageId === page.id ? '0 0 0 2px var(--color-accent)' : 'none', transition: 'all 0.2s' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: 'var(--color-text)' }}>{page.title}</h4>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.25rem' }}>
+                                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: '800', backgroundColor: 'var(--color-light)', padding: '0.1rem 0.4rem', borderRadius: '1px' }}>
+                                    {page.type}
+                                  </span>
+                                  {page.bannerStyle && (
+                                    <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--color-gray)', fontWeight: 'bold' }}>
+                                      Layout: {page.bannerStyle}
+                                    </span>
+                                  )}
+                                  <span style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: '800',
+                                    padding: '0.1rem 0.4rem',
+                                    borderRadius: '1px',
+                                    backgroundColor: isLive ? '#dcfce7' : '#fee2e2',
+                                    color: isLive ? '#15803d' : '#b91c1c'
+                                  }}>
+                                    {isLive ? 'LIVE' : 'INACTIVE / OUT OF SCHEDULE'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingPageId(page.id);
+                                    setNewPageTitle(page.title || '');
+                                    setNewPageSlug(page.slug || '');
+                                    setNewPageType(page.type || 'collection');
+                                    setNewPageBannerTitle(page.bannerTitle || '');
+                                    setNewPageBannerDesc(page.bannerDesc || '');
+                                    setNewPageBgColor(page.bgColor || '#121212');
+                                    setNewPageBannerImage(page.bannerImage || '');
+                                    setNewPageSelectedProducts(page.productIds || []);
+                                    setNewPageBannerStyle(page.bannerStyle || 'minimal');
+                                    setNewPageCtaText(page.ctaText || '');
+                                    setNewPageCtaUrl(page.ctaUrl || '');
+                                    setNewPageCtaColor(page.ctaColor || '#ffffff');
+                                    setNewPageStartDate(page.startDate || '');
+                                    setNewPageEndDate(page.endDate || '');
+                                    setNewPageSeoTitle(page.seoTitle || '');
+                                    setNewPageSeoDescription(page.seoDescription || '');
+                                    
+                                    // Scroll to the editor form smoothly
+                                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                                  }}
+                                  style={{ color: 'var(--color-accent)', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`Are you sure you want to delete "${page.title}"?`)) {
+                                      const updated = customPages.filter(p => p.id !== page.id);
+                                      setCustomPages(updated);
+                                      localStorage.setItem('aura_custom_pages', JSON.stringify(updated));
+                                      syncCustomPages(updated);
+                                      if (editingPageId === page.id) {
+                                        resetCustomPageForm();
+                                      }
+                                    }
+                                  }}
+                                  style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (window.confirm(`Are you sure you want to delete "${page.title}"?`)) {
-                                  const updated = customPages.filter(p => p.id !== page.id);
-                                  setCustomPages(updated);
-                                  localStorage.setItem('aura_custom_pages', JSON.stringify(updated));
-                                  syncCustomPages(updated);
-                                }
-                              }}
-                              style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                            >
-                              Delete
-                            </button>
+                            
+                            <div style={{ fontSize: '0.8rem', color: 'var(--color-gray)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <span>Path URL Slug: <a href={`/page/${page.slug}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>/page/{page.slug}</a></span>
+                              <span>Products Featured: <strong>{page.productIds?.length || 0} Products</strong></span>
+                              {page.startDate && (
+                                <span>Active Schedule: <strong>{new Date(page.startDate).toLocaleString()} — {page.endDate ? new Date(page.endDate).toLocaleString() : 'No expiry'}</strong></span>
+                              )}
+                            </div>
                           </div>
-                          
-                          <div style={{ fontSize: '0.8rem', color: 'var(--color-gray)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                            <span>Path URL: <a href={`/page/${page.slug}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>/page/{page.slug}</a></span>
-                            <span>Products Associated: <strong>{page.productIds?.length || 0} Products</strong></span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
+
               </div>
             )}
           </div>
