@@ -3835,7 +3835,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                         <strong>{layConfig.grid_setup?.columns_mobile || 1}</strong>
                                       </div>
                                       <input
-                                        type="range" min="1" max="2"
+                                        type="range" min="1" max="4"
                                         value={layConfig.grid_setup?.columns_mobile || 1}
                                         onChange={e => {
                                           const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
@@ -3850,7 +3850,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                         <strong>{layConfig.grid_setup?.columns_tablet || 2}</strong>
                                       </div>
                                       <input
-                                        type="range" min="1" max="4"
+                                        type="range" min="1" max="6"
                                         value={layConfig.grid_setup?.columns_tablet || 2}
                                         onChange={e => {
                                           const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
@@ -3865,7 +3865,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                         <strong>{layConfig.grid_setup?.columns_desktop || 4}</strong>
                                       </div>
                                       <input
-                                        type="range" min="1" max="6"
+                                        type="range" min="1" max="8"
                                         value={layConfig.grid_setup?.columns_desktop || 4}
                                         onChange={e => {
                                           const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
@@ -5077,7 +5077,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                       <span style={{ fontWeight: 'bold' }}>{layConfig.grid_setup?.columns_mobile || 1}</span>
                                     </div>
                                     <input
-                                      type="range" min="1" max="2"
+                                      type="range" min="1" max="4"
                                       value={layConfig.grid_setup?.columns_mobile || 1}
                                       onChange={e => {
                                         const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
@@ -5093,7 +5093,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                       <span style={{ fontWeight: 'bold' }}>{layConfig.grid_setup?.columns_tablet || 2}</span>
                                     </div>
                                     <input
-                                      type="range" min="1" max="4"
+                                      type="range" min="1" max="6"
                                       value={layConfig.grid_setup?.columns_tablet || 2}
                                       onChange={e => {
                                         const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
@@ -5109,7 +5109,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                       <span style={{ fontWeight: 'bold' }}>{layConfig.grid_setup?.columns_desktop || 4}</span>
                                     </div>
                                     <input
-                                      type="range" min="1" max="6"
+                                      type="range" min="1" max="8"
                                       value={layConfig.grid_setup?.columns_desktop || 4}
                                       onChange={e => {
                                         const setup = layConfig.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
