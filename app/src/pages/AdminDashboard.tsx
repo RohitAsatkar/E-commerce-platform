@@ -15,16 +15,21 @@ import './AdminDashboard.css';
 import './Home.css';
 
 const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const PANT_SIZES = ['28', '30', '32', '34', '36', '38', '40'];
 const FOOTWEAR_SIZES = ['6', '7', '8', '9', '10', '11', '12'];
 const ACCESSORY_SIZES = ['One Size'];
-const ALL_SIZES = [...CLOTHING_SIZES, ...FOOTWEAR_SIZES, ...ACCESSORY_SIZES];
+const ALL_SIZES = [...CLOTHING_SIZES, ...PANT_SIZES, ...FOOTWEAR_SIZES, ...ACCESSORY_SIZES];
 
 const getAvailableSizesForCategory = (category: string) => {
-  if (category === 'footwear') {
+  const catLower = (category || '').toLowerCase();
+  if (catLower === 'footwear') {
     return FOOTWEAR_SIZES;
   }
-  if (['accessories', 'jewelry', 'beauty', 'watch', 'bags'].includes(category)) {
+  if (['accessories', 'jewelry', 'beauty', 'watch', 'bags'].includes(catLower)) {
     return ACCESSORY_SIZES;
+  }
+  if (['jeans', 'trousers', 'cargo-pants', 'pants'].includes(catLower)) {
+    return PANT_SIZES;
   }
   return CLOTHING_SIZES;
 };
@@ -295,7 +300,78 @@ const AdminDashboard = () => {
   // ==========================================
   // CMS & MARKETING STATE DEFINITIONS
   // ==========================================
-  const [cmsSubTab, setCmsSubTab] = useState<'visual' | 'static' | 'navigation' | 'media'>('visual');
+  const [cmsSubTab, setCmsSubTab] = useState<'visual' | 'static' | 'navigation' | 'media' | 'shop_filters' | 'grid_settings' | 'custom_pages'>('visual');
+
+  // Dynamic Custom Pages State
+  const [customPages, setCustomPages] = useState<any[]>(() => {
+    const saved = localStorage.getItem('aura_custom_pages');
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch(e) {
+      return [];
+    }
+  });
+  const [newPageTitle, setNewPageTitle] = useState('');
+  const [newPageSlug, setNewPageSlug] = useState('');
+  const [newPageType, setNewPageType] = useState<'sale' | 'offer' | 'collection' | 'custom'>('collection');
+  const [newPageBannerTitle, setNewPageBannerTitle] = useState('');
+  const [newPageBannerDesc, setNewPageBannerDesc] = useState('');
+  const [newPageBgColor, setNewPageBgColor] = useState('#121212');
+  const [newPageBannerImage, setNewPageBannerImage] = useState('');
+  const [newPageSelectedProducts, setNewPageSelectedProducts] = useState<string[]>([]);
+
+  // Advanced Promotional Sales Campaigns State
+  const [salesCampaigns, setSalesCampaigns] = useState<any[]>(() => {
+    const saved = localStorage.getItem('aura_sales_campaigns');
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch(e) {
+      return [];
+    }
+  });
+  const [newCampaignTitle, setNewCampaignTitle] = useState('');
+  const [newCampaignType, setNewCampaignType] = useState<'flash_sale' | 'special_sale'>('flash_sale');
+  const [newCampaignDiscountType, setNewCampaignDiscountType] = useState<'percentage' | 'fixed'>('percentage');
+  const [newCampaignDiscountValue, setNewCampaignDiscountValue] = useState(15);
+  const [newCampaignStartDate, setNewCampaignStartDate] = useState('');
+  const [newCampaignEndDate, setNewCampaignEndDate] = useState('');
+  const [newCampaignApplyTo, setNewCampaignApplyTo] = useState<'all' | 'specific'>('specific');
+  const [newCampaignSelectedProducts, setNewCampaignSelectedProducts] = useState<string[]>([]);
+  const [gridColumns, setGridColumns] = useState(() => {
+    const saved = localStorage.getItem('aura_shop_grid_columns');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return { desktop: 4, tablet: 2, mobile: 1 };
+  });
+  const [shopFilters, setShopFilters] = useState<{ name: string; slug: string }[]>(() => {
+    const saved = localStorage.getItem('aura_shop_filters');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      { name: 'ALL', slug: 'all' },
+      { name: 'NEW', slug: 'new' },
+      { name: 'SHIRTS', slug: 'shirts' },
+      { name: 'T-SHIRTS', slug: 't-shirts' },
+      { name: 'JEANS', slug: 'jeans' },
+      { name: 'OVERSHIRT', slug: 'overshirt' },
+      { name: 'TROUSERS', slug: 'trousers' },
+      { name: 'CARGO PANTS', slug: 'cargo-pants' },
+      { name: 'SWEATERS', slug: 'sweaters' },
+      { name: 'JACKETS', slug: 'jackets' },
+      { name: 'SHOES', slug: 'shoes' },
+      { name: 'LUXE', slug: 'luxe' }
+    ];
+  });
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [sandboxMode, setSandboxMode] = useState<'edit' | 'preview'>('edit');
@@ -480,10 +556,6 @@ const AdminDashboard = () => {
     code: "", type: "Percentage", value: 0, limit: 100, singleUse: false, minThreshold: 0
   });
 
-  // Global Flash Sale state
-  const [flashSaleActive, setFlashSaleActive] = useState(false);
-  const [flashSalePercentage, setFlashSalePercentage] = useState(15);
-  const [flashSaleCountdown, setFlashSaleCountdown] = useState("2026-05-25T23:59:59Z");
 
   // Automation triggers
   const [automationRules, setAutomationRules] = useState<any[]>([
@@ -573,6 +645,7 @@ const AdminDashboard = () => {
   // Product Filter, Search & Sort States
   const [productSearch, setProductSearch] = useState('');
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
+  const [productSubcategoryFilter, setProductSubcategoryFilter] = useState('all');
   const [productStockFilter, setProductStockFilter] = useState('all');
   const [productSort, setProductSort] = useState('name-asc');
 
@@ -586,8 +659,54 @@ const AdminDashboard = () => {
   // Product Form State
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [showSubcatModal, setShowSubcatModal] = useState(false);
+  const [subcategories, setSubcategories] = useState<Record<string, string[]>>(() => {
+    const saved = localStorage.getItem('aura_subcategories');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return {
+      shirts: ['casual-shirts', 'formal-shirts', 'linen-shirts'],
+      't-shirts': ['crew-neck', 'v-neck', 'oversized'],
+      polo: ['classic-polo', 'knit-polo'],
+      jeans: ['slim-fit', 'relaxed-fit', 'straight-leg'],
+      trousers: ['chinos', 'dress-trousers', 'linen-trousers'],
+      linen: ['linen-shirts', 'linen-trousers'],
+      'cargo-pants': ['utility-cargo', 'slim-cargo'],
+      joggers: ['athletic-joggers', 'lounge-joggers'],
+      shorts: ['denim-shorts', 'tailored-shorts'],
+      overshirts: ['canvas-overshirts', 'wool-overshirts'],
+      footwear: ['sneakers', 'loafers', 'boots']
+    };
+  });
+
+  const [selectedSubcatMainCat, setSelectedSubcatMainCat] = useState('shirts');
+  const [newSubcatName, setNewSubcatName] = useState('');
+
+  const handleAddSubcategoryFromModal = () => {
+    if (!newSubcatName.trim()) return;
+    const slug = newSubcatName.toLowerCase().trim().replace(/\s+/g, '-');
+    const currentList = subcategories[selectedSubcatMainCat] || [];
+    if (!currentList.includes(slug)) {
+      const updated = {
+        ...subcategories,
+        [selectedSubcatMainCat]: [...currentList, slug]
+      };
+      setSubcategories(updated);
+      localStorage.setItem('aura_subcategories', JSON.stringify(updated));
+      showToast('Subcategory created successfully!');
+    } else {
+      showToast('Subcategory already exists!', 'error');
+    }
+    setNewSubcatName('');
+  };
+
   const [productForm, setProductForm] = useState({
-    name: '', price: 0, category: 'shirts', is_new: false, image: '', description: '',
+    name: '', price: 0, category: 'shirts', subcategory: '', is_new: false, image: '', description: '',
     stock: 100, sku: '', tags: '', currency: 'INR'
   });
   const [selectedSizes, setSelectedSizes] = useState<Record<string, { enabled: boolean; priceAdjust: number }>>({
@@ -871,6 +990,12 @@ const AdminDashboard = () => {
     // 2. Category filter
     if (productCategoryFilter !== 'all') {
       result = result.filter(p => p.category === productCategoryFilter);
+      if (productSubcategoryFilter !== 'all') {
+        result = result.filter(p => {
+          const subcatObj = Array.isArray(p.variants) ? p.variants.find((v: any) => v.is_subcategory) : null;
+          return subcatObj?.subcategory === productSubcategoryFilter;
+        });
+      }
     }
 
     // 3. Stock level filter
@@ -903,7 +1028,7 @@ const AdminDashboard = () => {
     });
 
     return result;
-  }, [products, productSearch, productCategoryFilter, productStockFilter, productSort]);
+  }, [products, productSearch, productCategoryFilter, productSubcategoryFilter, productStockFilter, productSort]);
 
   const handleAdminLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -989,8 +1114,9 @@ const AdminDashboard = () => {
     setActiveFormTab('info');
     if (product) {
       setEditingProduct(product);
+      const subcatObj = Array.isArray(product.variants) ? product.variants.find((v: any) => v.is_subcategory) : null;
       setProductForm({
-        name: product.name, price: product.price, category: product.category, is_new: product.is_new,
+        name: product.name, price: product.price, category: product.category, subcategory: subcatObj?.subcategory || '', is_new: product.is_new,
         image: product.image, description: product.description,
         stock: product.stock ?? 100, sku: product.sku || '', tags: (product.tags || []).join(', '),
         currency: product.variants?.[0]?.currency || 'INR'
@@ -1012,7 +1138,7 @@ const AdminDashboard = () => {
       setNewAdditionalImageUrl('');
     } else {
       setEditingProduct(null);
-      setProductForm({ name: '', price: 0, category: 'shirts', is_new: false, image: '', description: '', stock: 100, sku: '', tags: '', currency: 'INR' });
+      setProductForm({ name: '', price: 0, category: 'shirts', subcategory: '', is_new: false, image: '', description: '', stock: 100, sku: '', tags: '', currency: 'INR' });
       const restored: Record<string, { enabled: boolean; priceAdjust: number }> = {};
       ALL_SIZES.forEach(s => { restored[s] = { enabled: false, priceAdjust: 0 }; });
       restored['S'] = { enabled: true, priceAdjust: 0 };
@@ -1079,8 +1205,10 @@ const AdminDashboard = () => {
         .filter(s => selectedSizes[s]?.enabled)
         .map(s => ({ size: s, priceAdjust: selectedSizes[s]?.priceAdjust || 0, currency: productForm.currency }));
 
+      const subcatVariant = productForm.subcategory ? [{ is_subcategory: true, subcategory: productForm.subcategory }] : [];
       const variantsArray = [
         ...sizeVariants,
+        ...subcatVariant,
         { is_images: true, urls: additionalImages }
       ];
 
@@ -1562,9 +1690,6 @@ const AdminDashboard = () => {
     showToast("Promo status updated");
   };
 
-  const handleSaveFlashSale = () => {
-    showToast(`Global flash sale ${flashSaleActive ? 'Activated' : 'Deactivated'}!`);
-  };
 
   const handleAddAutomation = (e: FormEvent) => {
     e.preventDefault();
@@ -2258,7 +2383,10 @@ const AdminDashboard = () => {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)' }}>Product Catalog</h2>
-              <button onClick={() => handleOpenModal()} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>+ Add Product</button>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button onClick={() => setShowSubcatModal(true)} className="btn btn-outline" style={{ padding: '0.6rem 1.5rem', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>Manage Subcategories</button>
+                <button onClick={() => handleOpenModal()} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>+ Add Product</button>
+              </div>
             </div>
 
             {/* Product Statistics Summary Bar */}
@@ -2336,7 +2464,10 @@ const AdminDashboard = () => {
                 {/* Category selector */}
                 <select
                   value={productCategoryFilter}
-                  onChange={e => setProductCategoryFilter(e.target.value)}
+                  onChange={e => {
+                    setProductCategoryFilter(e.target.value);
+                    setProductSubcategoryFilter('all');
+                  }}
                   style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.9rem' }}
                 >
                   <option value="all">All Categories</option>
@@ -2352,6 +2483,22 @@ const AdminDashboard = () => {
                   <option value="overshirts">Overshirts</option>
                   <option value="footwear">Footwear</option>
                 </select>
+
+                {/* Subcategory selector */}
+                {productCategoryFilter !== 'all' && (
+                  <select
+                    value={productSubcategoryFilter}
+                    onChange={e => setProductSubcategoryFilter(e.target.value)}
+                    style={{ padding: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontSize: '0.9rem', textTransform: 'capitalize' }}
+                  >
+                    <option value="all">All Subcategories</option>
+                    {(subcategories[productCategoryFilter] || []).map(sub => (
+                      <option key={sub} value={sub}>
+                        {sub.replace(/-/g, ' ')}
+                      </option>
+                    ))}
+                  </select>
+                )}
 
                 {/* Stock Level selector */}
                 <select
@@ -2424,7 +2571,20 @@ const AdminDashboard = () => {
                             {p.stock ?? 100}
                             {isOut ? ' (Out of Stock)' : isLow ? ' (Low Stock)' : ''}
                           </td>
-                          <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
+                          <td style={{ textTransform: 'capitalize' }}>
+                            <div>{p.category}</div>
+                            {(() => {
+                              const subcatObj = Array.isArray(p.variants) ? p.variants.find((v: any) => v.is_subcategory) : null;
+                              if (subcatObj?.subcategory) {
+                                return (
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)', textTransform: 'capitalize', display: 'block', marginTop: '0.15rem' }}>
+                                    → {subcatObj.subcategory.replace(/-/g, ' ')}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </td>
                           <td style={{ textAlign: 'right' }}>
                             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                               <button onClick={() => handleOpenModal(p)} style={{ background: 'none', border: 'none', color: 'var(--color-text)', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: '0.9rem' }}>Edit</button>
@@ -2614,7 +2774,7 @@ const AdminDashboard = () => {
             {/* CMS Sub-tabs */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '1.5rem' }}>
-                {(['visual', 'static', 'navigation', 'media'] as const).map(tab => (
+                {(['visual', 'static', 'navigation', 'media', 'shop_filters', 'grid_settings', 'custom_pages'] as const).map(tab => (
                   <button
                     key={tab}
                     onClick={() => setCmsSubTab(tab)}
@@ -2624,7 +2784,7 @@ const AdminDashboard = () => {
                       cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
                     }}
                   >
-                    {tab === 'visual' ? 'Storefront Builder' : tab === 'static' ? 'Static & SEO' : tab === 'navigation' ? 'Global Navigation' : 'Media Library'}
+                    {tab === 'visual' ? 'Storefront Builder' : tab === 'static' ? 'Static & SEO' : tab === 'navigation' ? 'Global Navigation' : tab === 'media' ? 'Media Library' : tab === 'shop_filters' ? 'Shop Filters' : tab === 'grid_settings' ? 'Grid Layout' : 'Custom Pages'}
                   </button>
                 ))}
               </div>
@@ -6001,6 +6161,473 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                 )}
               </div>
             )}
+
+            {/* Shop Filters Manager */}
+            {cmsSubTab === 'shop_filters' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', backgroundColor: '#fff', padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.25rem' }}>Shop Page Category Toggles</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)' }}>Manage the categories that show up as toggles at the top of the View All Products page. Drag/re-order, edit label casing/slugs, or add new category parameters dynamically.</p>
+                </div>
+                
+                {/* List of Filters */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {shopFilters.map((filter, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fafafa' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '30px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const newFilters = [...shopFilters];
+                            const temp = newFilters[index];
+                            newFilters[index] = newFilters[index - 1];
+                            newFilters[index - 1] = temp;
+                            setShopFilters(newFilters);
+                          }}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.8rem', opacity: index === 0 ? 0.3 : 1 }}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === shopFilters.length - 1}
+                          onClick={() => {
+                            const newFilters = [...shopFilters];
+                            const temp = newFilters[index];
+                            newFilters[index] = newFilters[index + 1];
+                            newFilters[index + 1] = temp;
+                            setShopFilters(newFilters);
+                          }}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.8rem', opacity: index === shopFilters.length - 1 ? 0.3 : 1 }}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                      
+                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                          <label style={{ fontSize: '0.7rem', color: 'var(--color-gray)', display: 'block', marginBottom: '0.15rem' }}>DISPLAY LABEL</label>
+                          <input
+                            type="text"
+                            value={filter.name}
+                            onChange={e => {
+                              const newFilters = [...shopFilters];
+                              newFilters[index].name = e.target.value;
+                              setShopFilters(newFilters);
+                            }}
+                            className="admin-input"
+                            style={{ padding: '0.4rem', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.7rem', color: 'var(--color-gray)', display: 'block', marginBottom: '0.15rem' }}>FILTER SLUG (URL PARAMETER)</label>
+                          <input
+                            type="text"
+                            value={filter.slug}
+                            onChange={e => {
+                              const newFilters = [...shopFilters];
+                              newFilters[index].slug = e.target.value.toLowerCase().replace(/\s+/g, '-');
+                              setShopFilters(newFilters);
+                            }}
+                            className="admin-input"
+                            style={{ padding: '0.4rem', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newFilters = shopFilters.filter((_, i) => i !== index);
+                          setShopFilters(newFilters);
+                        }}
+                        style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', color: '#dc2626', border: '1px solid #fca5a5', backgroundColor: 'transparent', cursor: 'pointer', borderRadius: '4px', marginTop: '1.1rem' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Filter */}
+                <div style={{ display: 'flex', gap: '1rem', borderTop: '1px dashed var(--color-border)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShopFilters([...shopFilters, { name: 'NEW CATEGORY', slug: 'new-category' }]);
+                    }}
+                    className="btn btn-outline"
+                    style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem' }}
+                  >
+                    + Add Category Toggle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('Reset toggles to default sequence?')) {
+                        setShopFilters([
+                          { name: 'ALL', slug: 'all' },
+                          { name: 'NEW', slug: 'new' },
+                          { name: 'SHIRTS', slug: 'shirts' },
+                          { name: 'T-SHIRTS', slug: 't-shirts' },
+                          { name: 'JEANS', slug: 'jeans' },
+                          { name: 'OVERSHIRT', slug: 'overshirt' },
+                          { name: 'TROUSERS', slug: 'trousers' },
+                          { name: 'CARGO PANTS', slug: 'cargo-pants' },
+                          { name: 'SWEATERS', slug: 'sweaters' },
+                          { name: 'JACKETS', slug: 'jackets' },
+                          { name: 'SHOES', slug: 'shoes' },
+                          { name: 'LUXE', slug: 'luxe' }
+                        ]);
+                      }
+                    }}
+                    className="btn btn-outline"
+                    style={{ padding: '0.5rem 1.25rem', fontSize: '0.8rem', color: 'var(--color-gray)' }}
+                  >
+                    Reset to Default
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('aura_shop_filters', JSON.stringify(shopFilters));
+                      alert('Shop category toggles saved successfully!');
+                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem', marginLeft: 'auto' }}
+                  >
+                    Save & Apply Changes
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Grid Settings Manager */}
+            {cmsSubTab === 'grid_settings' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', backgroundColor: '#fff', padding: '2.5rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.25rem' }}>Product Showcase Grid Columns</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)' }}>Configure the density of the product grid for customers across desktop, tablet, and mobile viewports.</p>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
+                  {/* Desktop Columns */}
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Desktop Columns</span>
+                    <select
+                      value={gridColumns.desktop}
+                      onChange={e => setGridColumns({ ...gridColumns, desktop: Number(e.target.value) })}
+                      style={{ padding: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }}
+                    >
+                      <option value="2">2 Columns</option>
+                      <option value="3">3 Columns</option>
+                      <option value="4">4 Columns (Default)</option>
+                      <option value="5">5 Columns</option>
+                      <option value="6">6 Columns</option>
+                      <option value="8">8 Columns</option>
+                    </select>
+                  </label>
+
+                  {/* Tablet Columns */}
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tablet Columns</span>
+                    <select
+                      value={gridColumns.tablet}
+                      onChange={e => setGridColumns({ ...gridColumns, tablet: Number(e.target.value) })}
+                      style={{ padding: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }}
+                    >
+                      <option value="2">2 Columns (Default)</option>
+                      <option value="3">3 Columns</option>
+                      <option value="4">4 Columns</option>
+                    </select>
+                  </label>
+
+                  {/* Mobile Columns */}
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mobile Columns</span>
+                    <select
+                      value={gridColumns.mobile}
+                      onChange={e => setGridColumns({ ...gridColumns, mobile: Number(e.target.value) })}
+                      style={{ padding: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }}
+                    >
+                      <option value="1">1 Column (Default)</option>
+                      <option value="2">2 Columns</option>
+                      <option value="3">3 Columns</option>
+                      <option value="4">4 Columns</option>
+                    </select>
+                  </label>
+                </div>
+
+                {/* Preview Panel */}
+                <div style={{ marginTop: '1.5rem', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1.5rem', backgroundColor: '#fafafa' }}>
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-gray)', marginBottom: '1rem' }}>Layout Density Preview</h4>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${gridColumns.desktop}, 1fr)`,
+                    gap: '0.75rem',
+                    minHeight: '80px'
+                  }}>
+                    {Array.from({ length: Math.min(gridColumns.desktop * 2, 16) }).map((_, i) => (
+                      <div key={i} style={{ backgroundColor: 'rgba(0,0,0,0.05)', border: '1px solid var(--color-border)', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--color-gray)' }}>
+                        Product {i + 1}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('aura_shop_grid_columns', JSON.stringify(gridColumns));
+                      alert('Grid columns saved and applied successfully!');
+                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '0.6rem 2rem' }}
+                  >
+                    Save Layout Settings
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Custom Pages Manager */}
+            {cmsSubTab === 'custom_pages' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
+                {/* Create Dynamic Custom Page Form */}
+                <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-heading)' }}>Create Dynamic Custom Page</h3>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-gray)' }}>Create custom pages like Clearance Sales, Festival Specials, or curated Collections with selected products.</p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Title *
+                      <input
+                        type="text"
+                        placeholder="e.g. Summer Clearance"
+                        value={newPageTitle}
+                        onChange={e => {
+                          setNewPageTitle(e.target.value);
+                          setNewPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+                        }}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page URL Path Slug *
+                      <input
+                        type="text"
+                        placeholder="e.g. summer-clearance"
+                        value={newPageSlug}
+                        onChange={e => setNewPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Category / Type
+                      <select
+                        value={newPageType}
+                        onChange={e => setNewPageType(e.target.value as any)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      >
+                        <option value="collection">Curated Collection</option>
+                        <option value="sale">Markdown Sale Page</option>
+                        <option value="offer">Promotional Offers Page</option>
+                        <option value="custom">Custom Brand Page</option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Text / Subtitle
+                      <input
+                        type="text"
+                        placeholder="e.g. Exclusive 30% Off Selected Styles"
+                        value={newPageBannerTitle}
+                        onChange={e => setNewPageBannerTitle(e.target.value)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Subtext / Description
+                    <textarea
+                      placeholder="Enter a brief summary that describes this page..."
+                      value={newPageBannerDesc}
+                      onChange={e => setNewPageBannerDesc(e.target.value)}
+                      rows={3}
+                      style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', resize: 'vertical', fontFamily: 'inherit', fontWeight: 'normal' }}
+                    />
+                  </label>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Color (Background Hex)
+                      <input
+                        type="color"
+                        value={newPageBgColor}
+                        onChange={e => setNewPageBgColor(e.target.value)}
+                        style={{ padding: '0.2rem 0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', width: '100%', height: '42px', cursor: 'pointer', borderRadius: '2px' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Custom Image URL (Optional)
+                      <input
+                        type="text"
+                        placeholder="e.g. https://images.unsplash.com/..."
+                        value={newPageBannerImage}
+                        onChange={e => setNewPageBannerImage(e.target.value)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Product Selector Checklist */}
+                  <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Products to Showcase ({newPageSelectedProducts.length} Selected)</span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setNewPageSelectedProducts(products.map(p => p.id.toString()))}
+                          style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-accent)' }}
+                        >
+                          Select All
+                        </button>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-border)' }}>|</span>
+                        <button
+                          type="button"
+                          onClick={() => setNewPageSelectedProducts([])}
+                          style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-gray)' }}
+                        >
+                          Deselect All
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                      {products.map(p => {
+                        const isSelected = newPageSelectedProducts.includes(p.id.toString());
+                        return (
+                          <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', border: '1px solid rgba(0,0,0,0.02)', cursor: 'pointer', transition: 'background 0.2s', backgroundColor: isSelected ? '#fafafa' : 'transparent', borderRadius: '2px' }}>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setNewPageSelectedProducts([...newPageSelectedProducts, p.id.toString()]);
+                                } else {
+                                  setNewPageSelectedProducts(newPageSelectedProducts.filter(id => id !== p.id.toString()));
+                                }
+                              }}
+                              style={{ transform: 'scale(1.1)', cursor: 'pointer' }}
+                            />
+                            <img src={p.image} alt={p.name} style={{ width: '32px', height: '40px', objectFit: 'cover', borderRadius: '2px' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.name}</span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>{p.category} — ₹{p.price}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newPageTitle.trim() || !newPageSlug.trim()) {
+                        alert('Title and Slug are required!');
+                        return;
+                      }
+                      if (newPageSelectedProducts.length === 0) {
+                        alert('Please select at least one product!');
+                        return;
+                      }
+                      // Check for duplicate slug
+                      if (customPages.some(page => page.slug === newPageSlug)) {
+                        alert('A custom page with this URL slug already exists!');
+                        return;
+                      }
+
+                      const newPage = {
+                        id: `page_${Date.now()}`,
+                        title: newPageTitle,
+                        slug: newPageSlug,
+                        type: newPageType,
+                        bannerTitle: newPageBannerTitle,
+                        bannerDesc: newPageBannerDesc,
+                        bgColor: newPageBgColor,
+                        bannerImage: newPageBannerImage,
+                        productIds: newPageSelectedProducts,
+                        createdAt: new Date().toISOString()
+                      };
+
+                      const updatedPages = [...customPages, newPage];
+                      setCustomPages(updatedPages);
+                      localStorage.setItem('aura_custom_pages', JSON.stringify(updatedPages));
+
+                      // Reset fields
+                      setNewPageTitle('');
+                      setNewPageSlug('');
+                      setNewPageBannerTitle('');
+                      setNewPageBannerDesc('');
+                      setNewPageBgColor('#121212');
+                      setNewPageBannerImage('');
+                      setNewPageSelectedProducts([]);
+
+                      alert('Dynamic custom page published successfully!');
+                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '0.75rem', fontWeight: 'bold', width: '100%', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                  >
+                    Publish Custom Page & Live Stream Products
+                  </button>
+                </div>
+
+                {/* Published Custom Pages list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Published Pages ({customPages.length})</h3>
+                  {customPages.length === 0 ? (
+                    <div style={{ padding: '2.5rem', textAlign: 'center', border: '1px dashed var(--color-border)', backgroundColor: '#fff', borderRadius: '4px', color: 'var(--color-gray)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                      No dynamic custom pages built yet.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {customPages.map(page => (
+                        <div key={page.id} style={{ border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fff', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '700' }}>{page.title}</h4>
+                              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: 'bold' }}>{page.type}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete "${page.title}"?`)) {
+                                  const updated = customPages.filter(p => p.id !== page.id);
+                                  setCustomPages(updated);
+                                  localStorage.setItem('aura_custom_pages', JSON.stringify(updated));
+                                }
+                              }}
+                              style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-gray)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            <span>Path URL: <a href={`/page/${page.slug}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>/page/{page.slug}</a></span>
+                            <span>Products Associated: <strong>{page.productIds?.length || 0} Products</strong></span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -6145,67 +6772,267 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               </div>
             )}
 
-            {/* Flash Sale Orchestrator */}
+            {/* Flash Sale & Promotions Campaign Orchestrator */}
             {marketingSubTab === 'flash_sale' && (
-              <div style={{ border: '1px solid var(--color-border)', padding: '2rem', borderRadius: '4px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '700px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: '2rem', alignItems: 'start' }}>
+                {/* Campaign Creator Form */}
+                <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-text)' }}><Sparkles size={18} style={{ color: '#eab308' }} /> Flash Sale Orchestrator</h3>
-                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-gray)' }}>Override regular catalogue pricing site-wide instantly</p>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Sparkles size={18} style={{ color: '#eab308' }} /> Promotions & Campaign Orchestrator
+                    </h3>
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--color-gray)' }}>
+                      Set up limited-time Flash Sales or Special Deals (like Festival Specials) for specific products or site-wide.
+                    </p>
                   </div>
-                  <label style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={flashSaleActive}
-                      onChange={e => {
-                        setFlashSaleActive(e.target.checked);
-                        showToast(`Flash sale status: ${e.target.checked ? 'Active' : 'Inactive'}`);
-                      }}
-                      style={{ transform: 'scale(1.25)', cursor: 'pointer' }}
-                    />
-                    <span style={{ marginLeft: '0.5rem', fontWeight: '700', fontSize: '0.9rem', color: flashSaleActive ? '#16a34a' : 'var(--color-gray)' }}>{flashSaleActive ? 'ACTIVE' : 'INACTIVE'}</span>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Campaign Name *
+                      <input
+                        type="text"
+                        placeholder="e.g. Festival Special Diwali"
+                        value={newCampaignTitle}
+                        onChange={e => setNewCampaignTitle(e.target.value)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Campaign Type
+                      <select
+                        value={newCampaignType}
+                        onChange={e => setNewCampaignType(e.target.value as any)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      >
+                        <option value="flash_sale">Flash Sale (with Countdown)</option>
+                        <option value="special_sale">Special Sale (Festival / Weekend Deal)</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Discount Type
+                      <select
+                        value={newCampaignDiscountType}
+                        onChange={e => setNewCampaignDiscountType(e.target.value as any)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      >
+                        <option value="percentage">Percentage Markdown (%)</option>
+                        <option value="fixed">Fixed Price Deduction (₹)</option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Discount Value *
+                      <input
+                        type="number"
+                        min="1"
+                        value={newCampaignDiscountValue}
+                        onChange={e => setNewCampaignDiscountValue(Number(e.target.value))}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Campaign Start Time (Optional)
+                      <input
+                        type="datetime-local"
+                        value={newCampaignStartDate}
+                        onChange={e => setNewCampaignStartDate(e.target.value)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Campaign End Time (Optional)
+                      <input
+                        type="datetime-local"
+                        value={newCampaignEndDate}
+                        onChange={e => setNewCampaignEndDate(e.target.value)}
+                        style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                      />
+                    </label>
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Apply Campaign To
+                    <select
+                      value={newCampaignApplyTo}
+                      onChange={e => setNewCampaignApplyTo(e.target.value as any)}
+                      style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                    >
+                      <option value="all">All Products (Entire Catalogue)</option>
+                      <option value="specific">Specific Selected Products</option>
+                    </select>
                   </label>
+
+                  {/* Specific Product Checklist Selector */}
+                  {newCampaignApplyTo === 'specific' && (
+                    <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Eligible Campaign Products ({newCampaignSelectedProducts.length} Selected)</span>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => setNewCampaignSelectedProducts(products.map(p => p.id.toString()))}
+                            style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-accent)' }}
+                          >
+                            Select All
+                          </button>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-border)' }}>|</span>
+                          <button
+                            type="button"
+                            onClick={() => setNewCampaignSelectedProducts([])}
+                            style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', textDecoration: 'underline', cursor: 'pointer', color: 'var(--color-gray)' }}
+                          >
+                            Deselect All
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                        {products.map(p => {
+                          const isSelected = newCampaignSelectedProducts.includes(p.id.toString());
+                          return (
+                            <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', border: '1px solid rgba(0,0,0,0.02)', cursor: 'pointer', transition: 'background 0.2s', backgroundColor: isSelected ? '#fafafa' : 'transparent', borderRadius: '2px' }}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={e => {
+                                  if (e.target.checked) {
+                                    setNewCampaignSelectedProducts([...newCampaignSelectedProducts, p.id.toString()]);
+                                  } else {
+                                    setNewCampaignSelectedProducts(newCampaignSelectedProducts.filter(id => id !== p.id.toString()));
+                                  }
+                                }}
+                                style={{ transform: 'scale(1.1)', cursor: 'pointer' }}
+                              />
+                              <img src={p.image} alt={p.name} style={{ width: '32px', height: '40px', objectFit: 'cover', borderRadius: '2px' }} />
+                              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{p.name}</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>₹{p.price}</span>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newCampaignTitle.trim()) {
+                        alert('Campaign name is required!');
+                        return;
+                      }
+                      if (newCampaignApplyTo === 'specific' && newCampaignSelectedProducts.length === 0) {
+                        alert('Please select at least one product for this campaign!');
+                        return;
+                      }
+
+                      const newCampaign = {
+                        id: `camp_${Date.now()}`,
+                        title: newCampaignTitle,
+                        type: newCampaignType,
+                        discountType: newCampaignDiscountType,
+                        discountValue: newCampaignDiscountValue,
+                        startDate: newCampaignStartDate || undefined,
+                        endDate: newCampaignEndDate || undefined,
+                        applyTo: newCampaignApplyTo,
+                        productIds: newCampaignApplyTo === 'all' ? [] : newCampaignSelectedProducts,
+                        status: 'active'
+                      };
+
+                      const updatedCampaigns = [...salesCampaigns, newCampaign];
+                      setSalesCampaigns(updatedCampaigns);
+                      localStorage.setItem('aura_sales_campaigns', JSON.stringify(updatedCampaigns));
+
+                      // Reset fields
+                      setNewCampaignTitle('');
+                      setNewCampaignStartDate('');
+                      setNewCampaignEndDate('');
+                      setNewCampaignSelectedProducts([]);
+                      
+                      alert('Promotional Sales Campaign activated successfully!');
+                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '0.75rem', fontWeight: 'bold', width: '100%', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                  >
+                    Launch Campaign & Broadcast Discounts
+                  </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Global Markdown Override Percentage (%)
-                    <input
-                      type="number"
-                      value={flashSalePercentage}
-                      disabled={!flashSaleActive}
-                      onChange={e => setFlashSalePercentage(Number(e.target.value))}
-                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-                    />
-                  </label>
-
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>Countdown Expiration Target
-                    <input
-                      type="datetime-local"
-                      value={flashSaleCountdown ? flashSaleCountdown.substring(0, 16) : ''}
-                      disabled={!flashSaleActive}
-                      onChange={e => setFlashSaleCountdown(e.target.value ? new Date(e.target.value).toISOString() : '')}
-                      style={{ padding: '0.65rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)' }}
-                    />
-                  </label>
-                </div>
-
-                {/* Global Campaign Bar preview mock */}
-                <div style={{ border: '1px solid var(--color-border)', padding: '1rem', borderRadius: '4px', backgroundColor: flashSaleActive ? '#09090b' : '#fafafa', color: flashSaleActive ? '#fff' : 'var(--color-gray)', textAlign: 'center', transition: 'all 0.3s' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.5rem' }}>Storefront Countdown Bar Preview</span>
-                  {flashSaleActive ? (
-                    <div>
-                      <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>MIDNIGHT DEALS: SAVE {flashSalePercentage}% OFF SITE-WIDE!</span>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#eab308', fontFamily: 'monospace', marginTop: '0.25rem' }}>
-                        Ends in: {flashSaleCountdown ? new Date(flashSaleCountdown).toLocaleString() : 'N/A'}
-                      </span>
+                {/* Active Campaigns List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Active Campaigns ({salesCampaigns.length})</h3>
+                  {salesCampaigns.length === 0 ? (
+                    <div style={{ padding: '2.5rem', textAlign: 'center', border: '1px dashed var(--color-border)', backgroundColor: '#fff', borderRadius: '4px', color: 'var(--color-gray)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                      No active sales campaigns currently running.
                     </div>
                   ) : (
-                    <span style={{ fontSize: '0.8rem', fontStyle: 'italic' }}>Flash Sale banner is currently inactive</span>
-                  )}
-                </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {salesCampaigns.map(camp => (
+                        <div key={camp.id} style={{ border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fff', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderLeft: `4px solid ${camp.type === 'flash_sale' ? '#dc2626' : '#eab308'}` }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700' }}>{camp.title}</h4>
+                              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--color-gray)', fontWeight: 'bold' }}>
+                                {camp.type === 'flash_sale' ? '⚡ Flash Sale' : '🎉 Special Sale'}
+                              </span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = salesCampaigns.map(c => {
+                                    if (c.id === camp.id) {
+                                      return { ...c, status: c.status === 'active' ? 'inactive' : 'active' };
+                                    }
+                                    return c;
+                                  });
+                                  setSalesCampaigns(updated);
+                                  localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
+                                }}
+                                style={{
+                                  border: 'none',
+                                  padding: '0.2rem 0.5rem',
+                                  borderRadius: '2px',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  backgroundColor: camp.status === 'active' ? '#dcfce7' : '#f3f4f6',
+                                  color: camp.status === 'active' ? '#15803d' : '#4b5563'
+                                }}
+                              >
+                                {camp.status === 'active' ? 'ACTIVE' : 'PAUSED'}
+                              </button>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
-                  <button onClick={handleSaveFlashSale} className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>Save & Mutate Catalogue Pricing</button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Are you sure you want to terminate campaign "${camp.title}"?`)) {
+                                    const updated = salesCampaigns.filter(c => c.id !== camp.id);
+                                    setSalesCampaigns(updated);
+                                    localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
+                                  }
+                                }}
+                                style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-gray)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            <span>Discount: <strong>{camp.discountValue}{camp.discountType === 'percentage' ? '%' : '₹'} Off</strong></span>
+                            <span>Scope: <strong>{camp.applyTo === 'all' ? 'Site-wide Catalogue' : `${camp.productIds?.length || 0} selected products`}</strong></span>
+                            {camp.endDate && (
+                              <span style={{ color: '#dc2626' }}>Ends: <strong>{new Date(camp.endDate).toLocaleString()}</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -6474,6 +7301,49 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                       <option value="footwear" style={{ backgroundColor: 'var(--color-bg)' }}>Footwear</option>
                     </select>
                   </label>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subcategory</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const name = prompt('Enter new subcategory name:');
+                          if (name) {
+                            const slug = name.toLowerCase().trim().replace(/\s+/g, '-');
+                            const currentList = subcategories[productForm.category] || [];
+                            if (!currentList.includes(slug)) {
+                              const updated = {
+                                ...subcategories,
+                                [productForm.category]: [...currentList, slug]
+                              };
+                              setSubcategories(updated);
+                              localStorage.setItem('aura_subcategories', JSON.stringify(updated));
+                              setProductForm(prev => ({ ...prev, subcategory: slug }));
+                              showToast('Subcategory added and selected!');
+                            } else {
+                              setProductForm(prev => ({ ...prev, subcategory: slug }));
+                            }
+                          }
+                        }}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-gray)', textDecoration: 'underline', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}
+                      >
+                        + New Subcategory
+                      </button>
+                    </div>
+                    <select
+                      value={productForm.subcategory}
+                      onChange={e => setProductForm({ ...productForm, subcategory: e.target.value })}
+                      style={{ padding: '0.85rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', textTransform: 'capitalize' }}
+                    >
+                      <option value="" style={{ backgroundColor: 'var(--color-bg)' }}>None</option>
+                      {(subcategories[productForm.category] || []).map(sub => (
+                        <option key={sub} value={sub} style={{ backgroundColor: 'var(--color-bg)' }}>
+                          {sub.replace(/-/g, ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -6848,6 +7718,113 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               </div>
 
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MANAGE SUBCATEGORIES MODAL ================= */}
+      {showSubcatModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
+          <div style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '2.5rem', width: '100%', maxWidth: '600px', borderRadius: '4px', border: '1px solid var(--color-border)', position: 'relative' }}>
+            <button 
+              onClick={() => setShowSubcatModal(false)}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-text)' }}
+            >
+              ✕
+            </button>
+            <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', marginBottom: '1rem' }}>Manage Subcategories</h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)', marginBottom: '1.5rem' }}>Select a main category to manage or add new subcategory tags for your catalog.</p>
+
+            {/* Main Category Dropdown in Subcategories Editor */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              <span style={{ fontWeight: '600', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Main Category</span>
+              <select
+                value={selectedSubcatMainCat}
+                onChange={e => setSelectedSubcatMainCat(e.target.value)}
+                style={{ padding: '0.8rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px' }}
+              >
+                <option value="shirts" style={{ backgroundColor: 'var(--color-bg)' }}>Shirts</option>
+                <option value="t-shirts" style={{ backgroundColor: 'var(--color-bg)' }}>T-Shirts</option>
+                <option value="polo" style={{ backgroundColor: 'var(--color-bg)' }}>POLO</option>
+                <option value="jeans" style={{ backgroundColor: 'var(--color-bg)' }}>Jeans</option>
+                <option value="trousers" style={{ backgroundColor: 'var(--color-bg)' }}>Trousers</option>
+                <option value="linen" style={{ backgroundColor: 'var(--color-bg)' }}>LINEN</option>
+                <option value="cargo-pants" style={{ backgroundColor: 'var(--color-bg)' }}>Cargo Pants</option>
+                <option value="joggers" style={{ backgroundColor: 'var(--color-bg)' }}>Joggers</option>
+                <option value="shorts" style={{ backgroundColor: 'var(--color-bg)' }}>SHORTS</option>
+                <option value="overshirts" style={{ backgroundColor: 'var(--color-bg)' }}>Overshirts</option>
+                <option value="footwear" style={{ backgroundColor: 'var(--color-bg)' }}>Footwear</option>
+              </select>
+            </div>
+
+            {/* List of current Subcategories */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--color-border)', padding: '1rem', borderRadius: '4px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-gray)' }}>Current Subcategories</span>
+              {(subcategories[selectedSubcatMainCat] || []).length === 0 ? (
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)', fontStyle: 'italic', margin: 0 }}>No subcategories created yet.</p>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {(subcategories[selectedSubcatMainCat] || []).map(sub => (
+                    <span 
+                      key={sub} 
+                      style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem', 
+                        padding: '0.3rem 0.75rem', 
+                        backgroundColor: 'rgba(0,0,0,0.05)', 
+                        border: '1px solid var(--color-border)', 
+                        borderRadius: '20px', 
+                        fontSize: '0.8rem',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {sub.replace(/-/g, ' ')}
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const updatedList = (subcategories[selectedSubcatMainCat] || []).filter(item => item !== sub);
+                          const updated = {
+                            ...subcategories,
+                            [selectedSubcatMainCat]: updatedList
+                          };
+                          setSubcategories(updated);
+                          localStorage.setItem('aura_subcategories', JSON.stringify(updated));
+                        }}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#dc2626', padding: 0 }}
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add New Subcategory input field */}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <input
+                type="text"
+                placeholder="Type new subcategory name..."
+                value={newSubcatName}
+                onChange={e => setNewSubcatName(e.target.value)}
+                style={{ flex: 1, padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontSize: '0.9rem' }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddSubcategoryFromModal();
+                  }
+                }}
+              />
+              <button 
+                type="button" 
+                onClick={handleAddSubcategoryFromModal}
+                className="btn btn-primary"
+                style={{ padding: '0.75rem 1.5rem', fontSize: '0.85rem' }}
+              >
+                Add Subcategory
+              </button>
+            </div>
           </div>
         </div>
       )}

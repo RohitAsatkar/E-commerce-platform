@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice, getProductCurrency } from '../lib/currency';
+import { getActiveProductSale } from '../lib/sales';
 
 const SIMILAR_CATEGORIES: Record<string, string[]> = {
   'shirts': ['t-shirts', 'polo', 'overshirts', 'linen'],
@@ -44,6 +45,8 @@ const ProductDetail = () => {
   if (!product) {
     return <div className="section container text-center" style={{ paddingTop: '120px' }}><h2>Product not found</h2></div>;
   }
+
+  const isPant = ['jeans', 'trousers', 'cargo-pants', 'pants'].includes((product.category || '').toLowerCase());
 
   const imagesObj = Array.isArray(product.variants) ? product.variants.find((v: any) => v.is_images) : null;
   const additionalImages = imagesObj?.urls || [];
@@ -356,7 +359,38 @@ const ProductDetail = () => {
             </span>
             <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{product.name}</h1>
             
-            <p style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: '2rem' }}>{formatPrice(product)}</p>
+            {(() => {
+              const activeSale = getActiveProductSale(product);
+              const hasSale = activeSale !== null;
+              if (hasSale) {
+                return (
+                  <>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '1.85rem', fontWeight: '700', color: '#dc2626' }}>{formatPrice(product, activeSale.salePrice)}</span>
+                      <span style={{ fontSize: '1.35rem', textDecoration: 'line-through', color: 'var(--color-gray)' }}>{formatPrice(product)}</span>
+                      <span style={{ backgroundColor: '#dc2626', color: '#fff', fontSize: '0.7rem', fontWeight: 'bold', padding: '0.25rem 0.6rem', borderRadius: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {activeSale.campaign.type === 'flash_sale' ? 'FLASH SALE' : 'SPECIAL OFFER'} -{activeSale.campaign.discountValue}%
+                      </span>
+                    </div>
+                    {activeSale.campaign.endDate && (
+                      <div style={{ margin: '0 0 2rem 0', padding: '0.75rem 1rem', border: '1px solid #fee2e2', backgroundColor: '#fff5f5', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.75rem', width: 'fit-content' }}>
+                        <span style={{ fontSize: '1.1rem' }}>⏱️</span>
+                        <div>
+                          <p style={{ margin: 0, fontWeight: '700', fontSize: '0.8rem', color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Limited Time Campaign</p>
+                          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-gray)' }}>
+                            Ends: {new Date(activeSale.campaign.endDate).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              } else {
+                return (
+                  <p style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: '2rem' }}>{formatPrice(product)}</p>
+                );
+              }
+            })()}
             
             <p style={{ lineHeight: '1.8', marginBottom: '2rem', color: 'var(--color-text)', opacity: 0.9 }}>{product.description}</p>
             
@@ -378,7 +412,9 @@ const ProductDetail = () => {
                     : [];
                   const sizesToShow = sizeVariants.length > 0 
                     ? sizeVariants.map((v: any) => v.size)
-                    : ['S', 'M', 'L', 'XL'];
+                    : (isPant 
+                        ? ['28', '30', '32', '34', '36', '38', '40']
+                        : ['S', 'M', 'L', 'XL']);
                   
                   return sizesToShow.map((s: string) => {
                     const variant = sizeVariants.find((v: any) => v.size === s);
@@ -551,32 +587,63 @@ const ProductDetail = () => {
             <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Size Guide</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--color-gray)', marginBottom: '1.5rem' }}>All measurements are taken flat and are in inches. Fits true to size unless specified.</p>
             
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ textAlign: 'left', padding: '0.5rem 0' }}>Size</th>
-                  <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Chest (in)</th>
-                  <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Waist (in)</th>
-                  <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Sleeve (in)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { s: 'XS', c: '34-36', w: '28-30', sl: '31.5' },
-                  { s: 'S', c: '36-38', w: '30-32', sl: '32.5' },
-                  { s: 'M', c: '38-40', w: '32-34', sl: '33.5' },
-                  { s: 'L', c: '41-43', w: '35-37', sl: '34.5' },
-                  { s: 'XL', c: '44-46', w: '38-40', sl: '35.5' },
-                ].map((row, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                    <td style={{ padding: '0.5rem 0', fontWeight: '600' }}>{row.s}</td>
-                    <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.c}</td>
-                    <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.w}</td>
-                    <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.sl}</td>
+            {isPant ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <th style={{ textAlign: 'left', padding: '0.5rem 0' }}>Size (in)</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Waist (in)</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Inseam (in)</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Hip (in)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {[
+                    { s: '28', w: '28-29', i: '32', h: '36-37' },
+                    { s: '30', w: '30-31', i: '32', h: '38-39' },
+                    { s: '32', w: '32-33', i: '32', h: '40-41' },
+                    { s: '34', w: '34-35', i: '34', h: '42-43' },
+                    { s: '36', w: '36-37', i: '34', h: '44-45' },
+                    { s: '38', w: '38-39', i: '34', h: '46-47' },
+                    { s: '40', w: '40-41', i: '34', h: '48-49' },
+                  ].map((row, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                      <td style={{ padding: '0.5rem 0', fontWeight: '600' }}>{row.s}</td>
+                      <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.w}</td>
+                      <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.i}</td>
+                      <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.h}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <th style={{ textAlign: 'left', padding: '0.5rem 0' }}>Size</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Chest (in)</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Waist (in)</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0' }}>Sleeve (in)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { s: 'XS', c: '34-36', w: '28-30', sl: '31.5' },
+                    { s: 'S', c: '36-38', w: '30-32', sl: '32.5' },
+                    { s: 'M', c: '38-40', w: '32-34', sl: '33.5' },
+                    { s: 'L', c: '41-43', w: '35-37', sl: '34.5' },
+                    { s: 'XL', c: '44-46', w: '38-40', sl: '35.5' },
+                  ].map((row, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                      <td style={{ padding: '0.5rem 0', fontWeight: '600' }}>{row.s}</td>
+                      <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.c}</td>
+                      <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.w}</td>
+                      <td style={{ padding: '0.5rem 0', textAlign: 'center' }}>{row.sl}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}

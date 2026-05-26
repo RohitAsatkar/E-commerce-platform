@@ -10,6 +10,7 @@ import UserAccount from './pages/UserAccount.tsx';
 import AdminDashboard from './pages/AdminDashboard.tsx';
 import BrandStory from './pages/BrandStory.tsx';
 import Auth from './pages/Auth.tsx';
+import CustomDynamicPage from './pages/CustomDynamicPage.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import './index.css';
 
@@ -31,6 +32,7 @@ function App() {
               <Route path="/account" element={<UserAccount />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/story" element={<BrandStory />} />
+              <Route path="/page/:slug" element={<CustomDynamicPage />} />
             </Routes>
           </main>
           <Footer />
