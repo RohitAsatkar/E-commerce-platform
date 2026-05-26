@@ -1713,6 +1713,7 @@ const AdminDashboard = () => {
           } : {};
 
           const layConfig = block.layout_configuration || {};
+          const aspect = layConfig.aspect_ratio || 'portrait';
           const manualHeight = layConfig.manual_height;
           const manualWidth = layConfig.manual_width;
           const mobCols = layConfig.grid_setup?.columns_mobile || 1;
@@ -1867,7 +1868,7 @@ const AdminDashboard = () => {
                       return (
                         <div
                           key={cIdx}
-                          className={`cms-cat-card aspect-${block.data.aspectRatio || 'portrait'}`}
+                          className={`cms-cat-card aspect-${aspect}`}
                           style={{
                             backgroundImage: catObj.image ? `url(${catObj.image})` : 'none',
                             backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
