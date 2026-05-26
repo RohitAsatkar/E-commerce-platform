@@ -1,8 +1,9 @@
 import { useParams, Link } from 'react-router-dom';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getActiveProductSale } from '../lib/sales';
+import { supabase } from '../lib/supabase';
 
 const CustomDynamicPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -10,7 +11,7 @@ const CustomDynamicPage = () => {
   const [sortOption, setSortOption] = useState('Featured');
 
   // Load grid settings
-  const [gridColumns] = useState(() => {
+  const [gridColumns, setGridColumns] = useState(() => {
     const saved = localStorage.getItem('aura_shop_grid_columns');
     if (saved) {
       try {
@@ -20,10 +21,55 @@ const CustomDynamicPage = () => {
     return { desktop: 4, tablet: 2, mobile: 1 };
   });
 
-  // Find page setup from localStorage
-  const pagesRaw = localStorage.getItem('aura_custom_pages');
-  const pages = pagesRaw ? JSON.parse(pagesRaw) : [];
-  const page = pages.find((p: any) => p.slug === slug);
+  useEffect(() => {
+    const fetchGridSettings = async () => {
+      try {
+        const { data } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'shop_grid_settings')
+          .maybeSingle();
+        if (data && data.config) {
+          setGridColumns(data.config);
+          localStorage.setItem('aura_shop_grid_columns', JSON.stringify(data.config));
+        }
+      } catch (err) {
+        console.error("Failed to load grid settings from cloud:", err);
+      }
+    };
+    fetchGridSettings();
+  }, []);
+
+  const [customPages, setCustomPages] = useState<any[]>(() => {
+    const saved = localStorage.getItem('aura_custom_pages');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    const fetchPages = async () => {
+      try {
+        const { data } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'custom_pages')
+          .maybeSingle();
+        if (data && data.config) {
+          setCustomPages(data.config);
+          localStorage.setItem('aura_custom_pages', JSON.stringify(data.config));
+        }
+      } catch (err) {
+        console.error("Failed to load custom pages from cloud:", err);
+      }
+    };
+    fetchPages();
+  }, []);
+
+  const page = customPages.find((p: any) => p.slug === slug);
 
   if (loading) {
     return <div style={{ paddingTop: '120px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;

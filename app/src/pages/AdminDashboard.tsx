@@ -384,6 +384,50 @@ const AdminDashboard = () => {
   const [dbTableMissing, setDbTableMissing] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  const syncCustomPages = async (updatedPages: any[]) => {
+    try {
+      const { data } = await supabase
+        .from('storefront_config')
+        .select('id')
+        .eq('id', 'custom_pages')
+        .maybeSingle();
+      if (data) {
+        await supabase
+          .from('storefront_config')
+          .update({ config: updatedPages, updated_at: new Date().toISOString() })
+          .eq('id', 'custom_pages');
+      } else {
+        await supabase
+          .from('storefront_config')
+          .insert({ id: 'custom_pages', config: updatedPages, updated_at: new Date().toISOString() });
+      }
+    } catch (e) {
+      console.error("Failed to sync custom pages to DB:", e);
+    }
+  };
+
+  const syncSalesCampaigns = async (updatedCampaigns: any[]) => {
+    try {
+      const { data } = await supabase
+        .from('storefront_config')
+        .select('id')
+        .eq('id', 'sales_campaigns')
+        .maybeSingle();
+      if (data) {
+        await supabase
+          .from('storefront_config')
+          .update({ config: updatedCampaigns, updated_at: new Date().toISOString() })
+          .eq('id', 'sales_campaigns');
+      } else {
+        await supabase
+          .from('storefront_config')
+          .insert({ id: 'sales_campaigns', config: updatedCampaigns, updated_at: new Date().toISOString() });
+      }
+    } catch (e) {
+      console.error("Failed to sync sales campaigns to DB:", e);
+    }
+  };
+
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -794,6 +838,39 @@ const AdminDashboard = () => {
         if (data && data.config) {
           setCmsPageConfig(data.config);
           localStorage.setItem('aura_cms_homepage', JSON.stringify(data.config));
+        }
+
+        // Load grid settings
+        const { data: gridData } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'shop_grid_settings')
+          .maybeSingle();
+        if (gridData && gridData.config) {
+          setGridColumns(gridData.config);
+          localStorage.setItem('aura_shop_grid_columns', JSON.stringify(gridData.config));
+        }
+
+        // Load custom pages
+        const { data: pagesData } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'custom_pages')
+          .maybeSingle();
+        if (pagesData && pagesData.config) {
+          setCustomPages(pagesData.config);
+          localStorage.setItem('aura_custom_pages', JSON.stringify(pagesData.config));
+        }
+
+        // Load sales campaigns
+        const { data: campaignsData } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'sales_campaigns')
+          .maybeSingle();
+        if (campaignsData && campaignsData.config) {
+          setSalesCampaigns(campaignsData.config);
+          localStorage.setItem('aura_sales_campaigns', JSON.stringify(campaignsData.config));
         }
       } catch (err) {
         console.error("Failed to load storefront config from database:", err);
@@ -6379,9 +6456,41 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       localStorage.setItem('aura_shop_grid_columns', JSON.stringify(gridColumns));
-                      alert('Grid columns saved and applied successfully!');
+                      try {
+                        const { data } = await supabase
+                          .from('storefront_config')
+                          .select('id')
+                          .eq('id', 'shop_grid_settings')
+                          .maybeSingle();
+
+                        let error = null;
+                        if (data) {
+                          const { error: updateError } = await supabase
+                            .from('storefront_config')
+                            .update({
+                              config: gridColumns,
+                              updated_at: new Date().toISOString()
+                            })
+                            .eq('id', 'shop_grid_settings');
+                          error = updateError;
+                        } else {
+                          const { error: insertError } = await supabase
+                            .from('storefront_config')
+                            .insert({
+                              id: 'shop_grid_settings',
+                              config: gridColumns,
+                              updated_at: new Date().toISOString()
+                            });
+                          error = insertError;
+                        }
+                        if (error) throw error;
+                        alert('Grid columns saved and synchronized successfully!');
+                      } catch (err: any) {
+                        console.error(err);
+                        alert(`Saved locally! Cloud synchronization failed: ${err.message}`);
+                      }
                     }}
                     className="btn btn-primary"
                     style={{ padding: '0.6rem 2rem' }}
@@ -6567,6 +6676,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                       const updatedPages = [...customPages, newPage];
                       setCustomPages(updatedPages);
                       localStorage.setItem('aura_custom_pages', JSON.stringify(updatedPages));
+                      syncCustomPages(updatedPages);
 
                       // Reset fields
                       setNewPageTitle('');
@@ -6609,6 +6719,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                   const updated = customPages.filter(p => p.id !== page.id);
                                   setCustomPages(updated);
                                   localStorage.setItem('aura_custom_pages', JSON.stringify(updated));
+                                  syncCustomPages(updated);
                                 }
                               }}
                               style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
@@ -6944,6 +7055,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                       const updatedCampaigns = [...salesCampaigns, newCampaign];
                       setSalesCampaigns(updatedCampaigns);
                       localStorage.setItem('aura_sales_campaigns', JSON.stringify(updatedCampaigns));
+                      syncSalesCampaigns(updatedCampaigns);
 
                       // Reset fields
                       setNewCampaignTitle('');
@@ -6991,6 +7103,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                   });
                                   setSalesCampaigns(updated);
                                   localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
+                                  syncSalesCampaigns(updated);
                                 }}
                                 style={{
                                   border: 'none',
@@ -7013,6 +7126,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                     const updated = salesCampaigns.filter(c => c.id !== camp.id);
                                     setSalesCampaigns(updated);
                                     localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
+                                    syncSalesCampaigns(updated);
                                   }
                                 }}
                                 style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}

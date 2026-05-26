@@ -1,15 +1,16 @@
 import { useParams, Link } from 'react-router-dom';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getActiveProductSale } from '../lib/sales';
+import { supabase } from '../lib/supabase';
 
 const ProductListing = () => {
   const { category } = useParams<{ category: string }>();
   const { products, loading } = useProducts();
   const [sortOption, setSortOption] = useState('Featured');
 
-  const [gridColumns] = useState(() => {
+  const [gridColumns, setGridColumns] = useState(() => {
     const saved = localStorage.getItem('aura_shop_grid_columns');
     if (saved) {
       try {
@@ -20,6 +21,25 @@ const ProductListing = () => {
     }
     return { desktop: 4, tablet: 2, mobile: 1 };
   });
+
+  useEffect(() => {
+    const fetchGridSettings = async () => {
+      try {
+        const { data } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'shop_grid_settings')
+          .maybeSingle();
+        if (data && data.config) {
+          setGridColumns(data.config);
+          localStorage.setItem('aura_shop_grid_columns', JSON.stringify(data.config));
+        }
+      } catch (err) {
+        console.error("Failed to load grid settings from cloud:", err);
+      }
+    };
+    fetchGridSettings();
+  }, []);
 
   const [filterCategories] = useState<{ name: string; slug: string }[]>(() => {
     const saved = localStorage.getItem('aura_shop_filters');

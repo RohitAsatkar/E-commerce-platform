@@ -4,6 +4,7 @@ import { ShoppingBag, User, Menu, X, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
+import { supabase } from '../lib/supabase';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -37,12 +38,26 @@ const Navbar = () => {
   const [customPages, setCustomPages] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadPages = () => {
+    const loadPages = async () => {
       const saved = localStorage.getItem('aura_custom_pages');
       if (saved) {
         try {
           setCustomPages(JSON.parse(saved));
         } catch (e) {}
+      }
+
+      try {
+        const { data } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'custom_pages')
+          .maybeSingle();
+        if (data && data.config) {
+          setCustomPages(data.config);
+          localStorage.setItem('aura_custom_pages', JSON.stringify(data.config));
+        }
+      } catch (err) {
+        console.error("Failed to load custom pages from cloud:", err);
       }
     };
     loadPages();
@@ -53,25 +68,41 @@ const Navbar = () => {
   const [timeLeft, setTimeLeft] = useState<string>('');
 
   useEffect(() => {
-    const checkCampaigns = () => {
+    const checkCampaigns = async () => {
+      let campaigns = [];
       const saved = localStorage.getItem('aura_sales_campaigns');
       if (saved) {
         try {
-          const campaigns = JSON.parse(saved);
-          const now = new Date().getTime();
-          const active = campaigns.find((c: any) => {
-            if (c.status !== 'active') return false;
-            if (c.startDate && new Date(c.startDate).getTime() > now) return false;
-            if (c.endDate && new Date(c.endDate).getTime() < now) return false;
-            return true;
-          });
-          setActiveCampaign(active || null);
+          campaigns = JSON.parse(saved);
         } catch (e) {}
       }
+
+      try {
+        const { data } = await supabase
+          .from('storefront_config')
+          .select('config')
+          .eq('id', 'sales_campaigns')
+          .maybeSingle();
+        if (data && data.config) {
+          campaigns = data.config;
+          localStorage.setItem('aura_sales_campaigns', JSON.stringify(data.config));
+        }
+      } catch (err) {
+        console.error("Failed to load campaigns from cloud:", err);
+      }
+
+      const now = new Date().getTime();
+      const active = campaigns.find((c: any) => {
+        if (c.status !== 'active') return false;
+        if (c.startDate && new Date(c.startDate).getTime() > now) return false;
+        if (c.endDate && new Date(c.endDate).getTime() < now) return false;
+        return true;
+      });
+      setActiveCampaign(active || null);
     };
 
     checkCampaigns();
-    const interval = setInterval(checkCampaigns, 5000);
+    const interval = setInterval(checkCampaigns, 10000);
     return () => clearInterval(interval);
   }, []);
 
