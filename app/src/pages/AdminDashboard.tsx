@@ -20,6 +20,19 @@ const FOOTWEAR_SIZES = ['6', '7', '8', '9', '10', '11', '12'];
 const ACCESSORY_SIZES = ['One Size'];
 const ALL_SIZES = [...CLOTHING_SIZES, ...PANT_SIZES, ...FOOTWEAR_SIZES, ...ACCESSORY_SIZES];
 
+const pageTypeMap: Record<string, string> = {
+  'collection': 'Curated Collection',
+  'sale': 'Markdown Sale',
+  'offer': 'Special Offer',
+  'custom': 'Brand Showcase',
+  'editorial': 'Editorial & Lookbook',
+  'launch': 'Exclusive Product Launch',
+  'collab': 'Designer Collaboration',
+  'vip': 'VIP Access Event',
+  'seasonal': 'Seasonal Trend',
+  'sustainability': 'Craft & Sustainability'
+};
+
 const getAvailableSizesForCategory = (category: string) => {
   const catLower = (category || '').toLowerCase();
   if (catLower === 'footwear') {
@@ -313,14 +326,21 @@ const AdminDashboard = () => {
   });
   const [newPageTitle, setNewPageTitle] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
-  const [newPageType, setNewPageType] = useState<'sale' | 'offer' | 'collection' | 'custom'>('collection');
+  const [newPageType, setNewPageType] = useState<string>('collection');
   const [newPageBannerTitle, setNewPageBannerTitle] = useState('');
   const [newPageBannerDesc, setNewPageBannerDesc] = useState('');
   const [newPageBgColor, setNewPageBgColor] = useState('#121212');
   const [newPageBannerImage, setNewPageBannerImage] = useState('');
   const [newPageSelectedProducts, setNewPageSelectedProducts] = useState<string[]>([]);
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
-  const [newPageBannerStyle, setNewPageBannerStyle] = useState<'minimal' | 'immersive' | 'split' | 'glass'>('minimal');
+  const [newPageBannerStyle, setNewPageBannerStyle] = useState<'minimal' | 'immersive' | 'split' | 'glass' | 'editorial-offset' | 'overlay-bold'>('minimal');
+  const [newPageBannerTitleFont, setNewPageBannerTitleFont] = useState('Playfair Display');
+  const [newPageBannerTitleColor, setNewPageBannerTitleColor] = useState('#ffffff');
+  const [newPageBannerSubtitleFont, setNewPageBannerSubtitleFont] = useState('Outfit');
+  const [newPageBannerSubtitleColor, setNewPageBannerSubtitleColor] = useState('#facc15');
+  const [newPageBannerHideText, setNewPageBannerHideText] = useState(false);
+  const [newPageBannerDescColor, setNewPageBannerDescColor] = useState('#cccccc');
+  const [uploadingCustomPageBanner, setUploadingCustomPageBanner] = useState(false);
   const [newPageCtaText, setNewPageCtaText] = useState('');
   const [newPageCtaUrl, setNewPageCtaUrl] = useState('');
   const [newPageCtaColor, setNewPageCtaColor] = useState('#ffffff');
@@ -328,6 +348,8 @@ const AdminDashboard = () => {
   const [newPageEndDate, setNewPageEndDate] = useState('');
   const [newPageSeoTitle, setNewPageSeoTitle] = useState('');
   const [newPageSeoDescription, setNewPageSeoDescription] = useState('');
+  const [newPageUseDynamicTheme, setNewPageUseDynamicTheme] = useState<boolean>(true);
+  const [showRlsInstructionModal, setShowRlsInstructionModal] = useState<boolean>(false);
 
   // Advanced Promotional Sales Campaigns State
   const [salesCampaigns, setSalesCampaigns] = useState<any[]>(() => {
@@ -394,47 +416,45 @@ const AdminDashboard = () => {
   const [publishing, setPublishing] = useState(false);
 
   const syncCustomPages = async (updatedPages: any[]) => {
-    try {
-      const { data } = await supabase
+    const { data, error: selectError } = await supabase
+      .from('storefront_config')
+      .select('id')
+      .eq('id', 'custom_pages')
+      .maybeSingle();
+    if (selectError) throw selectError;
+    let res;
+    if (data) {
+      res = await supabase
         .from('storefront_config')
-        .select('id')
-        .eq('id', 'custom_pages')
-        .maybeSingle();
-      if (data) {
-        await supabase
-          .from('storefront_config')
-          .update({ config: updatedPages, updated_at: new Date().toISOString() })
-          .eq('id', 'custom_pages');
-      } else {
-        await supabase
-          .from('storefront_config')
-          .insert({ id: 'custom_pages', config: updatedPages, updated_at: new Date().toISOString() });
-      }
-    } catch (e) {
-      console.error("Failed to sync custom pages to DB:", e);
+        .update({ config: updatedPages, updated_at: new Date().toISOString() })
+        .eq('id', 'custom_pages');
+    } else {
+      res = await supabase
+        .from('storefront_config')
+        .insert({ id: 'custom_pages', config: updatedPages, updated_at: new Date().toISOString() });
     }
+    if (res.error) throw res.error;
   };
 
   const syncSalesCampaigns = async (updatedCampaigns: any[]) => {
-    try {
-      const { data } = await supabase
+    const { data, error: selectError } = await supabase
+      .from('storefront_config')
+      .select('id')
+      .eq('id', 'sales_campaigns')
+      .maybeSingle();
+    if (selectError) throw selectError;
+    let res;
+    if (data) {
+      res = await supabase
         .from('storefront_config')
-        .select('id')
-        .eq('id', 'sales_campaigns')
-        .maybeSingle();
-      if (data) {
-        await supabase
-          .from('storefront_config')
-          .update({ config: updatedCampaigns, updated_at: new Date().toISOString() })
-          .eq('id', 'sales_campaigns');
-      } else {
-        await supabase
-          .from('storefront_config')
-          .insert({ id: 'sales_campaigns', config: updatedCampaigns, updated_at: new Date().toISOString() });
-      }
-    } catch (e) {
-      console.error("Failed to sync sales campaigns to DB:", e);
+        .update({ config: updatedCampaigns, updated_at: new Date().toISOString() })
+        .eq('id', 'sales_campaigns');
+    } else {
+      res = await supabase
+        .from('storefront_config')
+        .insert({ id: 'sales_campaigns', config: updatedCampaigns, updated_at: new Date().toISOString() });
     }
+    if (res.error) throw res.error;
   };
 
   const resetCustomPageForm = () => {
@@ -447,6 +467,12 @@ const AdminDashboard = () => {
     setNewPageBannerImage('');
     setNewPageSelectedProducts([]);
     setNewPageBannerStyle('minimal');
+    setNewPageBannerTitleFont('Playfair Display');
+    setNewPageBannerTitleColor('#ffffff');
+    setNewPageBannerSubtitleFont('Outfit');
+    setNewPageBannerSubtitleColor('#facc15');
+    setNewPageBannerHideText(false);
+    setNewPageBannerDescColor('#cccccc');
     setNewPageCtaText('');
     setNewPageCtaUrl('');
     setNewPageCtaColor('#ffffff');
@@ -454,6 +480,20 @@ const AdminDashboard = () => {
     setNewPageEndDate('');
     setNewPageSeoTitle('');
     setNewPageSeoDescription('');
+    setNewPageUseDynamicTheme(true);
+  };
+
+  const handleCustomPageBannerUpload = async (file: File) => {
+    setUploadingCustomPageBanner(true);
+    try {
+      const url = await uploadImage(file);
+      setNewPageBannerImage(url);
+      showToast("Banner image uploaded successfully");
+    } catch (err: any) {
+      showToast("Upload failed: " + err.message, "error");
+    } finally {
+      setUploadingCustomPageBanner(false);
+    }
   };
 
   const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -992,6 +1032,9 @@ const AdminDashboard = () => {
     } catch (err: any) {
       console.error("Error publishing storefront configurations:", err);
       showToast(err.message || "Failed to publish storefront configuration.", "error");
+      if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+        setShowRlsInstructionModal(true);
+      }
     } finally {
       setPublishing(false);
     }
@@ -6602,13 +6645,19 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Category / Type
                           <select
                             value={newPageType}
-                            onChange={e => setNewPageType(e.target.value as any)}
+                            onChange={e => setNewPageType(e.target.value)}
                             style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
                           >
                             <option value="collection">Curated Collection</option>
                             <option value="sale">Markdown Sale Page</option>
                             <option value="offer">Promotional Offers Page</option>
                             <option value="custom">Custom Brand Page</option>
+                            <option value="editorial">Brand Editorial & Lookbook</option>
+                            <option value="launch">Exclusive Product Launch</option>
+                            <option value="collab">Designer Collaboration Showcase</option>
+                            <option value="vip">VIP Member Only Event</option>
+                            <option value="seasonal">Seasonal Trend Report</option>
+                            <option value="sustainability">Sustainability & Craftsmanship Story</option>
                           </select>
                         </label>
 
@@ -6630,6 +6679,75 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             />
                           </label>
                         </div>
+                      </div>
+
+                      {/* Dynamic Design System Customizer Box */}
+                      <div style={{
+                        marginTop: '0.5rem',
+                        padding: '1.25rem',
+                        backgroundColor: 'rgba(26, 54, 93, 0.04)',
+                        border: '1px solid rgba(26, 54, 93, 0.1)',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-text)' }}>Dynamic Curation Design System</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>Auto-apply tailored premium typography, grids, borders and styles mapping to this category.</span>
+                          </div>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', position: 'relative' }}>
+                            <input 
+                              type="checkbox" 
+                              checked={newPageUseDynamicTheme} 
+                              onChange={e => setNewPageUseDynamicTheme(e.target.checked)} 
+                              style={{ width: '40px', height: '20px', appearance: 'none', backgroundColor: newPageUseDynamicTheme ? 'var(--color-accent)' : '#cbd5e1', borderRadius: '15px', position: 'relative', outline: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                            />
+                            <span style={{ 
+                              width: '16px', 
+                              height: '16px', 
+                              backgroundColor: '#ffffff', 
+                              borderRadius: '50%', 
+                              position: 'absolute', 
+                              top: '2px', 
+                              left: newPageUseDynamicTheme ? '22px' : '2px', 
+                              transition: 'left 0.2s', 
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)' 
+                            }} />
+                          </label>
+                        </div>
+
+                        {newPageUseDynamicTheme && (
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            lineHeight: '1.4', 
+                            color: '#1e3a8a', 
+                            backgroundColor: '#eff6ff', 
+                            borderLeft: '3px solid #3b82f6', 
+                            padding: '0.65rem 0.85rem', 
+                            borderRadius: '0 2px 2px 0',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.2rem'
+                          }}>
+                            <span style={{ fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
+                              ✦ Category Curation Summary
+                            </span>
+                            <span>
+                              {newPageType === 'editorial' && "Editorial & Lookbook: Alternating staggered Vogue layout, Cormorant serif typography, warm paper styling (#fdfbf7), and elegant serif index numbers."}
+                              {newPageType === 'vip' && "VIP Event: Private Velvet theme (#08080a), luxurious gold borders, custom Private Stock identifiers, and playfair display fonts."}
+                              {newPageType === 'launch' && "Product Launch: Technical obsidian theme (#090a0f), monospace specs headers (Space Mono), and active release badge flags."}
+                              {newPageType === 'sustainability' && "Sustainability: Linen clay background (#f5f2eb), double-dashed organic borders, and Cormorant storytelling layouts."}
+                              {newPageType === 'collab' && "Collaboration: Avant-garde theme, thick solid frames (2px solid black), and AURA × LAB watermark stamps."}
+                              {newPageType === 'seasonal' && "Seasonal: Soft sunset pastel tones, organic rounded corners (12px), and key trend selector chips."}
+                              {newPageType === 'sale' && "Markdown Sale: Energetic product cards, bold highlighted red pricing, and maximum-contrast original prices."}
+                              {newPageType === 'offer' && "Special Offer: High-contrast clean slate layouts (#f8fafc), dynamic blue promotional badge headers."}
+                              {newPageType === 'collection' && "Curated Collection: Classic luxury aesthetics, elegant spacing parameters, and clean light-gray borders."}
+                              {newPageType === 'custom' && "Brand Showcase: Tailored canvas configuration variables, clean minimalist line aesthetics."}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -6658,9 +6776,119 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             <option value="immersive">Immersive Dark Overlay Layout</option>
                             <option value="split">Split Canvas Layout (Left Content, Right Image)</option>
                             <option value="glass">Glassmorphism Card Layout Overlay</option>
+                            <option value="editorial-offset">Asymmetric Editorial Offset Layout</option>
+                            <option value="overlay-bold">Bold Avant-Garde Overlay</option>
                           </select>
                         </label>
                       </div>
+
+                      {/* Hide text checkbox toggle option */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
+                        <input
+                          type="checkbox"
+                          id="hideBannerText"
+                          checked={newPageBannerHideText}
+                          onChange={e => setNewPageBannerHideText(e.target.checked)}
+                          style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                        />
+                        <label htmlFor="hideBannerText" style={{ fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', userSelect: 'none' }}>
+                          Hide Banner Text Overlay (Showcase banner image only)
+                        </label>
+                      </div>
+
+                      {/* Dynamic Typography & Color Customization Panel */}
+                      {!newPageBannerHideText && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--color-accent)', letterSpacing: '0.05em' }}>TITLE TYPOGRAPHY</span>
+                            
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: '600' }}>Font Family
+                              <select
+                                value={newPageBannerTitleFont}
+                                onChange={e => setNewPageBannerTitleFont(e.target.value)}
+                                style={{ padding: '0.4rem', border: '1px solid var(--color-border)', borderRadius: '2px', backgroundColor: '#fff', color: '#000', fontSize: '0.75rem', fontWeight: 'normal' }}
+                              >
+                                <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
+                                <option value="Cormorant Garamond">Cormorant Garamond (Fine Serif)</option>
+                                <option value="Outfit">Outfit (Luxury Sans-Serif)</option>
+                                <option value="Inter">Inter (Minimalist Sans-Serif)</option>
+                                <option value="Space Mono">Space Mono (Avant-Garde Monospace)</option>
+                              </select>
+                            </label>
+
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: '600' }}>Font Color
+                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <input
+                                  type="color"
+                                  value={newPageBannerTitleColor}
+                                  onChange={e => setNewPageBannerTitleColor(e.target.value)}
+                                  style={{ width: '28px', height: '28px', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0 }}
+                                />
+                                <input
+                                  type="text"
+                                  value={newPageBannerTitleColor}
+                                  onChange={e => setNewPageBannerTitleColor(e.target.value)}
+                                  style={{ padding: '0.35rem 0.5rem', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '0.75rem', flex: 1, backgroundColor: '#fff', color: '#000', fontWeight: 'normal' }}
+                                />
+                              </div>
+                            </label>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--color-accent)', letterSpacing: '0.05em' }}>SUBTITLE & TEXT TYPOGRAPHY</span>
+
+                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: '600' }}>Subtitle Font Family
+                              <select
+                                value={newPageBannerSubtitleFont}
+                                onChange={e => setNewPageBannerSubtitleFont(e.target.value)}
+                                style={{ padding: '0.4rem', border: '1px solid var(--color-border)', borderRadius: '2px', backgroundColor: '#fff', color: '#000', fontSize: '0.75rem', fontWeight: 'normal' }}
+                              >
+                                <option value="Outfit">Outfit (Luxury Sans-Serif)</option>
+                                <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
+                                <option value="Cormorant Garamond">Cormorant Garamond (Fine Serif)</option>
+                                <option value="Inter">Inter (Minimalist Sans-Serif)</option>
+                                <option value="Space Mono">Space Mono (Avant-Garde Monospace)</option>
+                              </select>
+                            </label>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: '600' }}>Subtitle Color
+                                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                                  <input
+                                    type="color"
+                                    value={newPageBannerSubtitleColor}
+                                    onChange={e => setNewPageBannerSubtitleColor(e.target.value)}
+                                    style={{ width: '24px', height: '24px', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0 }}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={newPageBannerSubtitleColor}
+                                    onChange={e => setNewPageBannerSubtitleColor(e.target.value)}
+                                    style={{ padding: '0.3rem', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '0.7rem', width: '50px', backgroundColor: '#fff', color: '#000', fontWeight: 'normal' }}
+                                  />
+                                </div>
+                              </label>
+
+                              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: '600' }}>Subtext Color
+                                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                                  <input
+                                    type="color"
+                                    value={newPageBannerDescColor}
+                                    onChange={e => setNewPageBannerDescColor(e.target.value)}
+                                    style={{ width: '24px', height: '24px', border: '1px solid var(--color-border)', cursor: 'pointer', padding: 0 }}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={newPageBannerDescColor}
+                                    onChange={e => setNewPageBannerDescColor(e.target.value)}
+                                    style={{ padding: '0.3rem', border: '1px solid var(--color-border)', borderRadius: '2px', fontSize: '0.7rem', width: '50px', backgroundColor: '#fff', color: '#000', fontWeight: 'normal' }}
+                                  />
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Subtext / Description
                         <textarea
@@ -6672,7 +6900,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         />
                       </label>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '1.25rem' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Background Color
                           <input
                             type="color"
@@ -6682,14 +6910,30 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           />
                         </label>
 
-                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Image URL (Unsplash or direct link)
-                          <input
-                            type="text"
-                            placeholder="e.g. https://images.unsplash.com/..."
-                            value={newPageBannerImage}
-                            onChange={e => setNewPageBannerImage(e.target.value)}
-                            style={{ padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
-                          />
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Image URL & Upload
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input
+                              type="text"
+                              placeholder="e.g. https://images.unsplash.com/..."
+                              value={newPageBannerImage}
+                              onChange={e => setNewPageBannerImage(e.target.value)}
+                              style={{ flex: 1, padding: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', borderRadius: '2px', fontWeight: 'normal' }}
+                            />
+                            <label className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.75rem 1rem', cursor: 'pointer', margin: 0, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                              {uploadingCustomPageBanner ? 'Uploading...' : 'Upload Image'}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={async e => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    await handleCustomPageBannerUpload(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
                         </label>
                       </div>
 
@@ -6873,7 +7117,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                     {/* Publish/Update Button */}
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         if (!newPageTitle.trim() || !newPageSlug.trim()) {
                           alert('Title and Slug are required!');
                           return;
@@ -6905,6 +7149,12 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 bannerImage: newPageBannerImage,
                                 productIds: newPageSelectedProducts,
                                 bannerStyle: newPageBannerStyle,
+                                bannerTitleFont: newPageBannerTitleFont,
+                                bannerTitleColor: newPageBannerTitleColor,
+                                bannerSubtitleFont: newPageBannerSubtitleFont,
+                                bannerSubtitleColor: newPageBannerSubtitleColor,
+                                bannerHideText: newPageBannerHideText,
+                                bannerDescColor: newPageBannerDescColor,
                                 ctaText: newPageCtaText,
                                 ctaUrl: newPageCtaUrl,
                                 ctaColor: newPageCtaColor,
@@ -6912,12 +7162,12 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 endDate: newPageEndDate,
                                 seoTitle: newPageSeoTitle,
                                 seoDescription: newPageSeoDescription,
+                                useDynamicTheme: newPageUseDynamicTheme,
                                 updatedAt: new Date().toISOString()
                               };
                             }
                             return page;
                           });
-                          alert('Custom Page updated successfully!');
                         } else {
                           // Create new page
                           const newPage = {
@@ -6931,6 +7181,12 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             bannerImage: newPageBannerImage,
                             productIds: newPageSelectedProducts,
                             bannerStyle: newPageBannerStyle,
+                            bannerTitleFont: newPageBannerTitleFont,
+                            bannerTitleColor: newPageBannerTitleColor,
+                            bannerSubtitleFont: newPageBannerSubtitleFont,
+                            bannerSubtitleColor: newPageBannerSubtitleColor,
+                            bannerHideText: newPageBannerHideText,
+                            bannerDescColor: newPageBannerDescColor,
                             ctaText: newPageCtaText,
                             ctaUrl: newPageCtaUrl,
                             ctaColor: newPageCtaColor,
@@ -6938,16 +7194,26 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             endDate: newPageEndDate,
                             seoTitle: newPageSeoTitle,
                             seoDescription: newPageSeoDescription,
+                            useDynamicTheme: newPageUseDynamicTheme,
                             createdAt: new Date().toISOString()
                           };
                           updatedPages = [...customPages, newPage];
-                          alert('Dynamic custom page published successfully!');
                         }
 
-                        setCustomPages(updatedPages);
-                        localStorage.setItem('aura_custom_pages', JSON.stringify(updatedPages));
-                        syncCustomPages(updatedPages);
-                        resetCustomPageForm();
+                        try {
+                          await syncCustomPages(updatedPages);
+                          setCustomPages(updatedPages);
+                          localStorage.setItem('aura_custom_pages', JSON.stringify(updatedPages));
+                          alert(editingPageId ? 'Custom Page updated successfully!' : 'Dynamic custom page published successfully!');
+                          resetCustomPageForm();
+                        } catch (err: any) {
+                          console.error("Failed to sync custom pages to DB:", err);
+                          if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+                            setShowRlsInstructionModal(true);
+                          } else {
+                            alert(`Failed to sync custom pages: ${err.message || 'Unknown database error'}`);
+                          }
+                        }
                       }}
                       className="btn btn-primary"
                       style={{ padding: '0.85rem', fontWeight: 'bold', width: '100%', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}
@@ -6980,19 +7246,20 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
                       {/* Simulated Banner Container */}
                       <div style={{
-                        minHeight: '180px',
+                        minHeight: '220px',
                         backgroundColor: newPageBgColor,
                         backgroundImage: newPageBannerImage ? `url(${newPageBannerImage})` : 'none',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         color: '#fff',
                         position: 'relative',
-                        padding: '1.5rem',
+                        padding: newPageBannerStyle === 'editorial-offset' ? '0' : '1.5rem',
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center',
+                        alignItems: (newPageBannerStyle === 'split' || newPageBannerStyle === 'editorial-offset') ? 'flex-start' : 'center',
                         justifyContent: 'center',
-                        textAlign: newPageBannerStyle === 'split' ? 'left' : 'center'
+                        textAlign: (newPageBannerStyle === 'split' || newPageBannerStyle === 'editorial-offset') ? 'left' : 'center',
+                        overflow: 'hidden'
                       }}>
                         {/* Immersive Overlay */}
                         {newPageBannerStyle === 'immersive' && newPageBannerImage && (
@@ -7009,47 +7276,173 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0.1))', zIndex: 1 }} />
                         )}
 
-                        {/* Banner Contents */}
-                        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center', maxWidth: '90%' }}>
-                          <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '0.1em', backgroundColor: '#fff', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '1px', fontWeight: '800', marginBottom: '0.5rem' }}>
-                            {newPageType}
-                          </span>
-                          
-                          <h4 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: '0 0 0.2rem 0', fontWeight: 'bold' }}>
-                            {newPageTitle || 'Untargeted Custom Page'}
-                          </h4>
+                        {/* Editorial Offset Content Card */}
+                        {newPageBannerStyle === 'editorial-offset' && (
+                          <div style={{
+                            position: 'absolute',
+                            left: '8%',
+                            top: '8%',
+                            bottom: '8%',
+                            width: '46%',
+                            backgroundColor: newPageBgColor || '#121212',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            padding: '1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            zIndex: 2,
+                            boxShadow: '10px 10px 30px rgba(0,0,0,0.3)'
+                          }}>
+                            {!newPageBannerHideText && (
+                              <>
+                                <span style={{ 
+                                  fontSize: '0.5rem', 
+                                  textTransform: 'uppercase', 
+                                  letterSpacing: '0.15em', 
+                                  color: newPageBannerSubtitleColor || '#facc15', 
+                                  fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif',
+                                  marginBottom: '0.25rem',
+                                  fontWeight: '600'
+                                }}>
+                                  {pageTypeMap[newPageType] || 'Brand Showcase'}
+                                </span>
+                                <h4 style={{ 
+                                  fontSize: '1rem', 
+                                  fontFamily: newPageBannerTitleFont === 'Playfair Display' || newPageBannerTitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
+                                  color: newPageBannerTitleColor || '#ffffff',
+                                  margin: '0 0 0.25rem 0', 
+                                  fontWeight: 'bold',
+                                  lineHeight: '1.2' 
+                                }}>
+                                  {newPageTitle || 'Curated Design'}
+                                </h4>
+                                {newPageBannerTitle && (
+                                  <h5 style={{ 
+                                    fontSize: '0.65rem', 
+                                    fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
+                                    color: newPageBannerSubtitleColor || '#facc15', 
+                                    margin: '0 0 0.35rem 0', 
+                                    fontWeight: '600' 
+                                  }}>
+                                    {newPageBannerTitle}
+                                  </h5>
+                                )}
+                                {newPageBannerDesc && (
+                                  <p style={{ fontSize: '0.55rem', color: newPageBannerDescColor || '#cccccc', margin: '0 0 0.5rem 0', opacity: 0.85, lineHeight: '1.3' }}>
+                                    {newPageBannerDesc}
+                                  </p>
+                                )}
+                                {newPageCtaText && (
+                                  <div style={{
+                                    alignSelf: 'flex-start',
+                                    padding: '0.25rem 0.5rem',
+                                    backgroundColor: newPageCtaColor,
+                                    color: '#000',
+                                    fontSize: '0.55rem',
+                                    fontWeight: '700',
+                                    textTransform: 'uppercase',
+                                    borderRadius: '1px',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                  }}>
+                                    {newPageCtaText}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )}
 
-                          {newPageBannerTitle && (
-                            <h5 style={{ fontSize: '0.75rem', margin: '0 0 0.4rem 0', color: '#facc15', fontWeight: '600' }}>
-                              {newPageBannerTitle}
-                            </h5>
-                          )}
+                        {/* Bold Avant-Garde Overlay Text Panel frame style */}
+                        {newPageBannerStyle === 'overlay-bold' && (
+                          <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0,0,0,0.45)',
+                            zIndex: 1
+                          }} />
+                        )}
 
-                          {newPageBannerDesc && (
-                            <p style={{ fontSize: '0.65rem', margin: '0 0 0.75rem 0', opacity: 0.85, lineHeight: '1.4' }}>
-                              {newPageBannerDesc}
-                            </p>
-                          )}
-
-                          {/* CTA Button Render */}
-                          {newPageCtaText && (
-                            <div style={{
-                              display: 'inline-block',
-                              padding: '0.35rem 0.75rem',
-                              backgroundColor: newPageCtaColor,
-                              color: '#000',
-                              fontSize: '0.65rem',
-                              fontWeight: '700',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.05em',
-                              borderRadius: '2px',
-                              cursor: 'pointer',
-                              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                        {/* Banner Contents for split, minimal, immersive, glass, overlay-bold */}
+                        {newPageBannerStyle !== 'editorial-offset' && !newPageBannerHideText && (
+                          <div style={{ 
+                            position: 'relative', 
+                            zIndex: 2, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center', 
+                            maxWidth: '90%',
+                            backgroundColor: newPageBannerStyle === 'glass' ? 'rgba(0,0,0,0.2)' : 'transparent',
+                            padding: newPageBannerStyle === 'glass' ? '1rem' : '0',
+                            borderRadius: '4px'
+                          }}>
+                            <span style={{ 
+                              fontSize: '0.55rem', 
+                              textTransform: 'uppercase', 
+                              letterSpacing: '0.15em', 
+                              color: newPageBannerSubtitleColor || '#facc15', 
+                              padding: '0.1rem 0.4rem', 
+                              borderRadius: '1px', 
+                              fontWeight: '800', 
+                              marginBottom: '0.5rem',
+                              fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif'
                             }}>
-                              {newPageCtaText}
-                            </div>
-                          )}
-                        </div>
+                              {pageTypeMap[newPageType] || 'Brand Showcase'}
+                            </span>
+                            
+                            <h4 style={{ 
+                              fontSize: newPageBannerStyle === 'overlay-bold' ? '1.5rem' : '1.25rem', 
+                              fontFamily: newPageBannerTitleFont === 'Playfair Display' || newPageBannerTitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
+                              color: newPageBannerTitleColor || '#ffffff',
+                              margin: '0 0 0.2rem 0', 
+                              fontWeight: '900',
+                              letterSpacing: newPageBannerStyle === 'overlay-bold' ? '0.05em' : 'normal',
+                              textTransform: newPageBannerStyle === 'overlay-bold' ? 'uppercase' : 'none'
+                            }}>
+                              {newPageTitle || 'Untargeted Custom Page'}
+                            </h4>
+
+                            {newPageBannerTitle && (
+                              <h5 style={{ 
+                                fontSize: '0.75rem', 
+                                fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
+                                color: newPageBannerSubtitleColor || '#facc15', 
+                                margin: '0 0 0.4rem 0', 
+                                fontWeight: '600',
+                                letterSpacing: '0.1em'
+                              }}>
+                                {newPageBannerTitle}
+                              </h5>
+                            )}
+
+                            {newPageBannerDesc && (
+                              <p style={{ fontSize: '0.65rem', color: newPageBannerDescColor || '#cccccc', margin: '0 0 0.75rem 0', opacity: 0.85, lineHeight: '1.4' }}>
+                                {newPageBannerDesc}
+                              </p>
+                            )}
+
+                            {/* CTA Button Render */}
+                            {newPageCtaText && (
+                              <div style={{
+                                display: 'inline-block',
+                                padding: '0.35rem 0.75rem',
+                                backgroundColor: newPageCtaColor,
+                                color: '#000',
+                                fontSize: '0.65rem',
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                borderRadius: '2px',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                              }}>
+                                {newPageCtaText}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Simulated Product Grid */}
@@ -7132,7 +7525,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: 'var(--color-text)' }}>{page.title}</h4>
                                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.25rem' }}>
                                   <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--color-accent)', fontWeight: '800', backgroundColor: 'var(--color-light)', padding: '0.1rem 0.4rem', borderRadius: '1px' }}>
-                                    {page.type}
+                                    {pageTypeMap[page.type] || page.type}
                                   </span>
                                   {page.bannerStyle && (
                                     <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--color-gray)', fontWeight: 'bold' }}>
@@ -7165,6 +7558,12 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                     setNewPageBannerImage(page.bannerImage || '');
                                     setNewPageSelectedProducts(page.productIds || []);
                                     setNewPageBannerStyle(page.bannerStyle || 'minimal');
+                                    setNewPageBannerTitleFont(page.bannerTitleFont || 'Playfair Display');
+                                    setNewPageBannerTitleColor(page.bannerTitleColor || '#ffffff');
+                                    setNewPageBannerSubtitleFont(page.bannerSubtitleFont || 'Outfit');
+                                    setNewPageBannerSubtitleColor(page.bannerSubtitleColor || '#facc15');
+                                    setNewPageBannerHideText(!!page.bannerHideText);
+                                    setNewPageBannerDescColor(page.bannerDescColor || '#cccccc');
                                     setNewPageCtaText(page.ctaText || '');
                                     setNewPageCtaUrl(page.ctaUrl || '');
                                     setNewPageCtaColor(page.ctaColor || '#ffffff');
@@ -7172,6 +7571,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                     setNewPageEndDate(page.endDate || '');
                                     setNewPageSeoTitle(page.seoTitle || '');
                                     setNewPageSeoDescription(page.seoDescription || '');
+                                    setNewPageUseDynamicTheme(page.useDynamicTheme !== false);
                                     
                                     // Scroll to the editor form smoothly
                                     window.scrollTo({ top: 300, behavior: 'smooth' });
@@ -7182,14 +7582,23 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (window.confirm(`Are you sure you want to delete "${page.title}"?`)) {
                                       const updated = customPages.filter(p => p.id !== page.id);
-                                      setCustomPages(updated);
-                                      localStorage.setItem('aura_custom_pages', JSON.stringify(updated));
-                                      syncCustomPages(updated);
-                                      if (editingPageId === page.id) {
-                                        resetCustomPageForm();
+                                      try {
+                                        await syncCustomPages(updated);
+                                        setCustomPages(updated);
+                                        localStorage.setItem('aura_custom_pages', JSON.stringify(updated));
+                                        if (editingPageId === page.id) {
+                                          resetCustomPageForm();
+                                        }
+                                      } catch (err: any) {
+                                        console.error("Failed to sync custom pages to DB:", err);
+                                        if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+                                          setShowRlsInstructionModal(true);
+                                        } else {
+                                          alert(`Failed to delete custom page: ${err.message || 'Unknown database error'}`);
+                                        }
                                       }
                                     }
                                   }}
@@ -7506,7 +7915,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!newCampaignTitle.trim()) {
                         alert('Campaign name is required!');
                         return;
@@ -7530,17 +7939,27 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                       };
 
                       const updatedCampaigns = [...salesCampaigns, newCampaign];
-                      setSalesCampaigns(updatedCampaigns);
-                      localStorage.setItem('aura_sales_campaigns', JSON.stringify(updatedCampaigns));
-                      syncSalesCampaigns(updatedCampaigns);
 
-                      // Reset fields
-                      setNewCampaignTitle('');
-                      setNewCampaignStartDate('');
-                      setNewCampaignEndDate('');
-                      setNewCampaignSelectedProducts([]);
-                      
-                      alert('Promotional Sales Campaign activated successfully!');
+                      try {
+                        await syncSalesCampaigns(updatedCampaigns);
+                        setSalesCampaigns(updatedCampaigns);
+                        localStorage.setItem('aura_sales_campaigns', JSON.stringify(updatedCampaigns));
+
+                        // Reset fields
+                        setNewCampaignTitle('');
+                        setNewCampaignStartDate('');
+                        setNewCampaignEndDate('');
+                        setNewCampaignSelectedProducts([]);
+                        
+                        alert('Promotional Sales Campaign activated successfully!');
+                      } catch (err: any) {
+                        console.error("Failed to sync sales campaigns to DB:", err);
+                        if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+                          setShowRlsInstructionModal(true);
+                        } else {
+                          alert(`Failed to sync sales campaigns: ${err.message || 'Unknown database error'}`);
+                        }
+                      }
                     }}
                     className="btn btn-primary"
                     style={{ padding: '0.75rem', fontWeight: 'bold', width: '100%', textTransform: 'uppercase', letterSpacing: '0.05em' }}
@@ -7571,16 +7990,25 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                   const updated = salesCampaigns.map(c => {
                                     if (c.id === camp.id) {
                                       return { ...c, status: c.status === 'active' ? 'inactive' : 'active' };
                                     }
                                     return c;
                                   });
-                                  setSalesCampaigns(updated);
-                                  localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
-                                  syncSalesCampaigns(updated);
+                                  try {
+                                    await syncSalesCampaigns(updated);
+                                    setSalesCampaigns(updated);
+                                    localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
+                                  } catch (err: any) {
+                                    console.error("Failed to sync sales campaigns:", err);
+                                    if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+                                      setShowRlsInstructionModal(true);
+                                    } else {
+                                      alert(`Failed to update campaign status: ${err.message || 'Unknown database error'}`);
+                                    }
+                                  }
                                 }}
                                 style={{
                                   border: 'none',
@@ -7598,12 +8026,21 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                   if (window.confirm(`Are you sure you want to terminate campaign "${camp.title}"?`)) {
                                     const updated = salesCampaigns.filter(c => c.id !== camp.id);
-                                    setSalesCampaigns(updated);
-                                    localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
-                                    syncSalesCampaigns(updated);
+                                    try {
+                                      await syncSalesCampaigns(updated);
+                                      setSalesCampaigns(updated);
+                                      localStorage.setItem('aura_sales_campaigns', JSON.stringify(updated));
+                                    } catch (err: any) {
+                                      console.error("Failed to sync sales campaigns:", err);
+                                      if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+                                        setShowRlsInstructionModal(true);
+                                      } else {
+                                        alert(`Failed to delete campaign: ${err.message || 'Unknown database error'}`);
+                                      }
+                                    }
                                   }
                                 }}
                                 style={{ color: '#dc2626', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
@@ -8729,6 +9166,173 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                 {renderEditMenuRef()}
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* RLS Instructions Modal */}
+      {showRlsInstructionModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem',
+          animation: 'fadeIn 0.25s ease-out'
+        }}>
+          <div style={{
+            backgroundColor: '#0f172a',
+            border: '1px solid #334155',
+            borderRadius: '12px',
+            maxWidth: '600px',
+            width: '100%',
+            color: '#f8fafc',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(197, 168, 128, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '1.5rem',
+              borderBottom: '1px solid #1e293b',
+              backgroundColor: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>⚡</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#facc15', fontFamily: '"Outfit", sans-serif' }}>DATABASE WRITE BLOCKED</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Row-Level Security Policy Violation</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRlsInstructionModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  fontSize: '1.25rem',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  lineHeight: 1
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', overflowY: 'auto', maxHeight: '70vh' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#cbd5e1', lineHeight: '1.6' }}>
+                You are currently running on <strong>localhost</strong>, which bypasses the frontend Admin access check.
+                However, writing changes live requires authorization in your cloud database (Supabase).
+                Your current session lacks administrator privileges.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#f8fafc', fontWeight: 600 }}>How to enable live publishing:</h4>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.85rem', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '0.5rem', lineHeight: '1.5' }}>
+                  <li>
+                    <strong style={{ color: '#cbd5e1' }}>Register/Sign up</strong> a user account at the Auth page:
+                    <br />
+                    <a
+                      href="/auth"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: '#c5a880', textDecoration: 'underline', fontWeight: 600, display: 'inline-block', marginTop: '0.25rem' }}
+                    >
+                      Open Auth Page in New Tab ↗
+                    </a>
+                  </li>
+                  <li>
+                    Log in with that account.
+                  </li>
+                  <li>
+                    Open your <strong style={{ color: '#cbd5e1' }}>Supabase Project Dashboard</strong> and navigate to the <strong style={{ color: '#cbd5e1' }}>SQL Editor</strong>.
+                  </li>
+                  <li>
+                    Execute the SQL statement below to promote your account to <strong style={{ color: '#cbd5e1' }}>admin</strong> status:
+                  </li>
+                </ol>
+              </div>
+
+              {/* SQL box */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>SQL Command</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText("UPDATE public.profiles SET role = 'admin' WHERE email = 'YOUR_EMAIL';");
+                      alert("SQL command copied to clipboard!");
+                    }}
+                    style={{
+                      background: '#1e293b',
+                      border: '1px solid #334155',
+                      color: '#cbd5e1',
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                  >
+                    Copy SQL
+                  </button>
+                </div>
+                <pre style={{
+                  margin: 0,
+                  padding: '1rem',
+                  backgroundColor: '#020617',
+                  border: '1px solid #1e293b',
+                  borderRadius: '6px',
+                  fontFamily: 'monospace',
+                  fontSize: '0.8rem',
+                  color: '#38bdf8',
+                  overflowX: 'auto',
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {`UPDATE public.profiles \nSET role = 'admin' \nWHERE email = 'YOUR_EMAIL_ADDRESS';`}
+                </pre>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', fontStyle: 'italic' }}>
+                  * Replace <code style={{ color: '#e2e8f0' }}>YOUR_EMAIL_ADDRESS</code> with the email of the account you signed up with.
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #1e293b',
+              backgroundColor: '#0f172a',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '0.75rem'
+            }}>
+              <button
+                onClick={() => setShowRlsInstructionModal(false)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #334155',
+                  backgroundColor: '#1e293b',
+                  color: '#f8fafc',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

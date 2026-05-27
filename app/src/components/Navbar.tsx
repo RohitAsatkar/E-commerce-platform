@@ -271,7 +271,7 @@ const Navbar = () => {
                   View All
                 </Link>
               </li>
-              {customPages.filter(p => p.type === 'collection' || p.type === 'custom').map(page => (
+              {customPages.filter(p => p.type === 'collection' || p.type === 'custom' || p.type === 'editorial' || p.type === 'launch' || p.type === 'collab' || p.type === 'seasonal' || p.type === 'sustainability').map(page => (
                 <li key={page.id}>
                   <Link to={`/page/${page.slug}`} onClick={() => setIsMenuDrawerOpen(false)}>
                     {page.title}
@@ -341,7 +341,7 @@ const Navbar = () => {
                 </Link>
               </li>
 
-              <li className="drawer-section-title" style={{ marginTop: '1.5rem' }}>Limited Offers</li>
+              <li className="drawer-section-title" style={{ marginTop: '1.5rem' }}>Limited Offers & Events</li>
               <li>
                 <Link 
                   to="/shop/all?filter=sale" 
@@ -352,7 +352,7 @@ const Navbar = () => {
                   <span className="drawer-badge-sale">FLAT 50% OFF</span>
                 </Link>
               </li>
-              {customPages.filter(p => p.type === 'sale' || p.type === 'offer').map(page => (
+              {customPages.filter(p => p.type === 'sale' || p.type === 'offer' || p.type === 'vip').map(page => (
                 <li key={page.id}>
                   <Link 
                     to={`/page/${page.slug}`} 
