@@ -89,10 +89,10 @@ const Cart = () => {
   }, [user, products, productsLoading]);
 
   const handleUpdateQuantity = async (itemId: string, newQty: number) => {
-    if (newQty < 1) return;
+    if (!user || newQty < 1) return;
     setUpdatingId(itemId);
     try {
-      const { error } = await supabase.from('cart_items').update({ quantity: newQty }).eq('id', itemId);
+      const { error } = await supabase.from('cart_items').update({ quantity: newQty }).eq('id', itemId).eq('user_id', user.id);
       if (error) throw error;
       setCartItems(prev => prev.map(item =>
         item.id === itemId ? { ...item, quantity: newQty } : item
@@ -105,9 +105,10 @@ const Cart = () => {
   };
 
   const handleRemoveItem = async (itemId: string) => {
+    if (!user) return;
     setUpdatingId(itemId);
     try {
-      const { error } = await supabase.from('cart_items').delete().eq('id', itemId);
+      const { error } = await supabase.from('cart_items').delete().eq('id', itemId).eq('user_id', user.id);
       if (error) throw error;
       setCartItems(prev => prev.filter(item => item.id !== itemId));
     } catch (err: any) {

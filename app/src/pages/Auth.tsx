@@ -22,6 +22,9 @@ const Auth = () => {
         if (error) throw error;
         navigate('/account');
       } else {
+        if (password.length < 6) {
+          throw new Error('Password must be at least 6 characters long.');
+        }
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         alert('Signup successful! You can now log in.');

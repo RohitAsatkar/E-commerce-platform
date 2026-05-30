@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
 import { Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { sanitizeUrl } from '../lib/security';
 import './Home.css';
 
 const DEFAULT_CMS_CONFIG = {
@@ -126,6 +127,193 @@ const DEFAULT_CMS_CONFIG = {
       }
     }
   ]
+};
+
+const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
+  const slides = block.data?.slides || [];
+  const autoplayEnabled = block.data?.autoplay_enabled !== false;
+  const autoplaySpeed = block.data?.autoplay_speed || 4000;
+  const slideGap = typeof block.data?.slide_gap === 'number' ? block.data.slide_gap : 20;
+
+  const [currentIndex, setCurrentIndex] = useState(slides.length);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync visibility state of the page (to pause autoplay when page is in background)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Sync index when slides length changes
+  useEffect(() => {
+    setTransitionEnabled(false);
+    setCurrentIndex(slides.length);
+  }, [slides.length]);
+
+  // Autoplay Effect
+  useEffect(() => {
+    if (!autoplayEnabled || isDragging || isHovered || slides.length === 0 || !isVisible) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev: number) => prev + 1);
+    }, autoplaySpeed);
+    return () => clearInterval(interval);
+  }, [autoplayEnabled, autoplaySpeed, isDragging, isHovered, slides.length, isVisible]);
+
+  // Safety bounds check to prevent visual vanishing if index goes out of range
+  useEffect(() => {
+    const N = slides.length;
+    if (N === 0) return;
+    if (currentIndex >= 3 * N || currentIndex < 0) {
+      setTransitionEnabled(false);
+      setCurrentIndex(((currentIndex % N) + N) % N + N);
+    }
+  }, [currentIndex, slides.length]);
+
+  if (slides.length === 0) {
+    return (
+      <div style={{ padding: '4rem 2rem', textAlign: 'center', border: '1px dashed var(--color-border)', backgroundColor: 'var(--color-bg)', ...style }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--color-gray)' }}>No slides in Multi-Item Hero Banner Carousel. Add slides in settings.</p>
+      </div>
+    );
+  }
+
+  // Create virtual slides for infinite looping: [Group 1, Group 2, Group 3]
+  const virtualSlides = [...slides, ...slides, ...slides];
+  const N = slides.length;
+
+  const handleDragStart = (clientX: number) => {
+    setIsDragging(true);
+    setStartX(clientX);
+    setDragOffset(0);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (!isDragging) return;
+    const diff = clientX - startX;
+    setDragOffset(diff);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    // Swipe threshold to change slides (e.g. 50px)
+    const threshold = 50;
+    if (dragOffset < -threshold) {
+      setCurrentIndex((prev: number) => prev + 1);
+    } else if (dragOffset > threshold) {
+      setCurrentIndex((prev: number) => prev - 1);
+    }
+    setDragOffset(0);
+  };
+
+  // Handle instant jump when wrapping to simulate infinite loop
+  const handleTransitionEnd = () => {
+    if (currentIndex >= 2 * N) {
+      setTransitionEnabled(false);
+      setCurrentIndex(currentIndex - N);
+    } else if (currentIndex < N) {
+      setTransitionEnabled(false);
+      setCurrentIndex(currentIndex + N);
+    }
+  };
+
+  // Turn transitions back on after jump
+  useEffect(() => {
+    if (!transitionEnabled) {
+      // Force repaint to allow transition-less state jump
+      if (containerRef.current) {
+        containerRef.current.getBoundingClientRect();
+      }
+      setTransitionEnabled(true);
+    }
+  }, [transitionEnabled]);
+
+  return (
+    <div
+      className="multi-hero-carousel-container"
+      style={{
+        cursor: isDragging ? 'grabbing' : 'grab',
+        '--slide-gap': `${slideGap}px`,
+        ...style
+      } as React.CSSProperties}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        handleDragEnd();
+      }}
+      onMouseDown={(e) => handleDragStart(e.clientX)}
+      onMouseMove={(e) => handleDragMove(e.clientX)}
+      onMouseUp={handleDragEnd}
+      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+      onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
+      onTouchEnd={handleDragEnd}
+    >
+      <div
+        ref={containerRef}
+        className="multi-hero-carousel-track"
+        onTransitionEnd={handleTransitionEnd}
+        style={{
+          transition: !transitionEnabled || isDragging ? 'none' : 'transform 3s cubic-bezier(0.76, 0, 0.24, 1)',
+          transform: `translateX(calc(-${currentIndex} * var(--shift-val) + var(--left-peek) + ${dragOffset}px))`
+        }}
+      >
+        {virtualSlides.map((slide: any, idx: number) => {
+          return (
+            <Link
+              key={idx}
+              to={sanitizeUrl(slide.cta_url) || '/shop/all'}
+              className="multi-item-slide"
+              onClick={(e) => {
+                // If it was a drag gesture, prevent the router from navigating
+                if (Math.abs(dragOffset) > 10) {
+                  e.preventDefault();
+                }
+              }}
+              style={{
+                backgroundImage: `url(${slide.image_url})`,
+                display: 'block',
+                cursor: 'pointer'
+              }}
+            >
+              {!block.data?.hide_content && (
+                <div className="multi-item-slide-overlay">
+                  {slide.badge && (
+                    <span className="multi-item-slide-badge">{slide.badge}</span>
+                  )}
+                  {!slide.badge && <div />}
+                  
+                  <div className="multi-item-slide-content">
+                    <h3 className="multi-item-slide-title">{slide.title}</h3>
+                    {slide.subtitle && (
+                      <p className="multi-item-slide-subtitle">{slide.subtitle}</p>
+                    )}
+                    {slide.show_cta !== false && slide.cta_text && (
+                      <span className="multi-item-slide-cta">
+                        {slide.cta_text}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 const CmsHeroSlider = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
@@ -269,7 +457,7 @@ const CmsHeroSlider = ({ block, style }: { block: any; style?: React.CSSProperti
                 )}
                 {slide.cta_text && (
                   <Link
-                    to={slide.cta_url || '/shop/all'}
+                    to={sanitizeUrl(slide.cta_url) || '/shop/all'}
                     style={{
                       marginTop: '0.75rem',
                       padding: '0.7rem 1.8rem',
@@ -560,12 +748,12 @@ const Home = () => {
                       )}
                       <div className="cms-hero-actions animate-fade-up delay-3" style={{ justifyContent: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
                         {block.data.cta_text && (
-                          <Link to={block.data.cta_url || '/shop/all'} className="editorial-btn-primary">
+                          <Link to={sanitizeUrl(block.data.cta_url) || '/shop/all'} className="editorial-btn-primary">
                             {block.data.cta_text}
                           </Link>
                         )}
                         {block.data.secondary_cta_text && (
-                          <Link to={block.data.secondary_cta_url || '/shop/all'} className="editorial-btn-secondary">
+                          <Link to={sanitizeUrl(block.data.secondary_cta_url) || '/shop/all'} className="editorial-btn-secondary">
                             {block.data.secondary_cta_text}
                           </Link>
                         )}
@@ -606,12 +794,12 @@ const Home = () => {
                       )}
                       <div className="cms-hero-actions animate-fade-up delay-3" style={{ justifyContent: 'center' }}>
                         {block.data.cta_text && (
-                          <Link to={block.data.cta_url || '/shop/all'} className="editorial-btn-primary" style={{ backgroundColor: block.data.desktop_image ? '#fff' : 'var(--color-text)', color: block.data.desktop_image ? '#000' : 'var(--color-bg)', borderColor: block.data.desktop_image ? '#fff' : 'var(--color-text)' }}>
+                          <Link to={sanitizeUrl(block.data.cta_url) || '/shop/all'} className="editorial-btn-primary" style={{ backgroundColor: block.data.desktop_image ? '#fff' : 'var(--color-text)', color: block.data.desktop_image ? '#000' : 'var(--color-bg)', borderColor: block.data.desktop_image ? '#fff' : 'var(--color-text)' }}>
                             {block.data.cta_text}
                           </Link>
                         )}
                         {block.data.secondary_cta_text && (
-                          <Link to={block.data.secondary_cta_url || '/shop/all'} className="editorial-btn-secondary" style={{ color: block.data.desktop_image ? '#fff' : 'var(--color-text)' }}>
+                          <Link to={sanitizeUrl(block.data.secondary_cta_url) || '/shop/all'} className="editorial-btn-secondary" style={{ color: block.data.desktop_image ? '#fff' : 'var(--color-text)' }}>
                             {block.data.secondary_cta_text}
                           </Link>
                         )}
@@ -988,6 +1176,12 @@ const Home = () => {
         if (block.block_type === 'HeroSlider') {
           return (
             <CmsHeroSlider key={key} block={block} style={sectionStyle} />
+          );
+        }
+
+        if (block.block_type === 'MultiHeroCarousel') {
+          return (
+            <CmsMultiHeroCarousel key={key} block={block} style={sectionStyle} />
           );
         }
 

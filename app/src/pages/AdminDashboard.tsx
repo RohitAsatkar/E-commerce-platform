@@ -50,6 +50,191 @@ const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
 ];
 
+const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
+  const slides = block.data?.slides || [];
+  const autoplayEnabled = block.data?.autoplay_enabled !== false;
+  const autoplaySpeed = block.data?.autoplay_speed || 4000;
+  const slideGap = typeof block.data?.slide_gap === 'number' ? block.data.slide_gap : 20;
+
+  const [currentIndex, setCurrentIndex] = useState(slides.length);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync visibility state of the page (to pause autoplay when page is in background)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Sync index when slides length changes
+  useEffect(() => {
+    setTransitionEnabled(false);
+    setCurrentIndex(slides.length);
+  }, [slides.length]);
+
+  // Autoplay Effect
+  useEffect(() => {
+    if (!autoplayEnabled || isDragging || isHovered || slides.length === 0 || !isVisible) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev: number) => prev + 1);
+    }, autoplaySpeed);
+    return () => clearInterval(interval);
+  }, [autoplayEnabled, autoplaySpeed, isDragging, isHovered, slides.length, isVisible]);
+
+  // Safety bounds check to prevent visual vanishing if index goes out of range
+  useEffect(() => {
+    const N = slides.length;
+    if (N === 0) return;
+    if (currentIndex >= 3 * N || currentIndex < 0) {
+      setTransitionEnabled(false);
+      setCurrentIndex(((currentIndex % N) + N) % N + N);
+    }
+  }, [currentIndex, slides.length]);
+
+  if (slides.length === 0) {
+    return (
+      <div style={{ padding: '4rem 2rem', textAlign: 'center', border: '1px dashed var(--color-border)', backgroundColor: 'var(--color-bg)', ...style }}>
+        <p style={{ fontSize: '0.9rem', color: 'var(--color-gray)' }}>No slides in Multi-Item Hero Banner Carousel. Add slides in settings.</p>
+      </div>
+    );
+  }
+
+  // Create virtual slides for infinite looping: [Group 1, Group 2, Group 3]
+  const virtualSlides = [...slides, ...slides, ...slides];
+  const N = slides.length;
+
+  const handleDragStart = (clientX: number) => {
+    setIsDragging(true);
+    setStartX(clientX);
+    setDragOffset(0);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (!isDragging) return;
+    const diff = clientX - startX;
+    setDragOffset(diff);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    // Swipe threshold to change slides (e.g. 50px)
+    const threshold = 50;
+    if (dragOffset < -threshold) {
+      setCurrentIndex((prev: number) => prev + 1);
+    } else if (dragOffset > threshold) {
+      setCurrentIndex((prev: number) => prev - 1);
+    }
+    setDragOffset(0);
+  };
+
+  // Handle instant jump when wrapping to simulate infinite loop
+  const handleTransitionEnd = () => {
+    if (currentIndex >= 2 * N) {
+      setTransitionEnabled(false);
+      setCurrentIndex(currentIndex - N);
+    } else if (currentIndex < N) {
+      setTransitionEnabled(false);
+      setCurrentIndex(currentIndex + N);
+    }
+  };
+
+  // Turn transitions back on after jump
+  useEffect(() => {
+    if (!transitionEnabled) {
+      // Force repaint to allow transition-less state jump
+      if (containerRef.current) {
+        containerRef.current.getBoundingClientRect();
+      }
+      setTransitionEnabled(true);
+    }
+  }, [transitionEnabled]);
+
+  return (
+    <div
+      className="multi-hero-carousel-container"
+      style={{
+        cursor: isDragging ? 'grabbing' : 'grab',
+        '--slide-gap': `${slideGap}px`,
+        ...style
+      } as React.CSSProperties}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        handleDragEnd();
+      }}
+      onMouseDown={(e) => handleDragStart(e.clientX)}
+      onMouseMove={(e) => handleDragMove(e.clientX)}
+      onMouseUp={handleDragEnd}
+      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+      onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
+      onTouchEnd={handleDragEnd}
+    >
+      <div
+        ref={containerRef}
+        className="multi-hero-carousel-track"
+        onTransitionEnd={handleTransitionEnd}
+        style={{
+          transition: !transitionEnabled || isDragging ? 'none' : 'transform 3s cubic-bezier(0.76, 0, 0.24, 1)',
+          transform: `translateX(calc(-${currentIndex} * var(--shift-val) + var(--left-peek) + ${dragOffset}px))`
+        }}
+      >
+        {virtualSlides.map((slide: any, idx: number) => {
+          return (
+            <a
+              key={idx}
+              href={slide.cta_url || '#'}
+              onClick={(e) => e.preventDefault()}
+              className="multi-item-slide"
+              style={{
+                backgroundImage: `url(${slide.image_url})`,
+                display: 'block',
+                cursor: 'pointer'
+              }}
+            >
+              {!block.data?.hide_content && (
+                <div className="multi-item-slide-overlay">
+                  {slide.badge && (
+                    <span className="multi-item-slide-badge">{slide.badge}</span>
+                  )}
+                  {!slide.badge && <div />}
+                  
+                  <div className="multi-item-slide-content">
+                    <h3 className="multi-item-slide-title">{slide.title}</h3>
+                    {slide.subtitle && (
+                      <p className="multi-item-slide-subtitle">{slide.subtitle}</p>
+                    )}
+                    {slide.show_cta !== false && slide.cta_text && (
+                      <span
+                        className="multi-item-slide-cta"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {slide.cta_text}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const CmsHeroSlider = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
   const slides = block.data.slides || [];
   const [activeIndex, setActiveIndex] = useState(0);
@@ -856,7 +1041,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      if (import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
         setIsAdmin(true);
         fetchOrders();
         setCheckingRole(false);
@@ -1544,7 +1729,7 @@ const AdminDashboard = () => {
           if (index !== undefined) {
             const arr = b.data[fieldName] ? [...b.data[fieldName]] : [];
             const currentItem = typeof arr[index] === 'string' ? { name: arr[index], image: '', image_url: '' } : arr[index];
-            if (b.block_type === 'HeroSlider' && fieldName === 'slides') {
+            if ((b.block_type === 'HeroSlider' || b.block_type === 'MultiHeroCarousel') && fieldName === 'slides') {
               arr[index] = { ...currentItem, image_url: url };
             } else {
               arr[index] = { ...currentItem, image: url };
@@ -1733,6 +1918,41 @@ const AdminDashboard = () => {
             subtitle: "18TH TO 25TH MAY",
             cta_text: "SHOP SALE",
             cta_url: "/shop/all"
+          }
+        ]
+      };
+    } else if (type === 'MultiHeroCarousel') {
+      defaultData = {
+        autoplay_speed: 4000,
+        autoplay_enabled: true,
+        slide_gap: 20,
+        slides: [
+          {
+            image_url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600",
+            title: "LINEN EDIT",
+            subtitle: "THAT MAKE AN IMPRESSION",
+            badge: "NEWLY LAUNCHED",
+            cta_text: "FLAT 50% OFF",
+            cta_url: "/shop/linen",
+            show_cta: true
+          },
+          {
+            image_url: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=600",
+            title: "PERFUMES",
+            subtitle: "SCENTS OF MINIMALIST LUXURY",
+            badge: "EXCLUSIVE",
+            cta_text: "NOW LIVE",
+            cta_url: "/shop/perfumes",
+            show_cta: true
+          },
+          {
+            image_url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+            title: "ARCHITECTURAL KNITS",
+            subtitle: "STRUCTURED COMFORT",
+            badge: "SEASONAL PREVIEW",
+            cta_text: "EXPLORE NOW",
+            cta_url: "/shop/all",
+            show_cta: true
           }
         ]
       };
@@ -2372,6 +2592,10 @@ const AdminDashboard = () => {
           } else if (block.block_type === 'HeroSlider') {
             blockContent = (
               <CmsHeroSlider block={block} style={sectionStyle} />
+            );
+          } else if (block.block_type === 'MultiHeroCarousel') {
+            blockContent = (
+              <CmsMultiHeroCarousel block={block} style={sectionStyle} />
             );
           }
 
@@ -3123,6 +3347,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           {[
                             { type: 'HeroBanner', desc: 'Campaign Split Hero', tag: 'section' },
                             { type: 'HeroSlider', desc: 'Auto Rotating Slideshow Banner', tag: 'section' },
+                            { type: 'MultiHeroCarousel', desc: 'Auto Rotating Multi-Item Hero Carousel', tag: 'section' },
                             { type: 'HeroGrid', desc: 'Lookbook Editorial Mosaic Grid', tag: 'header' },
                             { type: 'PromotionalSlider', desc: 'Countdown Announcement Bar', tag: 'aside' },
                             { type: 'CategoryGrid', desc: 'Curated Categories Grid', tag: 'section' },
@@ -3683,6 +3908,10 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                               } else if (block.block_type === 'HeroSlider') {
                                 blockContent = (
                                   <CmsHeroSlider block={block} style={sectionStyle} />
+                                );
+                              } else if (block.block_type === 'MultiHeroCarousel') {
+                                blockContent = (
+                                  <CmsMultiHeroCarousel block={block} style={sectionStyle} />
                                 );
                               }
 
@@ -4736,6 +4965,250 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                                 style={{ padding: '0.4rem', fontSize: '0.75rem' }}
                                               />
                                             </label>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                {block.block_type === 'MultiHeroCarousel' && (
+                                  <>
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                      <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={block.data.autoplay_enabled !== false}
+                                          onChange={e => handleUpdateBlockData(block.id, 'autoplay_enabled', e.target.checked)}
+                                        />
+                                        Autoplay Enabled
+                                      </label>
+                                      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '120px' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Speed (ms)</span>
+                                        <input
+                                          type="number"
+                                          min="1000"
+                                          step="500"
+                                          value={block.data.autoplay_speed || 4000}
+                                          onChange={e => handleUpdateBlockData(block.id, 'autoplay_speed', Number(e.target.value))}
+                                          className="admin-input"
+                                          style={{ padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
+                                        />
+                                      </label>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                                      <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={block.data.hide_content === true}
+                                          onChange={e => handleUpdateBlockData(block.id, 'hide_content', e.target.checked)}
+                                        />
+                                        Hide Text Overlays (Image Only)
+                                      </label>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Slide Gap</span>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>{block.data.slide_gap || 20}px</span>
+                                      </div>
+                                      <input
+                                        type="range"
+                                        min="10"
+                                        max="30"
+                                        value={block.data.slide_gap || 20}
+                                        onChange={e => handleUpdateBlockData(block.id, 'slide_gap', Number(e.target.value))}
+                                        style={{ width: '100%', accentColor: 'var(--color-text)', cursor: 'pointer' }}
+                                      />
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Carousel Banners ({block.data.slides?.length || 0})</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const current = block.data.slides || [];
+                                            const updated = [...current, {
+                                              image_url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+                                              title: "NEW COLLECTION",
+                                              subtitle: "THAT MAKES AN IMPRESSION",
+                                              badge: "NEWLY LAUNCHED",
+                                              cta_text: "FLAT 50% OFF",
+                                              cta_url: "/shop/all",
+                                              show_cta: true
+                                            }];
+                                            handleUpdateBlockData(block.id, 'slides', updated);
+                                          }}
+                                          className="btn btn-secondary"
+                                          style={{ padding: '4px 10px', fontSize: '0.7rem', fontWeight: 600 }}
+                                        >
+                                          + Add Slide
+                                        </button>
+                                      </div>
+
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+                                        {(block.data.slides || []).map((slide: any, sIdx: number) => (
+                                          <div key={sIdx} style={{ border: '1px solid var(--color-border)', padding: '0.85rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '0.6rem', position: 'relative', backgroundColor: 'rgba(0,0,0,0.01)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--color-border)', paddingBottom: '0.35rem', marginBottom: '0.2rem' }}>
+                                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-gray)' }}>Slide #{sIdx + 1}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const updated = (block.data.slides || []).filter((_: any, i: number) => i !== sIdx);
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}
+                                              >
+                                                Delete Slide
+                                              </button>
+                                            </div>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Slide Heading</span>
+                                              <input
+                                                type="text"
+                                                value={slide.title || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], title: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Slide Subtitle</span>
+                                              <input
+                                                type="text"
+                                                value={slide.subtitle || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], subtitle: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Slide Badge (e.g. NEWLY LAUNCHED)</span>
+                                              <input
+                                                type="text"
+                                                value={slide.badge || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], badge: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>Banner Image</span>
+                                              {slide.image_url && (
+                                                <img src={slide.image_url} alt="Slide Preview" style={{ width: '100%', height: '60px', objectFit: 'cover', border: '1px solid var(--color-border)', borderRadius: '2px', marginBottom: '0.25rem' }} />
+                                              )}
+                                              <input
+                                                type="text"
+                                                placeholder="https://example.com/image.jpg"
+                                                value={slide.image_url || ''}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], image_url: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                              />
+                                              <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.15rem' }}>
+                                                <label className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', margin: 0, flex: 1, textAlign: 'center', display: 'inline-block' }}>
+                                                  {uploadingField === `slides_${sIdx}` ? 'Uploading...' : 'Upload Image File'}
+                                                  <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    style={{ display: 'none' }}
+                                                    onChange={async e => {
+                                                      const file = e.target.files?.[0];
+                                                      if (file) {
+                                                        await handleContentImageUpload(block.id, 'slides', file, sIdx);
+                                                      }
+                                                    }}
+                                                  />
+                                                </label>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    const urls = [
+                                                      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=600",
+                                                      "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=600",
+                                                      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=600",
+                                                      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=600"
+                                                    ];
+                                                    const rand = urls[Math.floor(Math.random() * urls.length)];
+                                                    const updated = [...(block.data.slides || [])];
+                                                    updated[sIdx] = { ...updated[sIdx], image_url: rand };
+                                                    handleUpdateBlockData(block.id, 'slides', updated);
+                                                  }}
+                                                  style={{ fontSize: '0.6rem', border: '1px solid var(--color-border)', background: 'transparent', padding: '2px 6px', cursor: 'pointer', color: 'var(--color-gray)' }}
+                                                >
+                                                  Preset Lookbook Image
+                                                </button>
+                                              </div>
+                                            </div>
+
+                                            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.2rem' }}>
+                                              <input
+                                                type="checkbox"
+                                                checked={slide.show_cta !== false}
+                                                onChange={e => {
+                                                  const updated = [...(block.data.slides || [])];
+                                                  updated[sIdx] = { ...updated[sIdx], show_cta: e.target.checked };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                              />
+                                              Show CTA Button
+                                            </label>
+
+                                            {slide.show_cta !== false && (
+                                              <>
+                                                <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>CTA Button Text</span>
+                                                  <input
+                                                    type="text"
+                                                    value={slide.cta_text || ''}
+                                                    onChange={e => {
+                                                      const updated = [...(block.data.slides || [])];
+                                                      updated[sIdx] = { ...updated[sIdx], cta_text: e.target.value };
+                                                      handleUpdateBlockData(block.id, 'slides', updated);
+                                                    }}
+                                                    className="admin-input"
+                                                    style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                                  />
+                                                </label>
+
+                                                <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)', fontWeight: 600 }}>CTA Button Destination</span>
+                                                  <input
+                                                    type="text"
+                                                    value={slide.cta_url || ''}
+                                                    onChange={e => {
+                                                      const updated = [...(block.data.slides || [])];
+                                                      updated[sIdx] = { ...updated[sIdx], cta_url: e.target.value };
+                                                      handleUpdateBlockData(block.id, 'slides', updated);
+                                                    }}
+                                                    className="admin-input"
+                                                    style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                                  />
+                                                </label>
+                                              </>
+                                            )}
                                           </div>
                                         ))}
                                       </div>

@@ -5,6 +5,7 @@ import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
 import { getActiveProductSale } from '../lib/sales';
 import { supabase } from '../lib/supabase';
+import { sanitizeUrl } from '../lib/security';
 
 // Error Boundary to prevent white screen and display debugging info
 interface ErrorBoundaryProps {
@@ -485,7 +486,7 @@ const CustomDynamicPageContent = () => {
               </p>
             )}
             {page.ctaText && (
-              <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+              <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                 {page.ctaText}
               </a>
             )}
@@ -575,7 +576,7 @@ const CustomDynamicPageContent = () => {
               </p>
             )}
             {page.ctaText && (
-              <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '1rem 3rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.15em', textTransform: 'uppercase', fontSize: '0.85rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 5px 15px rgba(0,0,0,0.2)' }}>
+              <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '1rem 3rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.15em', textTransform: 'uppercase', fontSize: '0.85rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 5px 15px rgba(0,0,0,0.2)' }}>
                 {page.ctaText}
               </a>
             )}
@@ -607,7 +608,7 @@ const CustomDynamicPageContent = () => {
               <p style={{ maxWidth: '550px', margin: '0 0 1.5rem 0', fontSize: '0.95rem', color: descColor, lineHeight: '1.6' }}>{page.bannerDesc}</p>
             )}
             {page.ctaText && (
-              <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+              <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                 {page.ctaText}
               </a>
             )}
@@ -660,7 +661,7 @@ const CustomDynamicPageContent = () => {
               <p style={{ margin: page.ctaText ? '0 0 1.5rem 0' : '0', fontSize: '0.9rem', color: descColor, lineHeight: '1.6' }}>{page.bannerDesc}</p>
             )}
             {page.ctaText && (
-              <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+              <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                 {page.ctaText}
               </a>
             )}
@@ -712,7 +713,7 @@ const CustomDynamicPageContent = () => {
             </p>
           )}
           {page.ctaText && (
-            <a href={page.ctaUrl || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+            <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
               {page.ctaText}
             </a>
           )}

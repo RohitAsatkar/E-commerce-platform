@@ -295,7 +295,13 @@ const UserAccount = () => {
     } finally { setChangingPassword(false); }
   };
 
-  const handleLogout = async () => { await signOut(); navigate('/'); };
+  const handleLogout = async () => {
+    localStorage.removeItem('cart_promo_code');
+    localStorage.removeItem('cart_gift_wrap');
+    localStorage.removeItem('aura_cms_homepage');
+    await signOut();
+    navigate('/');
+  };
 
   const resetProfileForm = () => {
     if (profile) setProfileForm({
