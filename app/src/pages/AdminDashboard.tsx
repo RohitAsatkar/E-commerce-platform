@@ -2190,8 +2190,12 @@ const AdminDashboard = () => {
           const isSelected = block.id === selectedBlockId;
           const isScheduled = block.scheduling.start_date || block.scheduling.end_date;
 
+          const layConfig = block.layout_configuration || {};
+          const manualHeight = layConfig.manual_height;
+          const manualWidth = layConfig.manual_width;
+
           const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
-          const padClass = block.data.sectionPadding ? `pad-${block.data.sectionPadding}` : 'pad-editorial';
+          const padClass = manualHeight ? '' : (block.data.sectionPadding ? `pad-${block.data.sectionPadding}` : 'pad-editorial');
           const padHClass = block.data.sectionHorizontalPadding ? `pad-h-${block.data.sectionHorizontalPadding}` : '';
           const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
           const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
@@ -2205,17 +2209,17 @@ const AdminDashboard = () => {
             backgroundSize: 'cover'
           } : {};
 
-          const layConfig = block.layout_configuration || {};
           const aspect = layConfig.aspect_ratio || 'portrait';
-          const manualHeight = layConfig.manual_height;
-          const manualWidth = layConfig.manual_width;
           const mobCols = layConfig.grid_setup?.columns_mobile || 1;
           const tabCols = layConfig.grid_setup?.columns_tablet || 2;
           const dskCols = layConfig.grid_setup?.columns_desktop || 4;
 
           const sectionStyle: React.CSSProperties = {
             ...parallaxStyle,
-            ...(manualHeight ? { minHeight: `${manualHeight}px`, display: 'flex', flexDirection: 'column', justifyContent: 'center' } : {})
+            ...(manualHeight ? {
+              '--hero-manual-height': `${manualHeight}px`
+            } as any : {}),
+            ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
           };
 
           const containerStyle: React.CSSProperties = {
@@ -2235,21 +2239,18 @@ const AdminDashboard = () => {
               : '8rem 2rem';
 
             const heroSectionStyle: React.CSSProperties = {
-              ...sectionStyle,
-              ...(!isSplit && block.data.desktop_image ? {
-                backgroundImage: `url(${block.data.desktop_image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                position: 'relative'
-              } : {})
+              ...sectionStyle
             };
 
             blockContent = (
-              <section className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={heroSectionStyle}>
+              <section className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass} ${manualHeight ? 'has-manual-height' : ''}`} style={heroSectionStyle}>
                 {!isSplit && block.data.desktop_image && <div className="cms-hero-full-overlay"></div>}
                 <div className={widthClass} style={{ ...containerStyle, position: 'relative', zIndex: 2 }}>
                   {isSplit ? (
-                    <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)', minHeight: manualHeight ? `${manualHeight}px` : '80vh' }}>
+                    <div className="cms-hero-split" style={{
+                      border: '1px solid var(--color-border)',
+                      minHeight: '80vh'
+                    }}>
                       <div className="cms-hero-left" style={{
                         '--hero-padding-desktop': desktopPadding
                       } as React.CSSProperties}>
@@ -2281,11 +2282,16 @@ const AdminDashboard = () => {
                       </div>
                       <div className="cms-hero-right">
                         {block.data.desktop_image ? (
-                          <img
-                            src={block.data.desktop_image}
-                            alt={block.data.title || 'Campaign'}
-                            className="cms-hero-img"
-                          />
+                          <picture className="cms-hero-img-wrap" style={{ width: '100%', height: '100%', display: 'block' }}>
+                            {block.data.mobile_image && <source media="(max-width: 640px)" srcSet={block.data.mobile_image} />}
+                            {block.data.tablet_image && <source media="(max-width: 1024px)" srcSet={block.data.tablet_image} />}
+                            <img
+                              src={block.data.desktop_image}
+                              alt={block.data.title || 'Campaign'}
+                              className="cms-hero-img"
+                              style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                            />
+                          </picture>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px', backgroundColor: '#e5e5e5', color: '#a1a1aa', fontSize: '0.8rem' }}>No Image Selected</div>
                         )}
@@ -2293,7 +2299,10 @@ const AdminDashboard = () => {
                     </div>
                   ) : (
                     <div className="cms-hero-full" style={{
-                      minHeight: manualHeight ? `${manualHeight}px` : (block.data.sectionPadding === 'compact' ? '50vh' : '85vh'),
+                      '--hero-bg-desktop': block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none',
+                      '--hero-bg-tablet': block.data.tablet_image ? `url(${block.data.tablet_image})` : (block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none'),
+                      '--hero-bg-mobile': block.data.mobile_image ? `url(${block.data.mobile_image})` : (block.data.tablet_image ? `url(${block.data.tablet_image})` : (block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none')),
+                      minHeight: block.data.sectionPadding === 'compact' ? '50vh' : '85vh',
                       '--hero-padding-full': fullPadding,
                       display: 'flex',
                       flexDirection: 'column',
@@ -3595,7 +3604,10 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                               const tabCols = layConfig.grid_setup?.columns_tablet || 2;
                               const dskCols = layConfig.grid_setup?.columns_desktop || 4;
 
-                              const padClass = `pad-${pad}`;
+                              const manualHeight = layConfig.manual_height;
+                              const manualWidth = layConfig.manual_width;
+
+                              const padClass = manualHeight ? '' : `pad-${pad}`;
                               const padH = layConfig.padding?.horizontal_preset || '';
                               const padHClass = padH ? `pad-h-${padH}` : '';
                               const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
@@ -3604,11 +3616,11 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                               const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
                               const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
 
-                              const manualHeight = layConfig.manual_height;
-                              const manualWidth = layConfig.manual_width;
-
                               const sectionStyle: React.CSSProperties = {
-                                ...(manualHeight ? { minHeight: `${manualHeight}px`, display: 'flex', flexDirection: 'column', justifyContent: 'center' } : {})
+                                ...(manualHeight ? {
+                                  '--hero-manual-height': `${manualHeight}px`
+                                } as any : {}),
+                                ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
                               };
 
                               const containerStyle: React.CSSProperties = {
@@ -3628,21 +3640,18 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                   : '8rem 2rem';
 
                                 const heroSectionStyle: React.CSSProperties = {
-                                  ...sectionStyle,
-                                  ...(!isSplit && block.data.desktop_image ? {
-                                    backgroundImage: `url(${block.data.desktop_image})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                    position: 'relative'
-                                  } : {})
+                                  ...sectionStyle
                                 };
 
                                 blockContent = (
-                                  <section className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={heroSectionStyle}>
+                                  <section className={`cms-hero ${padClass} ${padHClass} ${themeClass} ${alignClass} ${manualHeight ? 'has-manual-height' : ''}`} style={heroSectionStyle}>
                                     {!isSplit && block.data.desktop_image && <div className="cms-hero-full-overlay"></div>}
                                     <div className={widthClass} style={{ ...containerStyle, position: 'relative', zIndex: 2 }}>
                                       {isSplit ? (
-                                        <div className="cms-hero-split" style={{ border: '1px solid var(--color-border)', minHeight: manualHeight ? `${manualHeight}px` : '80vh' }}>
+                                        <div className="cms-hero-split" style={{
+                                          border: '1px solid var(--color-border)',
+                                          minHeight: '80vh'
+                                        }}>
                                           <div className="cms-hero-left" style={{
                                             '--hero-padding-desktop': desktopPadding
                                           } as React.CSSProperties}>
@@ -3655,7 +3664,16 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                           </div>
                                           <div className="cms-hero-right">
                                             {block.data.desktop_image ? (
-                                              <img src={block.data.desktop_image} alt="Campaign" className="cms-hero-img" style={{ objectFit: fit as any }} />
+                                              <picture className="cms-hero-img-wrap" style={{ width: '100%', height: '100%', display: 'block' }}>
+                                                {block.data.mobile_image && <source media="(max-width: 640px)" srcSet={block.data.mobile_image} />}
+                                                {block.data.tablet_image && <source media="(max-width: 1024px)" srcSet={block.data.tablet_image} />}
+                                                <img
+                                                  src={block.data.desktop_image}
+                                                  alt="Campaign"
+                                                  className="cms-hero-img"
+                                                  style={{ objectFit: fit as any, width: '100%', height: '100%' }}
+                                                />
+                                              </picture>
                                             ) : (
                                               <div style={{ height: '300px', backgroundColor: '#f4f4f5' }} />
                                             )}
@@ -3663,7 +3681,10 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                         </div>
                                       ) : (
                                         <div className="cms-hero-full" style={{
-                                          minHeight: manualHeight ? `${manualHeight}px` : (block.data.sectionPadding === 'compact' ? '50vh' : '85vh'),
+                                          '--hero-bg-desktop': block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none',
+                                          '--hero-bg-tablet': block.data.tablet_image ? `url(${block.data.tablet_image})` : (block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none'),
+                                          '--hero-bg-mobile': block.data.mobile_image ? `url(${block.data.mobile_image})` : (block.data.tablet_image ? `url(${block.data.tablet_image})` : (block.data.desktop_image ? `url(${block.data.desktop_image})` : 'none')),
+                                          minHeight: block.data.sectionPadding === 'compact' ? '50vh' : '85vh',
                                           '--hero-padding-full': fullPadding,
                                           display: 'flex',
                                           flexDirection: 'column',
@@ -4174,7 +4195,37 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                       </div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                                      <span style={{ fontWeight: 600 }}>Mobile Image</span>
+                                      <span style={{ fontWeight: 600 }}>Tablet Image (Optional)</span>
+                                      {block.data.tablet_image && (
+                                        <img src={block.data.tablet_image} alt="Tablet Preview" style={{ width: '100%', height: '70px', objectFit: 'cover', border: '1px solid var(--color-border)', marginBottom: '0.25rem' }} />
+                                      )}
+                                      <input
+                                        type="text"
+                                        placeholder="Paste Image URL..."
+                                        value={block.data.tablet_image || ''}
+                                        onChange={e => handleUpdateBlockData(block.id, 'tablet_image', e.target.value)}
+                                        className="admin-input"
+                                        style={{ fontSize: '0.75rem' }}
+                                      />
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <label className="btn btn-secondary" style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', margin: 0, flex: 1, textAlign: 'center' }}>
+                                          {uploadingField === 'tablet_image' ? 'Uploading...' : 'Upload File'}
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={async e => {
+                                              const file = e.target.files?.[0];
+                                              if (file) {
+                                                await handleContentImageUpload(block.id, 'tablet_image', file);
+                                              }
+                                            }}
+                                          />
+                                        </label>
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Mobile Image (Optional)</span>
                                       {block.data.mobile_image && (
                                         <img src={block.data.mobile_image} alt="Mobile Preview" style={{ width: '60px', height: '60px', objectFit: 'cover', border: '1px solid var(--color-border)', marginBottom: '0.25rem' }} />
                                       )}

@@ -724,6 +724,38 @@
   background-color: var(--color-bg);
 }
 
+/* Responsive Manual Dimensions Engine styling */
+@media (min-width: 1025px) {
+  .cms-hero.has-manual-height {
+    height: var(--hero-manual-height) !important;
+    min-height: auto !important;
+  }
+  .cms-hero.has-manual-height .cms-hero-split,
+  .cms-hero.has-manual-height .cms-hero-full {
+    height: var(--hero-manual-height) !important;
+    min-height: auto !important;
+  }
+  .cms-hero.has-manual-height .width-standard,
+  .cms-hero.has-manual-height .width-narrow,
+  .cms-hero.has-manual-height .width-grand {
+    height: 100% !important;
+  }
+}
+
+/* Disable manual height overrides inside mobile/tablet simulator previews */
+.preview-tablet .cms-hero.has-manual-height,
+.preview-mobile .cms-hero.has-manual-height {
+  height: auto !important;
+  min-height: auto !important;
+}
+.preview-tablet .cms-hero.has-manual-height .cms-hero-split,
+.preview-tablet .cms-hero.has-manual-height .cms-hero-full,
+.preview-mobile .cms-hero.has-manual-height .cms-hero-split,
+.preview-mobile .cms-hero.has-manual-height .cms-hero-full {
+  height: auto !important;
+  min-height: auto !important;
+}
+
 .cms-hero-split {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -797,6 +829,38 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 640px) {
+  .cms-hero-actions {
+    flex-wrap: nowrap !important;
+    gap: 1rem !important;
+    width: 100% !important;
+  }
+  .cms-hero-actions a,
+  .cms-hero-actions button {
+    padding: 0.75rem 1.25rem !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+.preview-mobile .cms-hero-actions {
+  flex-wrap: nowrap !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}
+.preview-mobile .cms-hero-actions a,
+.preview-mobile .cms-hero-actions button {
+  padding: 0.75rem 1.25rem !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
 .cms-hero-right {
   position: relative;
   overflow: hidden;
@@ -841,6 +905,19 @@
   background-position: center;
   text-align: center;
   color: #fff;
+  background-image: var(--hero-bg-desktop, none);
+}
+
+@media (max-width: 1024px) {
+  .cms-hero-full {
+    background-image: var(--hero-bg-tablet, var(--hero-bg-desktop, none)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cms-hero-full {
+    background-image: var(--hero-bg-mobile, var(--hero-bg-tablet, var(--hero-bg-desktop, none))) !important;
+  }
 }
 
 .cms-hero-full-overlay {
