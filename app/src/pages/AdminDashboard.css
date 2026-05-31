@@ -518,3 +518,447 @@
   transform: scale(1.03);
 }
 
+/* =========================================
+   STOREFRONT BUILDER PREMIUM HOVER STYLES
+   ========================================= */
+
+/* 1. Sub-Tab Navigation Buttons */
+.sb-subtab-button {
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-gray);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-heading);
+}
+
+.sb-subtab-button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--color-accent);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sb-subtab-button:hover {
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.sb-subtab-button:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+.sb-subtab-button.active {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.sb-subtab-button.active::after {
+  width: 100%;
+  left: 0;
+  background-color: var(--color-text);
+}
+
+/* 2. Component Vault Preset Cards */
+.vault-preset-card {
+  border: 1px solid var(--color-border) !important;
+  padding: 0.65rem 0.85rem !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+[data-theme="dark"] .vault-preset-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.vault-preset-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(197, 168, 128, 0.08) 0%, rgba(197, 168, 128, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.vault-preset-card:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 8px 24px rgba(197, 168, 128, 0.12) !important;
+  background: var(--color-bg) !important;
+}
+
+.vault-preset-card:hover::before {
+  opacity: 1;
+}
+
+/* 3. Layer Hierarchy Tree Card Nodes */
+.layer-node-card {
+  border: 1px solid var(--color-border) !important;
+  background-color: transparent !important;
+  border-radius: 6px !important;
+  padding: 0.65rem 0.85rem !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  cursor: pointer;
+}
+
+.layer-node-card:hover {
+  border-color: var(--color-text) !important;
+  background-color: rgba(197, 168, 128, 0.03) !important;
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.layer-node-card.selected {
+  border-color: var(--color-accent) !important;
+  background-color: rgba(197, 168, 128, 0.06) !important;
+  box-shadow: 0 4px 16px rgba(197, 168, 128, 0.1) !important;
+}
+
+.layer-node-card.dragging {
+  opacity: 0.4 !important;
+  border: 1px dashed var(--color-accent) !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  transform: scale(0.98) !important;
+}
+
+.layer-node-card.drag-over {
+  outline: 2px dashed var(--color-accent) !important;
+  background-color: rgba(197, 168, 128, 0.08) !important;
+  box-shadow: 0 6px 20px rgba(197, 168, 128, 0.15) !important;
+}
+
+.layer-node-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.layer-node-card:hover .layer-node-chevron {
+  color: var(--color-accent);
+}
+
+/* 4. Layer Node Controls (Fade and Slide In) */
+.layer-node-controls {
+  opacity: 0;
+  transform: translateX(6px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.layer-node-card:hover .layer-node-controls {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.layer-node-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.layer-node-btn:hover:not(:disabled) {
+  color: var(--color-text);
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .layer-node-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.layer-node-btn.delete:hover {
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* 5. Right Column Component Config Tabs */
+.config-tab-btn {
+  background: none !important;
+  border: none !important;
+  padding: 0.5rem 0 !important;
+  font-size: 0.7rem !important;
+  font-weight: 500 !important;
+  color: var(--color-gray) !important;
+  cursor: pointer !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px !important;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border-radius: 4px !important;
+}
+
+.config-tab-btn:hover {
+  color: var(--color-text) !important;
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .config-tab-btn:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.config-tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform: scaleX(0);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.config-tab-btn:hover::after {
+  transform: scaleX(1);
+}
+
+.config-tab-btn.active {
+  color: var(--color-text) !important;
+  font-weight: 700 !important;
+}
+
+.config-tab-btn.active::after {
+  transform: scaleX(1);
+  background-color: var(--color-text);
+}
+
+.config-tab-btn svg {
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
+}
+
+.config-tab-btn:hover svg {
+  transform: scale(1.15) rotate(5deg);
+  color: var(--color-accent);
+}
+
+.config-tab-btn.active svg {
+  transform: scale(1.1);
+}
+
+/* 6. Inputs & Select Fields Focus Glow */
+.admin-input,
+.admin-select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-input:hover,
+.admin-select:hover {
+  border-color: var(--color-accent);
+  background-color: rgba(197, 168, 128, 0.01);
+}
+
+.admin-input:focus,
+.admin-select:focus {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.12);
+  background-color: var(--color-bg);
+}
+
+textarea.admin-input {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 7. Range Sliders Premium Micro-Interactions */
+.admin-slider,
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  outline: none;
+  margin: 8px 0;
+  transition: background 0.25s ease;
+  cursor: ew-resize;
+}
+
+.admin-slider:hover,
+input[type="range"]:hover {
+  background: var(--color-gray);
+}
+
+/* Webkit Thumb */
+.admin-slider::-webkit-slider-thumb,
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid var(--color-bg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+}
+
+.admin-slider:hover::-webkit-slider-thumb,
+input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: var(--color-text);
+  transform: scale(1.3);
+  box-shadow: 0 4px 10px rgba(197, 168, 128, 0.3);
+}
+
+.admin-slider:active::-webkit-slider-thumb,
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.45);
+  background-color: var(--color-accent);
+}
+
+/* Firefox Thumb */
+.admin-slider::-moz-range-thumb,
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid var(--color-bg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+}
+
+.admin-slider:hover::-moz-range-thumb,
+input[type="range"]:hover::-moz-range-thumb {
+  background-color: var(--color-text);
+  transform: scale(1.3);
+  box-shadow: 0 4px 10px rgba(197, 168, 128, 0.3);
+}
+
+.admin-slider:active::-moz-range-thumb,
+input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.45);
+  background-color: var(--color-accent);
+}
+
+/* Component Vault Open Button Micro-pulse */
+.vault-toggle-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.vault-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(197, 168, 128, 0.3) !important;
+}
+
+.vault-toggle-btn svg {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vault-toggle-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* Publish Button Premium Slide */
+.btn-publish-slide {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-publish-slide:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(197, 168, 128, 0.35) !important;
+}
+
+.btn-publish-slide svg {
+  transition: transform 0.3s ease;
+}
+
+.btn-publish-slide:hover:not(:disabled) svg {
+  transform: translateY(-1px) scale(1.1);
+}
+
+/* Sleek Checkbox Styling */
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-bg);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  outline: none;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--color-accent);
+  background-color: rgba(197, 168, 128, 0.05);
+}
+
+input[type="checkbox"]:checked {
+  border-color: var(--color-text);
+  background-color: var(--color-text);
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  transform: scale(0);
+  transition: 0.2s transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background-color: var(--color-bg);
+  clip-path: polygon(14% 44%, 0 58%, 38% 96%, 100% 17%, 86% 3%, 38% 68%);
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.2);
+}
+
+
+

@@ -973,20 +973,30 @@
 .cms-cat-grid {
   display: grid;
   grid-template-columns: repeat(var(--grid-cols-desktop, 4), 1fr);
-  gap: 1.5rem;
+  gap: var(--cat-grid-gap-desktop, 1.5rem);
 }
 
 @media (max-width: 1024px) {
   .cms-cat-grid {
     grid-template-columns: repeat(var(--grid-cols-tablet, 2), 1fr);
+    gap: var(--cat-grid-gap-tablet, var(--cat-grid-gap-desktop, 1.5rem)) !important;
   }
 }
 
 @media (max-width: 768px) {
   .cms-cat-grid {
     grid-template-columns: repeat(var(--grid-cols-mobile, 1), 1fr);
-    gap: 1rem;
+    gap: var(--cat-grid-gap-mobile, var(--cat-grid-gap-tablet, var(--cat-grid-gap-desktop, 1rem))) !important;
   }
+}
+
+/* Simulator preview overrides for responsive category grid gaps */
+.preview-tablet .cms-cat-grid {
+  gap: var(--cat-grid-gap-tablet, var(--cat-grid-gap-desktop, 1.5rem)) !important;
+}
+
+.preview-mobile .cms-cat-grid {
+  gap: var(--cat-grid-gap-mobile, var(--cat-grid-gap-tablet, var(--cat-grid-gap-desktop, 1rem))) !important;
 }
 
 .cms-cat-card {
@@ -997,8 +1007,6 @@
   align-items: flex-start;
   justify-content: flex-start;
   padding: 1.5rem;
-  background-size: cover;
-  background-position: center;
   overflow: hidden;
   text-decoration: none;
   background-color: #ffffff;
@@ -1007,13 +1015,23 @@
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.cms-cat-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  z-index: 0;
+}
+
+
 .cms-cat-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 0.05) 100%);
+  background: linear-gradient(to bottom, rgba(91, 86, 86, 0.85) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 0.05) 100%);
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1;
 }
@@ -1025,7 +1043,7 @@
 }
 
 .cms-cat-card:hover .cms-cat-overlay {
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 0.1) 100%);
+  background: linear-gradient(to bottom, rgba(90, 87, 87, 0.95) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .cms-cat-name {
@@ -1622,13 +1640,13 @@
 .hover-zoom .cms-cat-card,
 .hover-zoom .product-card,
 .hover-zoom .cms-gallery-item,
-.hover-zoom .cms-cat-card img,
+.hover-zoom .cms-cat-card .cms-cat-bg,
 .hover-zoom .product-image,
 .hover-zoom .cms-gallery-img {
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-.hover-zoom .cms-cat-card:hover img,
+.hover-zoom .cms-cat-card:hover .cms-cat-bg,
 .hover-zoom .product-card:hover .product-image,
 .hover-zoom .cms-gallery-item:hover .cms-gallery-img {
   transform: scale(1.06) !important;
@@ -1925,4 +1943,106 @@
 .multi-item-slide-cta:hover {
   background-color: #f3f4f6;
   transform: scale(1.03);
+}
+
+/* =========================================
+   PREMIUM STOREFRONT HOVER PRESETS
+   ========================================= */
+
+/* 1. Glass Shimmer & Lift */
+.hover-shimmer .cms-cat-card,
+.hover-shimmer .product-card,
+.hover-shimmer .cms-gallery-item {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease, border-color 0.3s ease !important;
+}
+
+.hover-shimmer .cms-cat-card:hover,
+.hover-shimmer .product-card:hover,
+.hover-shimmer .cms-gallery-item:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--color-accent) !important;
+}
+
+.hover-shimmer .cms-cat-card::after,
+.hover-shimmer .product-card::after,
+.hover-shimmer .cms-gallery-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-25deg);
+  transition: none;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.hover-shimmer .cms-cat-card:hover::after,
+.hover-shimmer .product-card:hover::after,
+.hover-shimmer .cms-gallery-item:hover::after {
+  left: 150%;
+  transition: left 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 2. Warm Gold Ambient Glow */
+.hover-glow .cms-cat-card,
+.hover-glow .product-card,
+.hover-glow .cms-gallery-item {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease, border-color 0.3s ease !important;
+}
+
+.hover-glow .cms-cat-card:hover,
+.hover-glow .product-card:hover,
+.hover-glow .cms-gallery-item:hover {
+  transform: scale(1.02) translateY(-2px) !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 12px 30px rgba(197, 168, 128, 0.25) !important;
+}
+
+/* 3. Ken Burns Cinematic Zoom */
+.hover-kenburns .cms-cat-card,
+.hover-kenburns .product-card,
+.hover-kenburns .cms-gallery-item {
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.hover-kenburns .cms-cat-card:hover,
+.hover-kenburns .product-card:hover,
+.hover-kenburns .cms-gallery-item:hover {
+  border-color: var(--color-text) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06) !important;
+}
+
+.hover-kenburns .cms-cat-card .cms-cat-bg,
+.hover-kenburns .product-image,
+.hover-kenburns .cms-gallery-img {
+  transition: transform 8s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.hover-kenburns .cms-cat-card:hover .cms-cat-bg,
+.hover-kenburns .product-card:hover .product-image,
+.hover-kenburns .cms-gallery-item:hover .cms-gallery-img {
+  transform: scale(1.08) translate(0.5%, 0.5%) !important;
+}
+
+/* 4. Perspective 3D Tilt */
+.hover-tilt .cms-cat-card,
+.hover-tilt .product-card,
+.hover-tilt .cms-gallery-item {
+  perspective: 1000px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease, border-color 0.3s ease !important;
+}
+
+.hover-tilt .cms-cat-card:hover,
+.hover-tilt .product-card:hover,
+.hover-tilt .cms-gallery-item:hover {
+  transform: rotateX(4deg) rotateY(-4deg) translateY(-4px) !important;
+  border-color: var(--color-text) !important;
+  box-shadow: -8px 12px 25px rgba(0, 0, 0, 0.08) !important;
 }

@@ -690,7 +690,8 @@ const Home = () => {
         const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
         const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
         const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
-        const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+        const hoverPreset = block.animation_orchestrator?.hover_preset || block.data.hoverAnimation || 'zoom';
+        const hoverClass = `hover-${hoverPreset}`;
 
         const parallaxStyle = (block.data.parallaxBg && block.data.layout !== 'split' && block.data.desktop_image) ? {
           backgroundAttachment: 'fixed',
@@ -842,11 +843,14 @@ const Home = () => {
                   {block.data.title || 'Curated Categories'}
                 </h2>
                 <div
-                  className={`cms-cat-grid ${gapClass} ${hoverClass}`}
+                  className={`cms-cat-grid ${hoverClass}`}
                   style={{
                     '--grid-cols-desktop': dskCols,
                     '--grid-cols-tablet': tabCols,
-                    '--grid-cols-mobile': mobCols
+                    '--grid-cols-mobile': mobCols,
+                    ...(block.data.grid_gap_desktop !== undefined ? { '--cat-grid-gap-desktop': `${block.data.grid_gap_desktop}px` } : {}),
+                    ...(block.data.grid_gap_tablet !== undefined ? { '--cat-grid-gap-tablet': `${block.data.grid_gap_tablet}px` } : {}),
+                    ...(block.data.grid_gap_mobile !== undefined ? { '--cat-grid-gap-mobile': `${block.data.grid_gap_mobile}px` } : {})
                   } as React.CSSProperties}
                 >
                   {(block.data.categories || []).map((cat: any, cIdx: number) => {
@@ -858,11 +862,18 @@ const Home = () => {
                         to={`/shop/${slug}`}
                         className={`cms-cat-card animate-fade-up aspect-${aspect}`}
                         style={{
-                          backgroundImage: catObj.image ? `url(${catObj.image})` : 'none',
                           backgroundColor: catObj.image ? 'transparent' : '#f5f5f4',
                           animationDelay: `${cIdx * 0.04}s`
                         }}
                       >
+                        {catObj.image && (
+                          <div
+                            className="cms-cat-bg"
+                            style={{
+                              backgroundImage: `url(${catObj.image})`
+                            }}
+                          />
+                        )}
                         {catObj.image && <div className="cms-cat-overlay"></div>}
                         <span className="cms-cat-name animate-fade-up">
                           {catObj.name}

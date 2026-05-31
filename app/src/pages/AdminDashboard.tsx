@@ -9,7 +9,7 @@ import {
   TrendingUp, ShoppingBag, Box, Clock, CheckCircle,
   AlertCircle, Eye, EyeOff, RefreshCw, Plus, Trash2, ArrowUp, ArrowDown, Globe, Compass, Sparkles,
   Monitor, Tablet, Smartphone, Maximize2, Minimize2,
-  Copy, ChevronDown, ChevronRight, Grid, Sliders, Settings, Link, Layers, Edit3
+  Copy, ChevronDown, ChevronRight, Grid, Sliders, Settings, Link, Layers, Edit3, GripVertical
 } from 'lucide-react';
 import './AdminDashboard.css';
 import './Home.css';
@@ -815,6 +815,8 @@ const AdminDashboard = () => {
     };
   });
   const [selectedBlockId, setSelectedBlockId] = useState<string>("block_hero_01");
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   let renderEditMenuRef = (): React.ReactNode => null;
   const [fullscreenSidebarWidth, setFullscreenSidebarWidth] = useState<number>(420);
   const [showFullscreenSidebar, setShowFullscreenSidebar] = useState<boolean>(true);
@@ -2200,7 +2202,8 @@ const AdminDashboard = () => {
           const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
           const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
           const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
-          const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+          const hoverPreset = block.animation_orchestrator?.hover_preset || block.data.hoverAnimation || 'zoom';
+          const hoverClass = `hover-${hoverPreset}`;
 
           const parallaxStyle = (block.data.parallaxBg && block.data.layout !== 'split' && block.data.desktop_image) ? {
             backgroundAttachment: 'fixed',
@@ -2358,11 +2361,14 @@ const AdminDashboard = () => {
                     {block.data.title || 'Curated Categories'}
                   </h2>
                   <div
-                    className={`cms-cat-grid ${gapClass} ${hoverClass}`}
+                    className={`cms-cat-grid ${hoverClass}`}
                     style={{
                       '--grid-cols-desktop': dskCols,
                       '--grid-cols-tablet': tabCols,
-                      '--grid-cols-mobile': mobCols
+                      '--grid-cols-mobile': mobCols,
+                      ...(block.data.grid_gap_desktop !== undefined ? { '--cat-grid-gap-desktop': `${block.data.grid_gap_desktop}px` } : {}),
+                      ...(block.data.grid_gap_tablet !== undefined ? { '--cat-grid-gap-tablet': `${block.data.grid_gap_tablet}px` } : {}),
+                      ...(block.data.grid_gap_mobile !== undefined ? { '--cat-grid-gap-mobile': `${block.data.grid_gap_mobile}px` } : {})
                     } as React.CSSProperties}
                   >
                     {(block.data.categories || []).map((cat: any, cIdx: number) => {
@@ -2372,10 +2378,17 @@ const AdminDashboard = () => {
                           key={cIdx}
                           className={`cms-cat-card aspect-${aspect}`}
                           style={{
-                            backgroundImage: catObj.image ? `url(${catObj.image})` : 'none',
                             backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
                           }}
                         >
+                          {catObj.image && (
+                            <div
+                              className="cms-cat-bg"
+                              style={{
+                                backgroundImage: `url(${catObj.image})`
+                              }}
+                            />
+                          )}
                           {catObj.image && <div className="cms-cat-overlay"></div>}
                           <span className="cms-cat-name">
                             {catObj.name}
@@ -3159,11 +3172,7 @@ const AdminDashboard = () => {
                   <button
                     key={tab}
                     onClick={() => setCmsSubTab(tab)}
-                    style={{
-                      background: 'none', border: 'none', padding: '0.5rem 0', fontSize: '0.9rem', fontWeight: cmsSubTab === tab ? '700' : '400',
-                      color: cmsSubTab === tab ? 'var(--color-text)' : 'var(--color-gray)', borderBottom: cmsSubTab === tab ? '2px solid var(--color-text)' : 'none',
-                      cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
-                    }}
+                    className={`sb-subtab-button ${cmsSubTab === tab ? 'active' : ''}`}
                   >
                     {tab === 'visual' ? 'Storefront Builder' : tab === 'static' ? 'Static & SEO' : tab === 'navigation' ? 'Global Navigation' : tab === 'media' ? 'Media Library' : tab === 'shop_filters' ? 'Shop Filters' : tab === 'grid_settings' ? 'Grid Layout' : 'Custom Pages'}
                   </button>
@@ -3173,7 +3182,7 @@ const AdminDashboard = () => {
               {cmsSubTab === 'visual' && (
                 <button
                   onClick={publishStorefrontConfig}
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-publish-slide"
                   disabled={publishing}
                   style={{
                     padding: '0.45rem 1.25rem',
@@ -3182,7 +3191,6 @@ const AdminDashboard = () => {
                     alignItems: 'center',
                     gap: '0.5rem',
                     borderRadius: '4px',
-                    boxShadow: '0 4px 12px rgba(197, 168, 128, 0.25)',
                     opacity: publishing ? 0.7 : 1,
                     cursor: publishing ? 'not-allowed' : 'pointer'
                   }}
@@ -3338,7 +3346,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                     {/* Component Vault Open Button */}
                     <button
                       onClick={() => setShowVault(!showVault)}
-                      className="btn btn-primary"
+                      className="btn btn-primary vault-toggle-btn"
                       style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
                     >
                       <Plus size={14} /> Component Vault
@@ -3370,10 +3378,8 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           ].map((preset) => (
                             <div
                               key={preset.type}
-                              style={{ border: '1px solid var(--color-border)', padding: '0.5rem', borderRadius: '2px', cursor: 'pointer' }}
+                              className="vault-preset-card"
                               onClick={() => handleAddBlockFromVault(preset.type, preset.tag)}
-                              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-text)'}
-                              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
                             >
                               <div style={{ fontWeight: '700', fontSize: '0.75rem' }}>{preset.type}</div>
                               <div style={{ fontSize: '0.6rem', color: 'var(--color-gray)' }}>{preset.desc}</div>
@@ -3393,26 +3399,66 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         return (
                           <div
                             key={block.id}
-                            style={{
-                              border: `1px solid ${isSelected ? 'var(--color-text)' : 'var(--color-border)'}`,
-                              backgroundColor: isSelected ? 'rgba(0,0,0,0.01)' : 'transparent',
-                              borderRadius: '4px',
-                              padding: '0.5rem'
+                            className={`layer-node-card ${isSelected ? 'selected' : ''} ${draggingIndex === idx ? 'dragging' : ''} ${dragOverIndex === idx ? 'drag-over' : ''}`}
+                            draggable="true"
+                            onDragStart={(e) => {
+                              setDraggingIndex(idx);
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              if (dragOverIndex !== idx) {
+                                setDragOverIndex(idx);
+                              }
+                            }}
+                            onDragLeave={() => {
+                              setDragOverIndex(null);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingIndex(null);
+                              setDragOverIndex(null);
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              if (draggingIndex === null || draggingIndex === idx) return;
+                              const blocks = [...cmsPageConfig.blocks];
+                              const draggedBlock = blocks[draggingIndex];
+                              // remove dragged item
+                              blocks.splice(draggingIndex, 1);
+                              // insert at target index
+                              blocks.splice(idx, 0, draggedBlock);
+                              // reassign sequence orders
+                              const updated = blocks.map((b, i) => ({ ...b, order: i + 1 }));
+                              setCmsPageConfig({ ...cmsPageConfig, blocks: updated });
+                              setDraggingIndex(null);
+                              setDragOverIndex(null);
+                              showToast("Block order updated");
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.25rem' }}>
-                              <div
-                                onClick={() => {
-                                  setExpandedNodes({ ...expandedNodes, [block.id]: !isExpanded });
-                                }}
-                                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                              >
-                                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                {/* Grab handle */}
+                                <div
+                                  style={{ display: 'flex', alignItems: 'center', cursor: 'grab', color: 'var(--color-gray)', padding: '0 2px' }}
+                                  title="Drag to reorder"
+                                >
+                                  <GripVertical size={12} />
+                                </div>
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedNodes({ ...expandedNodes, [block.id]: !isExpanded });
+                                  }}
+                                  className="layer-node-chevron"
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                </div>
                               </div>
 
                               <div
                                 onClick={() => setSelectedBlockId(block.id)}
-                                style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px' }}
+                                style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px', marginLeft: '0.25rem' }}
                               >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                   <span style={{ fontWeight: '700', fontSize: '0.75rem' }}>{idx + 1}. {block.block_type}</span>
@@ -3424,16 +3470,16 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                               </div>
 
                               {/* Node action reorder/trash shortcuts */}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                                <button onClick={() => handleMoveBlock(idx, 'up')} disabled={idx === 0} style={{ border: 'none', background: 'transparent', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowUp size={11} /></button>
-                                <button onClick={() => handleMoveBlock(idx, 'down')} disabled={idx === cmsPageConfig.blocks.length - 1} style={{ border: 'none', background: 'transparent', cursor: idx === cmsPageConfig.blocks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--color-gray)' }}><ArrowDown size={11} /></button>
-                                <button onClick={() => handleDeleteBlock(block.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#f87171' }}><Trash2 size={11} /></button>
+                              <div className="layer-node-controls" onClick={(e) => e.stopPropagation()}>
+                                <button onClick={() => handleMoveBlock(idx, 'up')} disabled={idx === 0} className="layer-node-btn" style={{ cursor: idx === 0 ? 'not-allowed' : 'pointer' }}><ArrowUp size={11} /></button>
+                                <button onClick={() => handleMoveBlock(idx, 'down')} disabled={idx === cmsPageConfig.blocks.length - 1} className="layer-node-btn" style={{ cursor: idx === cmsPageConfig.blocks.length - 1 ? 'not-allowed' : 'pointer' }}><ArrowDown size={11} /></button>
+                                <button onClick={() => handleDeleteBlock(block.id)} className="layer-node-btn delete"><Trash2 size={11} /></button>
                               </div>
                             </div>
 
                             {/* Expanded attributes sub-tree */}
                             {isExpanded && (
-                              <div style={{ borderLeft: '1px dashed var(--color-border)', marginLeft: '6px', paddingLeft: '8px', marginTop: '0.35rem', display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.65rem', color: 'var(--color-gray)' }}>
+                              <div style={{ borderLeft: '1px dashed var(--color-border)', marginLeft: '18px', paddingLeft: '8px', marginTop: '0.35rem', display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.65rem', color: 'var(--color-gray)' }}>
                                 <div>• Padding: <span style={{ fontWeight: 600 }}>{block.layout_configuration?.padding?.preset || 'medium'}</span></div>
                                 <div>• Aspect Ratio: <span style={{ fontWeight: 600 }}>{block.layout_configuration?.aspect_ratio || 'portrait'}</span></div>
                                 <div>• Hover Effect: <span style={{ fontWeight: 600 }}>{block.animation_orchestrator?.hover_preset || 'scale_and_shift'}</span></div>
@@ -3613,7 +3659,8 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                               const themeClass = block.data.themeStyle ? `theme-${block.data.themeStyle}` : 'theme-light';
                               const alignClass = block.data.textAlign ? `align-${block.data.textAlign}` : 'align-left';
                               const gapClass = block.data.columnGap ? `gap-${block.data.columnGap}` : 'gap-standard';
-                              const hoverClass = block.data.hoverAnimation ? `hover-${block.data.hoverAnimation}` : 'hover-zoom';
+                              const hoverPreset = block.animation_orchestrator?.hover_preset || block.data.hoverAnimation || 'zoom';
+                              const hoverClass = `hover-${hoverPreset}`;
                               const widthClass = block.data.sectionWidth ? `width-${block.data.sectionWidth}` : 'width-standard';
 
                               const sectionStyle: React.CSSProperties = {
@@ -3715,13 +3762,15 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
                                       {/* Grid mapping columns slider values dynamically in style overrides */}
                                       <div
-                                        className={`cms-cat-grid ${gapClass} ${hoverClass}`}
+                                        className={`cms-cat-grid ${hoverClass}`}
                                         style={{
                                           display: 'grid',
                                           '--grid-cols-desktop': dskCols,
                                           '--grid-cols-tablet': tabCols,
                                           '--grid-cols-mobile': mobCols,
-                                          gap: '1rem'
+                                          ...(block.data.grid_gap_desktop !== undefined ? { '--cat-grid-gap-desktop': `${block.data.grid_gap_desktop}px` } : {}),
+                                          ...(block.data.grid_gap_tablet !== undefined ? { '--cat-grid-gap-tablet': `${block.data.grid_gap_tablet}px` } : {}),
+                                          ...(block.data.grid_gap_mobile !== undefined ? { '--cat-grid-gap-mobile': `${block.data.grid_gap_mobile}px` } : {})
                                         } as React.CSSProperties}
                                       >
                                         {(block.data.categories || []).map((cat: any, cIdx: number) => {
@@ -3731,12 +3780,19 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                               key={cIdx}
                                               className={`cms-cat-card aspect-${aspect}`}
                                               style={{
-                                                backgroundImage: catObj.image ? `url(${catObj.image})` : 'none',
-                                                backgroundColor: '#f5f5f4',
-                                                backgroundSize: fit
+                                                backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
                                               }}
                                             >
-                                              <div className="cms-cat-overlay"></div>
+                                              {catObj.image && (
+                                                <div
+                                                  className="cms-cat-bg"
+                                                  style={{
+                                                    backgroundImage: `url(${catObj.image})`,
+                                                    backgroundSize: fit
+                                                  }}
+                                                />
+                                              )}
+                                              {catObj.image && <div className="cms-cat-overlay"></div>}
                                               <span className="cms-cat-name">{catObj.name}</span>
                                             </div>
                                           );
@@ -4102,13 +4158,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                   key={t.id}
                                   type="button"
                                   onClick={() => setActiveConfigTab(t.id as any)}
-                                  style={{
-                                    background: 'none', border: 'none', padding: '0.35rem 0',
-                                    fontSize: '0.7rem', fontWeight: isSel ? '700' : '400',
-                                    color: isSel ? 'var(--color-text)' : 'var(--color-gray)',
-                                    borderBottom: isSel ? '2px solid var(--color-text)' : 'none',
-                                    cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px'
-                                  }}
+                                  className={`config-tab-btn ${isSel ? 'active' : ''}`}
                                 >
                                   {t.icon}
                                   <span>{t.label}</span>
@@ -4507,6 +4557,48 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                             </button>
                                           );
                                         })}
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                      <span style={{ fontWeight: 600 }}>Grid Gaps (1px - 30px)</span>
+                                      
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                          <span>Desktop Gap:</span>
+                                          <strong>{block.data.grid_gap_desktop !== undefined ? block.data.grid_gap_desktop : 24}px</strong>
+                                        </div>
+                                        <input
+                                          type="range" min="1" max="30"
+                                          value={block.data.grid_gap_desktop !== undefined ? block.data.grid_gap_desktop : 24}
+                                          onChange={e => handleUpdateBlockData(block.id, 'grid_gap_desktop', Number(e.target.value))}
+                                          style={{ width: '100%', cursor: 'ew-resize' }}
+                                        />
+                                      </div>
+
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                          <span>Tablet Gap:</span>
+                                          <strong>{block.data.grid_gap_tablet !== undefined ? block.data.grid_gap_tablet : 24}px</strong>
+                                        </div>
+                                        <input
+                                          type="range" min="1" max="30"
+                                          value={block.data.grid_gap_tablet !== undefined ? block.data.grid_gap_tablet : 24}
+                                          onChange={e => handleUpdateBlockData(block.id, 'grid_gap_tablet', Number(e.target.value))}
+                                          style={{ width: '100%', cursor: 'ew-resize' }}
+                                        />
+                                      </div>
+
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                                          <span>Mobile Gap:</span>
+                                          <strong>{block.data.grid_gap_mobile !== undefined ? block.data.grid_gap_mobile : 16}px</strong>
+                                        </div>
+                                        <input
+                                          type="range" min="1" max="30"
+                                          value={block.data.grid_gap_mobile !== undefined ? block.data.grid_gap_mobile : 16}
+                                          onChange={e => handleUpdateBlockData(block.id, 'grid_gap_mobile', Number(e.target.value))}
+                                          style={{ width: '100%', cursor: 'ew-resize' }}
+                                        />
                                       </div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
@@ -5635,14 +5727,20 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                                   <span style={{ fontWeight: 600 }}>Hover Micro-Interaction Presets</span>
                                   <select
-                                    value={animConfig.hover_preset || 'scale_and_shift'}
-                                    onChange={e => handleUpdateBlockAnimation(block.id, 'hover_preset', e.target.value)}
+                                    value={animConfig.hover_preset || 'zoom'}
+                                    onChange={e => {
+                                      handleUpdateBlockAnimation(block.id, 'hover_preset', e.target.value);
+                                      handleUpdateBlockData(block.id, 'hoverAnimation', e.target.value);
+                                    }}
                                     className="admin-select"
                                   >
                                     <option value="none">None (Static)</option>
-                                    <option value="magnetic">Magnetic Snap (Cursor Delta Vector Pull)</option>
-                                    <option value="scale_and_shift">Scale & Shift + Sheen (Lift + Glare)</option>
-                                    <option value="minimal_shift">Minimal Translate Lift</option>
+                                    <option value="zoom">Classic Zoom (Default Image Scale)</option>
+                                    <option value="lift">Minimal Lift (Translate Vertical)</option>
+                                    <option value="shimmer">Glass Shimmer & Lift (Gleam sweep)</option>
+                                    <option value="glow">Warm Gold Ambient Glow (Accent glow)</option>
+                                    <option value="kenburns">Slow Ken Burns Pan (Cinematic slow zoom)</option>
+                                    <option value="tilt">Perspective Tilt (3D Tilt & Shadow)</option>
                                   </select>
                                   <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Assigns state-driven hardware-accelerated transitions to layout element containers on hover vectors.</span>
                                 </div>
