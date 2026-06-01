@@ -33,6 +33,20 @@ const pageTypeMap: Record<string, string> = {
   'sustainability': 'Craft & Sustainability'
 };
 
+const AVAILABLE_MAIN_CATEGORIES = [
+  { slug: 'shirts', name: 'Shirts', defaultImage: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=300' },
+  { slug: 't-shirts', name: 'T-Shirts', defaultImage: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'polo', name: 'POLO', defaultImage: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'jeans', name: 'Jeans', defaultImage: 'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'trousers', name: 'Trousers', defaultImage: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'linen', name: 'LINEN', defaultImage: 'https://images.unsplash.com/photo-1596755389378-7fd0f195856c?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'cargo-pants', name: 'Cargo Pants', defaultImage: 'https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'joggers', name: 'Joggers', defaultImage: 'https://images.unsplash.com/photo-1551854838-212c50b4c184?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'shorts', name: 'SHORTS', defaultImage: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'overshirts', name: 'Overshirts', defaultImage: 'https://images.unsplash.com/photo-1479064555552-3ef4979f8908?auto=format&fit=crop&q=80&w=300' },
+  { slug: 'footwear', name: 'Footwear', defaultImage: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=300' }
+];
+
 const getAvailableSizesForCategory = (category: string) => {
   const catLower = (category || '').toLowerCase();
   if (catLower === 'footwear') {
@@ -210,7 +224,7 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
                     <span className="multi-item-slide-badge">{slide.badge}</span>
                   )}
                   {!slide.badge && <div />}
-                  
+
                   <div className="multi-item-slide-content">
                     <h3 className="multi-item-slide-title">{slide.title}</h3>
                     {slide.subtitle && (
@@ -505,7 +519,7 @@ const AdminDashboard = () => {
     const saved = localStorage.getItem('aura_custom_pages');
     try {
       return saved ? JSON.parse(saved) : [];
-    } catch(e) {
+    } catch (e) {
       return [];
     }
   });
@@ -541,7 +555,7 @@ const AdminDashboard = () => {
     const saved = localStorage.getItem('aura_sales_campaigns');
     try {
       return saved ? JSON.parse(saved) : [];
-    } catch(e) {
+    } catch (e) {
       return [];
     }
   });
@@ -3360,7 +3374,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           <button onClick={() => setShowVault(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-gray)' }}><X size={14} /></button>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                        <div className="sb-scrollable-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '240px', overflowY: 'auto' }}>
                           {[
                             { type: 'HeroBanner', desc: 'Campaign Split Hero', tag: 'section' },
                             { type: 'HeroSlider', desc: 'Auto Rotating Slideshow Banner', tag: 'section' },
@@ -3390,7 +3404,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                     )}
 
                     {/* Layer hierarchy tree nodes list */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', maxHeight: '420px' }}>
+                    <div className="sb-scrollable-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', maxHeight: '420px' }}>
                       {cmsPageConfig.blocks.map((block: any, idx: number) => {
                         const isSelected = block.id === selectedBlockId;
                         const isExpanded = expandedNodes[block.id] || false;
@@ -4561,7 +4575,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
                                       <span style={{ fontWeight: 600 }}>Grid Gaps (1px - 30px)</span>
-                                      
+
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
                                           <span>Desktop Gap:</span>
@@ -4602,8 +4616,30 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                       </div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontWeight: 600 }}>Grid Categories</span>
+                                      <span style={{ fontWeight: 600 }}>Grid Categories</span>
+
+                                      {/* Quick Add Dropdown & Custom Button */}
+                                      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                                        <select
+                                          onChange={(e) => {
+                                            const selectedSlug = e.target.value;
+                                            if (!selectedSlug) return;
+                                            const matched = AVAILABLE_MAIN_CATEGORIES.find(c => c.slug === selectedSlug);
+                                            if (matched) {
+                                              const currentCats = block.data.categories || [];
+                                              const updated = [...currentCats, { name: matched.name, image: matched.defaultImage }];
+                                              handleUpdateBlockData(block.id, 'categories', updated);
+                                            }
+                                            e.target.value = ''; // Reset select
+                                          }}
+                                          className="admin-select"
+                                          style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: '28px', backgroundColor: 'var(--color-bg)' }}
+                                        >
+                                          <option value="">+ Add Main Category...</option>
+                                          {AVAILABLE_MAIN_CATEGORIES.map(c => (
+                                            <option key={c.slug} value={c.slug} style={{ backgroundColor: 'var(--color-bg)' }}>{c.name}</option>
+                                          ))}
+                                        </select>
                                         <button
                                           type="button"
                                           onClick={() => {
@@ -4612,11 +4648,12 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                             handleUpdateBlockData(block.id, 'categories', updated);
                                           }}
                                           className="btn btn-secondary"
-                                          style={{ padding: '2px 8px', fontSize: '0.65rem' }}
+                                          style={{ padding: '0.2rem 0.5rem', fontSize: '0.65rem', whiteSpace: 'nowrap', height: '28px' }}
                                         >
-                                          + Add category
+                                          + Custom
                                         </button>
                                       </div>
+
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         {(block.data.categories || []).map((cat: any, cIdx: number) => {
                                           const catObj = typeof cat === 'string' ? { name: cat, image: '' } : cat;
@@ -4632,21 +4669,51 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                               >
                                                 ×
                                               </button>
-                                              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Category Name</span>
-                                                <input
-                                                  type="text"
-                                                  value={catObj.name || ''}
-                                                  onChange={e => {
-                                                    const updated = [...block.data.categories];
-                                                    const currentObj = typeof updated[cIdx] === 'string' ? { name: updated[cIdx], image: '' } : updated[cIdx];
-                                                    updated[cIdx] = { ...currentObj, name: e.target.value };
-                                                    handleUpdateBlockData(block.id, 'categories', updated);
-                                                  }}
-                                                  className="admin-input"
-                                                  style={{ padding: '0.25rem', fontSize: '0.75rem' }}
-                                                />
-                                              </label>
+
+                                              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                                <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Category Name</span>
+                                                  <input
+                                                    type="text"
+                                                    value={catObj.name || ''}
+                                                    onChange={e => {
+                                                      const updated = [...block.data.categories];
+                                                      const currentObj = typeof updated[cIdx] === 'string' ? { name: updated[cIdx], image: '' } : updated[cIdx];
+                                                      updated[cIdx] = { ...currentObj, name: e.target.value };
+                                                      handleUpdateBlockData(block.id, 'categories', updated);
+                                                    }}
+                                                    className="admin-input"
+                                                    style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                                  />
+                                                </label>
+
+                                                <label style={{ width: '100px', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                                  <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Main Preset</span>
+                                                  <select
+                                                    value={AVAILABLE_MAIN_CATEGORIES.some(c => c.name.toLowerCase() === (catObj.name || '').toLowerCase()) ? AVAILABLE_MAIN_CATEGORIES.find(c => c.name.toLowerCase() === (catObj.name || '').toLowerCase())?.slug : ''}
+                                                    onChange={e => {
+                                                      const selectedSlug = e.target.value;
+                                                      if (selectedSlug) {
+                                                        const matched = AVAILABLE_MAIN_CATEGORIES.find(c => c.slug === selectedSlug);
+                                                        if (matched) {
+                                                          const updated = [...block.data.categories];
+                                                          const currentObj = typeof updated[cIdx] === 'string' ? { name: updated[cIdx], image: '' } : updated[cIdx];
+                                                          updated[cIdx] = { ...currentObj, name: matched.name, image: matched.defaultImage };
+                                                          handleUpdateBlockData(block.id, 'categories', updated);
+                                                        }
+                                                      }
+                                                    }}
+                                                    className="admin-select"
+                                                    style={{ padding: '0.25rem', fontSize: '0.75rem', height: '28px', backgroundColor: 'var(--color-bg)' }}
+                                                  >
+                                                    <option value="" style={{ backgroundColor: 'var(--color-bg)' }}>Custom</option>
+                                                    {AVAILABLE_MAIN_CATEGORIES.map(c => (
+                                                      <option key={c.slug} value={c.slug} style={{ backgroundColor: 'var(--color-bg)' }}>{c.name}</option>
+                                                    ))}
+                                                  </select>
+                                                </label>
+                                              </div>
+
                                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                                                 <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Category Image</span>
                                                 {catObj.image && (
@@ -6939,7 +7006,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.25rem' }}>Shop Page Category Toggles</h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)' }}>Manage the categories that show up as toggles at the top of the View All Products page. Drag/re-order, edit label casing/slugs, or add new category parameters dynamically.</p>
                 </div>
-                
+
                 {/* List of Filters */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {shopFilters.map((filter, index) => (
@@ -6974,7 +7041,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           ▼
                         </button>
                       </div>
-                      
+
                       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
                           <label style={{ fontSize: '0.7rem', color: 'var(--color-gray)', display: 'block', marginBottom: '0.15rem' }}>DISPLAY LABEL</label>
@@ -7005,7 +7072,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           />
                         </div>
                       </div>
-                      
+
                       <button
                         type="button"
                         onClick={() => {
@@ -7057,7 +7124,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                   >
                     Reset to Default
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={() => {
@@ -7197,10 +7264,10 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
             {/* Custom Pages Manager */}
             {cmsSubTab === 'custom_pages' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                
+
                 {/* Main Workspace: 2 Column Editor & Live Preview */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
-                  
+
                   {/* Left Column: Form Panel */}
                   <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
@@ -7320,34 +7387,34 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             <span style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>Auto-apply tailored premium typography, grids, borders and styles mapping to this category.</span>
                           </div>
                           <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', position: 'relative' }}>
-                            <input 
-                              type="checkbox" 
-                              checked={newPageUseDynamicTheme} 
-                              onChange={e => setNewPageUseDynamicTheme(e.target.checked)} 
+                            <input
+                              type="checkbox"
+                              checked={newPageUseDynamicTheme}
+                              onChange={e => setNewPageUseDynamicTheme(e.target.checked)}
                               style={{ width: '40px', height: '20px', appearance: 'none', backgroundColor: newPageUseDynamicTheme ? 'var(--color-accent)' : '#cbd5e1', borderRadius: '15px', position: 'relative', outline: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
                             />
-                            <span style={{ 
-                              width: '16px', 
-                              height: '16px', 
-                              backgroundColor: '#ffffff', 
-                              borderRadius: '50%', 
-                              position: 'absolute', 
-                              top: '2px', 
-                              left: newPageUseDynamicTheme ? '22px' : '2px', 
-                              transition: 'left 0.2s', 
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)' 
+                            <span style={{
+                              width: '16px',
+                              height: '16px',
+                              backgroundColor: '#ffffff',
+                              borderRadius: '50%',
+                              position: 'absolute',
+                              top: '2px',
+                              left: newPageUseDynamicTheme ? '22px' : '2px',
+                              transition: 'left 0.2s',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
                             }} />
                           </label>
                         </div>
 
                         {newPageUseDynamicTheme && (
-                          <div style={{ 
-                            fontSize: '0.75rem', 
-                            lineHeight: '1.4', 
-                            color: '#1e3a8a', 
-                            backgroundColor: '#eff6ff', 
-                            borderLeft: '3px solid #3b82f6', 
-                            padding: '0.65rem 0.85rem', 
+                          <div style={{
+                            fontSize: '0.75rem',
+                            lineHeight: '1.4',
+                            color: '#1e3a8a',
+                            backgroundColor: '#eff6ff',
+                            borderLeft: '3px solid #3b82f6',
+                            padding: '0.65rem 0.85rem',
                             borderRadius: '0 2px 2px 0',
                             display: 'flex',
                             flexDirection: 'column',
@@ -7376,7 +7443,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                     {/* Section 2: Banner Hero Settings */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>2. Hero Banner Design</span>
-                      
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Banner Title / Subtitle
                           <input
@@ -7423,7 +7490,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--color-accent)', letterSpacing: '0.05em' }}>TITLE TYPOGRAPHY</span>
-                            
+
                             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8rem', fontWeight: '600' }}>Font Family
                               <select
                                 value={newPageBannerTitleFont}
@@ -7596,7 +7663,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>3. SEO Tags Optimization</span>
                         <span style={{ fontSize: '0.7rem', color: '#15803d', backgroundColor: '#dcfce7', padding: '0.1rem 0.4rem', borderRadius: '2px', fontWeight: 'bold' }}>AUTO SEO ENABLED</span>
                       </div>
-                      
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>SEO Meta Title (Optional)
                           <input
@@ -7623,9 +7690,9 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                     {/* Section 4: Product Selector & Sequencing */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>4. Product Showcase Catalog</span>
-                      
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
-                        
+
                         {/* Selector Checklist */}
                         <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -7917,34 +7984,34 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           }}>
                             {!newPageBannerHideText && (
                               <>
-                                <span style={{ 
-                                  fontSize: '0.5rem', 
-                                  textTransform: 'uppercase', 
-                                  letterSpacing: '0.15em', 
-                                  color: newPageBannerSubtitleColor || '#facc15', 
+                                <span style={{
+                                  fontSize: '0.5rem',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.15em',
+                                  color: newPageBannerSubtitleColor || '#facc15',
                                   fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif',
                                   marginBottom: '0.25rem',
                                   fontWeight: '600'
                                 }}>
                                   {pageTypeMap[newPageType] || 'Brand Showcase'}
                                 </span>
-                                <h4 style={{ 
-                                  fontSize: '1rem', 
-                                  fontFamily: newPageBannerTitleFont === 'Playfair Display' || newPageBannerTitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
+                                <h4 style={{
+                                  fontSize: '1rem',
+                                  fontFamily: newPageBannerTitleFont === 'Playfair Display' || newPageBannerTitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif',
                                   color: newPageBannerTitleColor || '#ffffff',
-                                  margin: '0 0 0.25rem 0', 
+                                  margin: '0 0 0.25rem 0',
                                   fontWeight: 'bold',
-                                  lineHeight: '1.2' 
+                                  lineHeight: '1.2'
                                 }}>
                                   {newPageTitle || 'Curated Design'}
                                 </h4>
                                 {newPageBannerTitle && (
-                                  <h5 style={{ 
-                                    fontSize: '0.65rem', 
-                                    fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
-                                    color: newPageBannerSubtitleColor || '#facc15', 
-                                    margin: '0 0 0.35rem 0', 
-                                    fontWeight: '600' 
+                                  <h5 style={{
+                                    fontSize: '0.65rem',
+                                    fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif',
+                                    color: newPageBannerSubtitleColor || '#facc15',
+                                    margin: '0 0 0.35rem 0',
+                                    fontWeight: '600'
                                   }}>
                                     {newPageBannerTitle}
                                   </h5>
@@ -7989,36 +8056,36 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
                         {/* Banner Contents for split, minimal, immersive, glass, overlay-bold */}
                         {newPageBannerStyle !== 'editorial-offset' && !newPageBannerHideText && (
-                          <div style={{ 
-                            position: 'relative', 
-                            zIndex: 2, 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center', 
+                          <div style={{
+                            position: 'relative',
+                            zIndex: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: newPageBannerStyle === 'split' ? 'flex-start' : 'center',
                             maxWidth: '90%',
                             backgroundColor: newPageBannerStyle === 'glass' ? 'rgba(0,0,0,0.2)' : 'transparent',
                             padding: newPageBannerStyle === 'glass' ? '1rem' : '0',
                             borderRadius: '4px'
                           }}>
-                            <span style={{ 
-                              fontSize: '0.55rem', 
-                              textTransform: 'uppercase', 
-                              letterSpacing: '0.15em', 
-                              color: newPageBannerSubtitleColor || '#facc15', 
-                              padding: '0.1rem 0.4rem', 
-                              borderRadius: '1px', 
-                              fontWeight: '800', 
+                            <span style={{
+                              fontSize: '0.55rem',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.15em',
+                              color: newPageBannerSubtitleColor || '#facc15',
+                              padding: '0.1rem 0.4rem',
+                              borderRadius: '1px',
+                              fontWeight: '800',
                               marginBottom: '0.5rem',
                               fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif'
                             }}>
                               {pageTypeMap[newPageType] || 'Brand Showcase'}
                             </span>
-                            
-                            <h4 style={{ 
-                              fontSize: newPageBannerStyle === 'overlay-bold' ? '1.5rem' : '1.25rem', 
-                              fontFamily: newPageBannerTitleFont === 'Playfair Display' || newPageBannerTitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
+
+                            <h4 style={{
+                              fontSize: newPageBannerStyle === 'overlay-bold' ? '1.5rem' : '1.25rem',
+                              fontFamily: newPageBannerTitleFont === 'Playfair Display' || newPageBannerTitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif',
                               color: newPageBannerTitleColor || '#ffffff',
-                              margin: '0 0 0.2rem 0', 
+                              margin: '0 0 0.2rem 0',
                               fontWeight: '900',
                               letterSpacing: newPageBannerStyle === 'overlay-bold' ? '0.05em' : 'normal',
                               textTransform: newPageBannerStyle === 'overlay-bold' ? 'uppercase' : 'none'
@@ -8027,11 +8094,11 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                             </h4>
 
                             {newPageBannerTitle && (
-                              <h5 style={{ 
-                                fontSize: '0.75rem', 
-                                fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif', 
-                                color: newPageBannerSubtitleColor || '#facc15', 
-                                margin: '0 0 0.4rem 0', 
+                              <h5 style={{
+                                fontSize: '0.75rem',
+                                fontFamily: newPageBannerSubtitleFont === 'Playfair Display' || newPageBannerSubtitleFont === 'Cormorant Garamond' ? 'serif' : 'sans-serif',
+                                color: newPageBannerSubtitleColor || '#facc15',
+                                margin: '0 0 0.4rem 0',
                                 fontWeight: '600',
                                 letterSpacing: '0.1em'
                               }}>
@@ -8194,7 +8261,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                     setNewPageSeoTitle(page.seoTitle || '');
                                     setNewPageSeoDescription(page.seoDescription || '');
                                     setNewPageUseDynamicTheme(page.useDynamicTheme !== false);
-                                    
+
                                     // Scroll to the editor form smoothly
                                     window.scrollTo({ top: 300, behavior: 'smooth' });
                                   }}
@@ -8230,7 +8297,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 </button>
                               </div>
                             </div>
-                            
+
                             <div style={{ fontSize: '0.8rem', color: 'var(--color-gray)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                               <span>Path URL Slug: <a href={`/page/${page.slug}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>/page/{page.slug}</a></span>
                               <span>Products Featured: <strong>{page.productIds?.length || 0} Products</strong></span>
@@ -8572,7 +8639,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         setNewCampaignStartDate('');
                         setNewCampaignEndDate('');
                         setNewCampaignSelectedProducts([]);
-                        
+
                         alert('Promotional Sales Campaign activated successfully!');
                       } catch (err: any) {
                         console.error("Failed to sync sales campaigns to DB:", err);
@@ -8608,7 +8675,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 {camp.type === 'flash_sale' ? '⚡ Flash Sale' : '🎉 Special Sale'}
                               </span>
                             </div>
-                            
+
                             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                               <button
                                 type="button"
@@ -9376,7 +9443,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
       {showSubcatModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
           <div style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '2.5rem', width: '100%', maxWidth: '600px', borderRadius: '4px', border: '1px solid var(--color-border)', position: 'relative' }}>
-            <button 
+            <button
               onClick={() => setShowSubcatModal(false)}
               style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-text)' }}
             >
@@ -9415,23 +9482,23 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               ) : (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {(subcategories[selectedSubcatMainCat] || []).map(sub => (
-                    <span 
-                      key={sub} 
-                      style={{ 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '0.5rem', 
-                        padding: '0.3rem 0.75rem', 
-                        backgroundColor: 'rgba(0,0,0,0.05)', 
-                        border: '1px solid var(--color-border)', 
-                        borderRadius: '20px', 
+                    <span
+                      key={sub}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.3rem 0.75rem',
+                        backgroundColor: 'rgba(0,0,0,0.05)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '20px',
                         fontSize: '0.8rem',
                         textTransform: 'capitalize'
                       }}
                     >
                       {sub.replace(/-/g, ' ')}
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => {
                           const updatedList = (subcategories[selectedSubcatMainCat] || []).filter(item => item !== sub);
                           const updated = {
@@ -9466,8 +9533,8 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                   }
                 }}
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleAddSubcategoryFromModal}
                 className="btn btn-primary"
                 style={{ padding: '0.75rem 1.5rem', fontSize: '0.85rem' }}

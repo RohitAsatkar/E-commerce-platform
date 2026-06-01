@@ -583,6 +583,30 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  flex-shrink: 0 !important;
+}
+
+/* Custom Thin Scrollbar for Component Vault & Sidebar Panel */
+.sb-scrollable-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sb-scrollable-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sb-scrollable-container::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.sb-scrollable-container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+.sb-scrollable-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 [data-theme="dark"] .vault-preset-card {
