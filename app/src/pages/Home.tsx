@@ -26,7 +26,7 @@ const DEFAULT_CMS_CONFIG = {
       scheduling: { start_date: "", end_date: "" },
       data: {
         layout: "split",
-        title: "AURA / THE NEW MINIMAL",
+        title: "AURA | Quiet Luxury & Minimalist Sustainable Apparel",
         subtitle: "FALL / WINTER COLLECTION",
         description: "Discover the new standard of minimalist luxury apparel. Crafted for those who appreciate understated elegance and timeless silhouette.",
         cta_text: "VIEW ALL",
@@ -643,6 +643,55 @@ const Home = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = "AURA | The Art of Minimalist Luxury Apparel";
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    const originalDesc = metaDesc ? metaDesc.getAttribute('content') : '';
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', "Discover AURA. A curated collection of luxury minimalist apparel, quiet luxury garments, architectural silhouettes, and organic premium fabrics.");
+
+    // Inject Schema.org JSON-LD org markup
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AURA",
+      "url": window.location.origin,
+      "logo": `${window.location.origin}/favicon.svg`,
+      "description": "Redefining modern luxury apparel with minimalist design and organic premium fabrics.",
+      "sameAs": [
+        "https://www.instagram.com/aura",
+        "https://www.facebook.com/aura",
+        "https://twitter.com/aura"
+      ]
+    };
+    
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'aura-org-schema';
+    script.innerHTML = JSON.stringify(schemaData);
+    document.head.appendChild(script);
+
+    return () => {
+      document.title = originalTitle;
+      if (metaDesc) {
+        if (originalDesc) {
+          metaDesc.setAttribute('content', originalDesc);
+        } else {
+          metaDesc.remove();
+        }
+      }
+      const existingScript = document.getElementById('aura-org-schema');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
 
   if (!pageConfig) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', fontFamily: '"Outfit", sans-serif', color: 'var(--color-gray)' }}>Loading AURA Storefront...</div>;

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -40,6 +40,108 @@ const ProductDetail = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const product = products.find(p => p.id === id);
+
+  useEffect(() => {
+    if (!product) return;
+
+    // Update dynamic page head titles and meta descriptions for SEO
+    const originalTitle = document.title;
+    document.title = `${product.name} | AURA Luxury Apparel`;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    const originalDesc = metaDesc ? metaDesc.getAttribute('content') : '';
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', product.description || `Buy ${product.name} at AURA Apparel.`);
+
+    // Inject Product Structured Data Schema (JSON-LD)
+    const activeSale = getActiveProductSale(product);
+    const finalPrice = activeSale ? activeSale.salePrice : product.price;
+    const schemaData = {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": product.name,
+      "image": product.image,
+      "description": product.description,
+      "sku": product.sku || `AURA-${product.id}`,
+      "offers": {
+        "@type": "Offer",
+        "url": window.location.href,
+        "priceCurrency": getProductCurrency(product) || "INR",
+        "price": finalPrice.toString(),
+        "itemCondition": "https://schema.org/NewCondition",
+        "availability": product.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+      }
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = `aura-product-schema-${product.id}`;
+    script.innerHTML = JSON.stringify(schemaData);
+    document.head.appendChild(script);
+
+    // Inject Breadcrumb Structured Data Schema (JSON-LD)
+    const activeCategory = (product.category || 'all').toLowerCase();
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": `${window.location.origin}/`
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Shop",
+          "item": `${window.location.origin}/shop`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": product.category || "All Apparel",
+          "item": `${window.location.origin}/shop/${activeCategory}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": product.name,
+          "item": window.location.href
+        }
+      ]
+    };
+
+    const breadcrumbScript = document.createElement('script');
+    breadcrumbScript.type = 'application/ld+json';
+    breadcrumbScript.id = `aura-breadcrumb-schema-${product.id}`;
+    breadcrumbScript.innerHTML = JSON.stringify(breadcrumbSchema);
+    document.head.appendChild(breadcrumbScript);
+
+    return () => {
+      document.title = originalTitle;
+      if (metaDesc) {
+        if (originalDesc) {
+          metaDesc.setAttribute('content', originalDesc);
+        } else {
+          metaDesc.remove();
+        }
+      }
+      const existingScript = document.getElementById(`aura-product-schema-${product.id}`);
+      if (existingScript) {
+        existingScript.remove();
+      }
+      const existingBreadcrumbScript = document.getElementById(`aura-breadcrumb-schema-${product.id}`);
+      if (existingBreadcrumbScript) {
+        existingBreadcrumbScript.remove();
+      }
+    };
+  }, [product]);
+
 
   if (loading) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Loading...</div>;
   if (!product) {

@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar.tsx';
 import Footer from './components/Footer.tsx';
 import Home from './pages/Home.tsx';
@@ -14,10 +15,27 @@ import CustomDynamicPage from './pages/CustomDynamicPage.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import './index.css';
 
+function CanonicalHelper() {
+  const location = useLocation();
+
+  useEffect(() => {
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', window.location.origin + location.pathname);
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <CanonicalHelper />
         <div className="app-container">
           <Navbar />
           <main className="main-content">

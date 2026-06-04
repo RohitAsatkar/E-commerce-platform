@@ -16,6 +16,12 @@ const Footer = () => {
             <ul>
               <li><Link to="/shop/new">New Arrivals</Link></li>
               <li><Link to="/shop/all">View All</Link></li>
+              <li><Link to="/shop/shirts">Shirts</Link></li>
+              <li><Link to="/shop/t-shirts">T-Shirts</Link></li>
+              <li><Link to="/shop/linen">Linen Edit</Link></li>
+              <li><Link to="/shop/jeans">Jeans</Link></li>
+              <li><Link to="/shop/trousers">Trousers</Link></li>
+              <li><Link to="/shop/footwear">Footwear</Link></li>
               <li><Link to="/shop/accessories">Accessories</Link></li>
             </ul>
           </div>
@@ -23,10 +29,10 @@ const Footer = () => {
           <div className="footer-links">
             <h3>Support</h3>
             <ul>
-              <li><Link to="/faq">FAQ</Link></li>
-              <li><Link to="/shipping">Shipping & Returns</Link></li>
-              <li><Link to="/size-guide">Size Guide</Link></li>
-              <li><Link to="/contact">Contact Us</Link></li>
+              <li><Link to="/page/faq">FAQ</Link></li>
+              <li><Link to="/page/shipping">Shipping & Returns</Link></li>
+              <li><Link to="/page/size-guide">Size Guide</Link></li>
+              <li><Link to="/page/contact">Contact Us</Link></li>
             </ul>
           </div>
           

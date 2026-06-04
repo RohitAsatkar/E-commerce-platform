@@ -5,6 +5,23 @@ import { useState, useEffect } from 'react';
 import { getActiveProductSale } from '../lib/sales';
 import { supabase } from '../lib/supabase';
 
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  'all': "Explore the complete AURA collection. Our clothing features clean architectural silhouettes, premium organic textiles, and circular design principles tailored for the modern individual.",
+  'new': "Discover our latest arrivals. The newest capsule releases showcasing quiet luxury cuts, Responsibly Milled Silk (RMS), and premium organic cotton designs.",
+  'shirts': "Browse our collection of men's minimalist shirts, made from long-staple organic cotton. From classic button-downs to casual overshirts, each piece balances architectural structure and everyday comfort.",
+  't-shirts': "Elevate your basics with our premium organic cotton tees. Featuring heavyweight structure, relaxed fits, and meticulous double-needle stitching.",
+  'jeans': "Sustainably crafted denim jeans with a modern straight-leg silhouette, made using eco-friendly water-saving indigo wash techniques.",
+  'overshirt': "Heavyweight corduroy, denim, and organic cotton overshirts built for versatile layering and transitional weather.",
+  'trousers': "Tailored minimalist trousers engineered from organic linen and virgin wool blends, designed for architectural elegance.",
+  'cargo-pants': "Elevate utilitarian style with our tailored cargo pants. Constructed from lightweight, premium organic twill with structural pocket styling.",
+  'sweaters': "Luxurious knitwear and sweaters spun from certified organic cotton, merino wool, and premium natural fibers.",
+  'jackets': "Minimalist jackets and outerwear, from water-resistant bomber jackets to premium sheepskin leather coats.",
+  'footwear': "Handcrafted footwear combining classic tapered silhouettes with Blake-stitched leather soles and calf suede comfort.",
+  'luxe': "The absolute peak of quiet luxury garments. Crafted from high-density cashmere, RMS certified silk, and premium virgin wool.",
+  'men': "Elevate your wardrobe with the AURA Men's collection. Clean tailoring, premium organic cotton, GOTS-certified linens, and structural layer dynamics designed for understated modern style.",
+  'linen': "Discover breezy, lightweight garments crafted from certified organic European flax. Perfect for warm climates and relaxed resort layering."
+};
+
 const ProductListing = () => {
   const { category } = useParams<{ category: string }>();
   const { products, loading } = useProducts();
@@ -61,7 +78,7 @@ const ProductListing = () => {
       { name: 'CARGO PANTS', slug: 'cargo-pants' },
       { name: 'SWEATERS', slug: 'sweaters' },
       { name: 'JACKETS', slug: 'jackets' },
-      { name: 'SHOES', slug: 'shoes' },
+      { name: 'FOOTWEAR', slug: 'footwear' },
       { name: 'LUXE', slug: 'luxe' }
     ];
   });
@@ -93,6 +110,61 @@ const ProductListing = () => {
     }
   }
 
+  // Update dynamic page head titles and meta descriptions for SEO
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = `${title} | AURA Minimalist Apparel`;
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+    const originalDesc = metaDesc ? metaDesc.getAttribute('content') : '';
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', `Browse our curated collection of luxury minimalist ${title.toLowerCase()}. Designed with clean lines and premium organic fabrics.`);
+
+    // Inject CollectionPage and ItemList JSON-LD Schema
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": `${title} | AURA Minimalist Apparel`,
+      "description": `Browse our curated collection of luxury minimalist ${title.toLowerCase()}. Designed with clean lines and premium organic fabrics.`,
+      "url": window.location.href,
+      "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": displayedProducts.length,
+        "itemListElement": displayedProducts.map((p: any, idx: number) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "url": `${window.location.origin}/product/${p.id}`,
+          "name": p.name
+        }))
+      }
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'aura-collection-schema';
+    script.innerHTML = JSON.stringify(schemaData);
+    document.head.appendChild(script);
+
+    return () => {
+      document.title = originalTitle;
+      if (metaDesc) {
+        if (originalDesc) {
+          metaDesc.setAttribute('content', originalDesc);
+        } else {
+          metaDesc.remove();
+        }
+      }
+      const existingScript = document.getElementById('aura-collection-schema');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, [title, displayedProducts]);
+
   // Handle user sort selection
   if (sortOption === 'Price: Low to High') {
     displayedProducts = [...displayedProducts].sort((a, b) => {
@@ -117,7 +189,13 @@ const ProductListing = () => {
   return (
     <div className="product-listing-section">
       <div className="container">
-        <h1 className="product-listing-title">{title}</h1>
+        {/* Category Header Layout */}
+        <div className="product-listing-header">
+          <h1 className="product-listing-title">{title}</h1>
+          <p className="category-description-text">
+            {CATEGORY_DESCRIPTIONS[currentCategorySlug] || `Browse our curated collection of luxury minimalist ${title.toLowerCase()}. Designed with clean lines and premium organic fabrics.`}
+          </p>
+        </div>
         
         {/* Category Toggles Row */}
         <div className="category-toggles-container">

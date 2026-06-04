@@ -287,6 +287,52 @@ const CustomDynamicPageContent = () => {
     };
   }, [page]);
 
+  // Inject CollectionPage and ItemList JSON-LD Schema
+  useEffect(() => {
+    if (!page || loading || !products) return;
+
+    const pageProductIds = Array.isArray(page.productIds) ? page.productIds : [];
+    const localProducts = pageProductIds
+      .map((pId: any) => {
+        if (!pId) return null;
+        return Array.isArray(products) ? products.find(p => p && p.id && p.id.toString() === pId.toString()) : null;
+      })
+      .filter((p: any) => !!p);
+
+    if (localProducts.length === 0) return;
+
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": page.seoTitle || `${page.title} | Aura Luxury`,
+      "description": page.seoDescription || page.bannerDesc || 'Exquisite custom luxury products curation.',
+      "url": window.location.href,
+      "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": localProducts.length,
+        "itemListElement": localProducts.map((p: any, idx: number) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "url": `${window.location.origin}/product/${p.id}`,
+          "name": p.name
+        }))
+      }
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = `aura-custom-collection-schema-${page.slug}`;
+    script.innerHTML = JSON.stringify(schemaData);
+    document.head.appendChild(script);
+
+    return () => {
+      const existingScript = document.getElementById(`aura-custom-collection-schema-${page.slug}`);
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, [page, products, loading]);
+
   if (loading) {
     return <div style={{ paddingTop: '120px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
   }
@@ -418,7 +464,22 @@ const CustomDynamicPageContent = () => {
             backgroundPosition: 'center',
             boxShadow: 'inset 0 0 100px rgba(0,0,0,0.2)'
           }}
-        />
+        >
+          {/* Visually hidden H1 for SEO crawlers and screen readers */}
+          <h1 style={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            padding: '0',
+            margin: '-1px',
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            border: '0'
+          }}>
+            {page.title}
+          </h1>
+        </div>
       ) : bannerStyle === 'editorial-offset' ? (
         /* 1. Asymmetric Editorial Offset Layout */
         <div

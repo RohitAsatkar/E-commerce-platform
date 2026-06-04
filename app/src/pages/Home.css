@@ -1884,35 +1884,57 @@
 }
 
 /* Dynamic Spacing & Title Layout for Shop/Showcase Page */
+/* Dynamic Spacing & Title Layout for Shop/Showcase Page */
 .product-listing-section {
-  padding-top: 130px;
+  padding-top: 85px; /* Sleeker, closer to the navbar */
   min-height: 100vh;
+}
+
+.product-listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Centered vertically to save height and look sleek */
+  gap: 3rem;
+  margin-bottom: 1.5rem; /* Reduced margin to minimize vertical footprint */
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem; /* Compact padding */
 }
 
 .product-listing-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.85rem;
-  font-weight: 500;
+  font-size: 1.85rem; /* Sleeker, less dominant */
+  font-weight: 300;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   text-align: left;
-  margin: 0 0 1.5rem 0;
+  margin: 0;
   color: var(--color-text);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.category-description-text {
+  max-width: 500px; /* Reduced width for a cleaner block */
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem; /* Smaller premium typography */
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--color-gray);
+  margin: 0;
+  text-align: right;
 }
 
 @media (max-width: 767px) {
   .product-listing-section {
-    padding-top: 90px; /* Right below the navbar with perfect spacing */
+    padding-top: 75px; /* Pulls content directly below the 65px header */
   }
   
-  .product-listing-title {
-    display: none !important; /* Hidden in mobile view */
+  .product-listing-header {
+    display: none !important; /* Hide title and description completely on mobile as requested */
   }
   
   .category-toggles-container {
-    margin: 0.5rem 0 1.25rem 0 !important; /* Tighter premium layout spacing on mobile */
+    margin: 0.25rem 0 1rem 0 !important; /* Compact spacing right below navbar */
   }
 }
 

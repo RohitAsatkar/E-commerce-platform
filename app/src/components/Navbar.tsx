@@ -348,7 +348,7 @@ const Navbar = () => {
                   onClick={() => setIsMenuDrawerOpen(false)}
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--color-accent)' }}
                 >
-                  <span>ONLY AURA FANS SALE</span>
+                  <span>AURA ARCHIVE COLLECTION</span>
                   <span className="drawer-badge-sale">FLAT 50% OFF</span>
                 </Link>
               </li>
