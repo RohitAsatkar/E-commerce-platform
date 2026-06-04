@@ -190,10 +190,26 @@ async function run() {
   console.log('Created temporary index-shell.html');
 
   const server = await startServer();
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+  } catch (launchError) {
+    console.warn('\n⚠️ WARNING: Failed to launch browser process for HTML prerendering.');
+    console.warn(launchError.message);
+    console.warn('Prerendering HTML pages will be skipped. Static routing fallback will handle requests in production.');
+    
+    server.close();
+    if (fs.existsSync(SHELL_PATH)) {
+      fs.unlinkSync(SHELL_PATH);
+      console.log('Cleaned up temporary index-shell.html');
+    }
+    console.log('Prerendering step skipped. Proceeding with standard SPA build.\n');
+    return;
+  }
 
   const page = await browser.newPage();
 
