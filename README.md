@@ -2,6 +2,8 @@
 
 AURA is a luxury e-commerce platform crafted with a minimalist aesthetic and architecture. Powered by a modern, type-safe frontend, serverless database architecture, and a dynamic pre-rendering engine, AURA offers the performance of static pages paired with the flexibility of a client-side React SPA.
 
+The core application code, build scripts, and database assets reside in the [`/app`](./app) directory.
+
 ---
 
 ## Table of Contents
@@ -76,7 +78,7 @@ graph TD
 
 A common drawback of modern Single Page Applications (SPAs) is poor search engine indexability and slow First Contentful Paint (FCP). AURA eliminates these hurdles with a custom-engineered **Puppeteer Static Site Generation (SSG)** post-build pipeline.
 
-### How Prerendering Works (`prerender.js`)
+### How Prerendering Works ([`app/prerender.js`](./app/prerender.js))
 1.  **Dynamic Route discovery**: The script query-fetches all custom CMS page slugs (`custom_pages`) and all active product IDs (`products`) from Supabase.
 2.  **Sitemap Generation**: Automatically constructs a compliant `sitemap.xml` with tailored route priority indices (e.g., `1.0` for Home, `0.9` for Shop, `0.8` for individual products) and dynamic daily/weekly refresh frequencies.
 3.  **Local Dev Server Booting**: Starts a temporary local HTTP server on port `5185` serving the Vite `/dist` output.
@@ -85,7 +87,7 @@ A common drawback of modern Single Page Applications (SPAs) is poor search engin
 6.  **Fail-safe Fallback**: In environments lacking Puppeteer dependencies (such as standard Vercel serverless build agents missing system Chrome libraries), the script logs a warning and completes a standard SPA build, preventing deployment failures.
 
 ```
-/dist
+/app/dist
 ├── index.html            <-- Core SPA fallback
 ├── sitemap.xml           <-- SEO Index Map
 ├── story
@@ -104,7 +106,7 @@ A common drawback of modern Single Page Applications (SPAs) is poor search engin
 
 ## 4. Dynamic Visual CMS Builder
 
-The admin visual builder (`AdminDashboard.tsx`) empowers storefront managers to construct, publish, and schedule layouts without writing code.
+The admin visual builder ([`app/src/pages/AdminDashboard.tsx`](./app/src/pages/AdminDashboard.tsx)) empowers storefront managers to construct, publish, and schedule layouts without writing code.
 
 ### Available Component Blocks
 *   **Hero Banner**: Large canvas section supporting minimal title alignments, split-screen layouts, glassmorphism cards, and text color configurations.
@@ -128,13 +130,13 @@ The marketing engine enables admins to schedule promotions that apply directly a
 *   **Active Constraints**: Evaluates start/end timestamps. Offers only apply to user sessions if the current client time falls within the active campaign window.
 
 ### Best Discount Resolver
-The pricing utility (`sales.ts`) parses active campaigns from storage and evaluates eligible discounts for each product. If multiple promotions apply, it automatically selects the campaign yielding the highest discount, showing the customized price strike-through instantly.
+The pricing utility ([`app/src/lib/sales.ts`](./app/src/lib/sales.ts)) parses active campaigns from storage and evaluates eligible discounts for each product. If multiple promotions apply, it automatically selects the campaign yielding the highest discount, showing the customized price strike-through instantly.
 
 ---
 
 ## 6. Dynamic Page Themes & Layouts
 
-In addition to the global homepage, admins can create independent landing pages (`CustomDynamicPage.tsx`) bound to custom routes (e.g., `/page/designer-collab`). Each page can be configured with one of seven curated visual design themes:
+In addition to the global homepage, admins can create independent landing pages ([`app/src/pages/CustomDynamicPage.tsx`](./app/src/pages/CustomDynamicPage.tsx)) bound to custom routes (e.g., `/page/designer-collab`). Each page can be configured with one of seven curated visual design themes:
 
 | Theme Name | Styling Presets & Accents | Typography Pairing | UI Grid Style | Unique Features |
 | :--- | :--- | :--- | :--- | :--- |
@@ -155,18 +157,18 @@ AURA utilizes PostgreSQL Row Level Security (RLS) policies within Supabase to en
 ```
                     ┌──────────────────┐
                     │    auth.users    │
-                    └────────┬─────────┘
-                             │ (Cascade Delete)
-                             ▼
+                    └─────────┬────────┘
+                              │ (Cascade Delete)
+                              ▼
                     ┌──────────────────┐
                     │ public.profiles  │
-                    └────────┬─────────┘
-                             │
-            ┌────────────────┼────────────────┐
-            ▼                ▼                ▼
-     ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-     │ cart_items  │  │   orders    │  │ order_items │
-     └─────────────┘  └─────────────┘  └─────────────┘
+                    └─────────┬────────┘
+                              │
+            ┌─────────────────┼─────────────────┐
+            ▼                 ▼                 ▼
+     ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+     │ cart_items  │   │   orders    │   │ order_items │
+     └─────────────┘   └─────────────┘   └─────────────┘
 ```
 
 ### Table Definitions & Roles
@@ -186,6 +188,8 @@ AURA utilizes PostgreSQL Row Level Security (RLS) policies within Supabase to en
 | **`orders`** | Owner & Admin | Owner only | Admin only | Admin only |
 | **`order_items`**| Owner & Admin | Owner only | Admin only | Admin only |
 | **`storefront_config`**| Public read (`true`) | Admin only | Admin only | Admin only |
+
+For the exact database definitions, see [`app/supabase_schema.sql`](./app/supabase_schema.sql).
 
 ---
 
@@ -210,7 +214,7 @@ AURA utilizes PostgreSQL Row Level Security (RLS) policies within Supabase to en
 3.  **Database Migration**
     *   Open your Supabase project console.
     *   Navigate to the **SQL Editor**.
-    *   Paste and run the contents of [supabase_schema.sql](supabase_schema.sql) to provision database tables, storage buckets, mock products, trigger functions, and security policies.
+    *   Paste and run the contents of [`app/supabase_schema.sql`](./app/supabase_schema.sql) to provision database tables, storage buckets, mock products, trigger functions, and security policies.
 
 4.  **Configure Environment Variables**
     *   Edit the Supabase client helper located in `src/lib/supabase.ts` (or establish `.env` bindings) with your project URL and public Anon key:
