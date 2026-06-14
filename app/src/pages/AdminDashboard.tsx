@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -176,12 +176,16 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
     }
   }, [transitionEnabled]);
 
+  const rawManualHeight = block.layout_configuration?.manual_height;
+  const manualHeight = rawManualHeight ? Math.max(600, Number(rawManualHeight)) : undefined;
+
   return (
     <div
-      className="multi-hero-carousel-container"
+      className={`multi-hero-carousel-container ${manualHeight ? 'has-manual-height' : ''}`}
       style={{
         cursor: isDragging ? 'grabbing' : 'grab',
         '--slide-gap': `${slideGap}px`,
+        ...(manualHeight ? { '--hero-manual-height': `${manualHeight}px` } as React.CSSProperties : {}),
         ...style
       } as React.CSSProperties}
       onMouseEnter={() => setIsHovered(true)}
@@ -244,6 +248,97 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
             </a>
           );
         })}
+      </div>
+    </div>
+  );
+};
+
+const CmsPromotionalSliderItem = ({ slide, blockVariant, globalTarget }: { slide: any; blockVariant?: string; globalTarget?: string }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+  const targetStr = slide.countdown_target || (blockVariant === 'flash_sale_countdown' ? globalTarget : '');
+
+  useEffect(() => {
+    if (!targetStr) {
+      setTimeLeft('');
+      return;
+    }
+
+    const target = new Date(targetStr).getTime();
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const difference = target - now;
+
+      if (difference <= 0 || isNaN(difference)) {
+        setTimeLeft("EXPIRED");
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      const daysStr = days > 0 ? `${days}d ` : '';
+      const hoursStr = String(hours).padStart(2, '0');
+      const minutesStr = String(minutes).padStart(2, '0');
+      const secondsStr = String(seconds).padStart(2, '0');
+
+      setTimeLeft(`${daysStr}${hoursStr}h ${minutesStr}m ${secondsStr}s`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [targetStr]);
+
+  return (
+    <div
+      className="promotional-slider-item"
+      style={{ cursor: 'default' }}
+    >
+      <Sparkles size={14} style={{ color: '#c5a880', flexShrink: 0 }} />
+      <span>
+        {slide.text}
+        {targetStr && timeLeft && (
+          <span style={{ color: '#c5a880', fontWeight: '700', marginLeft: '0.5rem' }}>
+            • ENDS IN: {timeLeft}
+          </span>
+        )}
+      </span>
+    </div>
+  );
+};
+
+const CmsPromotionalSlider = ({ block, style }: { block: any; style?: React.CSSProperties }) => {
+  const rawSlides = block.data?.slides || [];
+  const slides = rawSlides.length > 0 ? rawSlides : [{ text: "Mid-Season Preview: Code 'AURA10' for private 10% off.", link_url: "/shop/new" }];
+  const backgroundColor = block.data?.background_color || '#0c0a09';
+
+  // Duplicate slides to ensure continuous flow.
+  const repeatedGroup = [...slides, ...slides, ...slides];
+  const allSlides = [...repeatedGroup, ...repeatedGroup];
+
+  // Adjust duration linearly based on number of slides to keep speed constant.
+  const speedMultiplier = 12; // 12 seconds per slide
+  const animationDuration = `${Math.max(12, slides.length * speedMultiplier)}s`;
+
+  return (
+    <div
+      className="promotional-slider-marquee"
+      style={{ backgroundColor, ...style }}
+    >
+      <div className="promotional-slider-track" style={{ animationDuration }}>
+        {allSlides.map((slide: any, idx: number) => (
+          <React.Fragment key={idx}>
+            <CmsPromotionalSliderItem
+              slide={slide}
+              blockVariant={block.data?.variant}
+              globalTarget={block.data?.countdown_target_timestamp}
+            />
+            <span className="promotional-slider-bullet" />
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
@@ -1693,9 +1788,13 @@ const AdminDashboard = () => {
       const updated = prev.blocks.map((b: any) => {
         if (b.id === blockId) {
           const layout = b.layout_configuration || {};
+          let val = value;
+          if (field === 'manual_height' && b.block_type === 'MultiHeroCarousel' && value !== "") {
+            val = Math.max(600, Number(value));
+          }
           return {
             ...b,
-            layout_configuration: { ...layout, [field]: value }
+            layout_configuration: { ...layout, [field]: val }
           };
         }
         return b;
@@ -2234,7 +2333,7 @@ const AdminDashboard = () => {
           const sectionStyle: React.CSSProperties = {
             ...parallaxStyle,
             ...(manualHeight ? {
-              '--hero-manual-height': `${manualHeight}px`
+              '--hero-manual-height': `${block.block_type === 'MultiHeroCarousel' ? Math.max(600, Number(manualHeight)) : manualHeight}px`
             } as any : {}),
             ...(manualWidth ? { maxWidth: `${manualWidth}px`, width: '100%', marginLeft: 'auto', marginRight: 'auto' } : {})
           };
@@ -2360,12 +2459,7 @@ const AdminDashboard = () => {
             );
           } else if (block.block_type === 'PromotionalSlider') {
             blockContent = (
-              <div style={{ backgroundColor: block.data.background_color || '#0c0a09', color: '#fff', padding: '1.25rem 2rem', textAlign: 'center', fontSize: '0.85rem', letterSpacing: '0.08em', fontFamily: '"Outfit", sans-serif', zIndex: 10 }}>
-                <div style={{ fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem' }}>
-                  <Sparkles size={14} style={{ color: '#c5a880' }} />
-                  <span>{block.data.slides?.[0]?.text}</span>
-                </div>
-              </div>
+              <CmsPromotionalSlider block={block} style={sectionStyle} />
             );
           } else if (block.block_type === 'CategoryGrid') {
             blockContent = (
@@ -4463,6 +4557,21 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                                 style={{ padding: '0.25rem', fontSize: '0.75rem' }}
                                               />
                                             </label>
+                                            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                              <span style={{ fontSize: '0.65rem', color: 'var(--color-gray)' }}>Individual Countdown Target (Optional)</span>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. 2026-06-25T23:59:59Z"
+                                                value={slide.countdown_target || ''}
+                                                onChange={e => {
+                                                  const updated = [...block.data.slides];
+                                                  updated[sIdx] = { ...updated[sIdx], countdown_target: e.target.value };
+                                                  handleUpdateBlockData(block.id, 'slides', updated);
+                                                }}
+                                                className="admin-input"
+                                                style={{ padding: '0.25rem', fontSize: '0.75rem' }}
+                                              />
+                                            </label>
                                           </div>
                                         ))}
                                       </div>
@@ -5994,23 +6103,36 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
                                       <span>Manual Height (px)</span>
-                                      <span style={{ fontWeight: 'bold' }}>{layConfig.manual_height ? `${layConfig.manual_height}px` : 'Auto / CSS Default'}</span>
+                                      <span style={{ fontWeight: 'bold' }}>
+                                        {layConfig.manual_height 
+                                          ? `${block.block_type === 'MultiHeroCarousel' ? Math.max(600, Number(layConfig.manual_height)) : layConfig.manual_height}px` 
+                                          : 'Auto / CSS Default'}
+                                      </span>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                       <input
                                         type="range"
-                                        min="100"
+                                        min={block.block_type === 'MultiHeroCarousel' ? "600" : "100"}
                                         max="1200"
                                         step="10"
-                                        value={layConfig.manual_height || 400}
+                                        value={layConfig.manual_height 
+                                          ? (block.block_type === 'MultiHeroCarousel' ? Math.max(600, Number(layConfig.manual_height)) : Number(layConfig.manual_height))
+                                          : (block.block_type === 'MultiHeroCarousel' ? 600 : 400)}
                                         disabled={!layConfig.manual_height}
-                                        onChange={e => handleUpdateBlockLayout(block.id, 'manual_height', Number(e.target.value))}
+                                        onChange={e => {
+                                          let val = Number(e.target.value);
+                                          if (block.block_type === 'MultiHeroCarousel') {
+                                            val = Math.max(600, val);
+                                          }
+                                          handleUpdateBlockLayout(block.id, 'manual_height', val);
+                                        }}
                                         style={{ flexGrow: 1, accentColor: 'var(--color-text)' }}
                                       />
                                       <button
                                         type="button"
                                         onClick={() => {
-                                          handleUpdateBlockLayout(block.id, 'manual_height', layConfig.manual_height ? "" : "500");
+                                          const defaultVal = block.block_type === 'MultiHeroCarousel' ? "600" : "500";
+                                          handleUpdateBlockLayout(block.id, 'manual_height', layConfig.manual_height ? "" : defaultVal);
                                         }}
                                         style={{
                                           padding: '2px 8px',

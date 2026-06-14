@@ -1948,25 +1948,29 @@
   height: var(--carousel-height);
 }
 
-@media (max-width: 1024px) {
-  .multi-hero-carousel-container {
-    --carousel-height: 400px;
-  }
-}
-
-@media (max-width: 640px) {
-  .multi-hero-carousel-container {
-    --carousel-height: 320px;
-  }
+.multi-hero-carousel-container.has-manual-height {
+  --carousel-height: var(--hero-manual-height) !important;
 }
 
 .multi-hero-carousel-track {
   display: flex;
   height: 100%;
   gap: var(--slide-gap, 20px);
-  --slide-width: calc(40% - (var(--slide-gap, 20px) * 0.8));
+  --slide-width: calc(41.1% - (var(--slide-gap, 20px) * 1.235));
   --shift-val: calc(var(--slide-width) + var(--slide-gap, 20px));
   --left-peek: calc(0.1 * var(--slide-width) + var(--slide-gap, 20px));
+}
+
+/* Simulator device preview specific overrides */
+.preview-tablet .multi-hero-carousel-track {
+  --slide-width: calc(66.66% - (var(--slide-gap, 20px) * 0.666));
+  --left-peek: calc(0.1 * var(--slide-width) + var(--slide-gap, 20px));
+  --shift-val: calc(var(--slide-width) + var(--slide-gap, 20px));
+}
+.preview-mobile .multi-hero-carousel-track {
+  --slide-width: 100%;
+  --left-peek: 0px;
+  --shift-val: calc(var(--slide-width) + var(--slide-gap, 20px));
 }
 
 @media (max-width: 1024px) {
@@ -2178,4 +2182,64 @@
   transform: rotateX(4deg) rotateY(-4deg) translateY(-4px) !important;
   border-color: var(--color-text) !important;
   box-shadow: -8px 12px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Infinite Ticker / Marquee for Promotional Slider */
+.promotional-slider-marquee {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 44px;
+}
+
+.promotional-slider-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  animation: marquee-left-to-right 28s linear infinite;
+}
+
+/* Scroll left to right: from -50% (halfway translated) to 0% */
+@keyframes marquee-left-to-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.promotional-slider-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 2.5rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.825rem;
+  letter-spacing: 0.08em;
+  font-family: "Outfit", sans-serif;
+  transition: color 0.3s ease;
+}
+
+a.promotional-slider-item:hover {
+  color: #c5a880;
+}
+
+.promotional-slider-bullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #c5a880;
+  display: inline-block;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.promotional-slider-marquee:hover .promotional-slider-track {
+  animation-play-state: paused;
 }
