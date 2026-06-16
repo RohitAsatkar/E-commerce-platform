@@ -2837,7 +2837,7 @@ const AdminDashboard = () => {
       )}
 
       <div className="container" style={{ maxWidth: activeTab === 'cms' && cmsSubTab === 'visual' ? '1600px' : '1200px', transition: 'max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
+        <div className="admin-header-flex" style={{ alignItems: 'flex-start', marginBottom: '2.5rem' }}>
           <div>
             <h1 style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)' }}>Admin Dashboard</h1>
             <p style={{ color: 'var(--color-gray)', fontSize: '0.95rem', marginTop: '0.25rem' }}>Store authority controls & analytics</p>
@@ -2884,8 +2884,8 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)' }}>Recent Orders</h2>
+            <div className="admin-header-flex">
+              <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Recent Orders</h2>
               <button onClick={() => setActiveTab('orders')} className="btn btn-outline" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>View All Orders</button>
             </div>
 
@@ -2940,9 +2940,9 @@ const AdminDashboard = () => {
         {/* ================= PRODUCT MANAGEMENT TAB ================= */}
         {activeTab === 'products' && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)' }}>Product Catalog</h2>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div className="admin-header-flex">
+              <h2 style={{ fontSize: '1.5rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Product Catalog</h2>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button onClick={() => setShowSubcatModal(true)} className="btn btn-outline" style={{ padding: '0.6rem 1.5rem', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>Manage Subcategories</button>
                 <button onClick={() => handleOpenModal()} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>+ Add Product</button>
               </div>
@@ -3331,8 +3331,8 @@ const AdminDashboard = () => {
         {activeTab === 'cms' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
             {/* CMS Sub-tabs */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <div className="admin-header-flex" style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', marginBottom: 0 }}>
+              <div className="admin-tab-bar" style={{ gap: '1.5rem', borderBottom: 'none', marginBottom: 0 }}>
                 {(['visual', 'static', 'navigation', 'media', 'shop_filters', 'grid_settings', 'custom_pages'] as const).map(tab => (
                   <button
                     key={tab}
@@ -3494,10 +3494,10 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               const scale = containerWidth && containerWidth < targetWidth ? (containerWidth - 32) / targetWidth : 1;
 
               return (
-                <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '1.5rem', alignItems: 'stretch', minHeight: '80vh', position: 'relative' }}>
+                <div className="sb-workspace-grid" style={{ alignItems: 'stretch', minHeight: '80vh', position: 'relative' }}>
 
                   {/* 1. LEFT COLUMN: LAYER TREE SIDEBAR */}
-                  <div style={{ backgroundColor: 'var(--color-bg)', borderRight: '1px solid var(--color-border)', paddingRight: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div className="sb-layers-sidebar">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <Layers size={14} style={{ color: 'var(--color-accent)' }} />
@@ -6591,7 +6591,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Static Content Pages & SEO Wrapper */}
             {cmsSubTab === 'static' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+              <div className="admin-grid-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
                 {/* Static editor */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {(() => {
@@ -7094,7 +7094,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Navigation Builder */}
             {cmsSubTab === 'navigation' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              <div className="admin-grid-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 {/* Header Menu */}
                 <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: '700', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Compass size={16} /> Header Navigation</h3>
@@ -7281,7 +7281,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                 {/* List of Filters */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {shopFilters.map((filter, index) => (
-                    <div key={index} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fafafa' }}>
+                    <div key={index} className="admin-filter-item-row" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#fafafa' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '30px', alignItems: 'center' }}>
                         <button
                           type="button"
@@ -7313,7 +7313,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         </button>
                       </div>
 
-                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-grid-split-small" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
                           <label style={{ fontSize: '0.7rem', color: 'var(--color-gray)', display: 'block', marginBottom: '0.15rem' }}>DISPLAY LABEL</label>
                           <input
@@ -7419,7 +7419,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                   <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)' }}>Configure the density of the product grid for customers across desktop, tablet, and mobile viewports.</p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
+                <div className="admin-grid-three-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
                   {/* Desktop Columns */}
                   <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <span style={{ fontWeight: '600', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Desktop Columns</span>
@@ -7537,7 +7537,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
                 {/* Main Workspace: 2 Column Editor & Live Preview */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
+                <div className="admin-grid-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
 
                   {/* Left Column: Form Panel */}
                   <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -7574,7 +7574,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                     {/* Section 1: Page Configurations */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-accent)' }}>1. Page Setup</span>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                      <div className="admin-grid-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Title *
                           <input
                             type="text"
@@ -7601,7 +7601,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                         </label>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                      <div className="admin-grid-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Page Category / Type
                           <select
                             value={newPageType}
@@ -7621,7 +7621,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                           </select>
                         </label>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <div className="admin-grid-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600' }}>Start Date (Optional)
                             <input
                               type="datetime-local"
@@ -8592,7 +8592,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
         {activeTab === 'marketing' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
             {/* Marketing Sub-tabs */}
-            <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+            <div className="admin-tab-bar" style={{ gap: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
               {(['promotions', 'flash_sale', 'workflows'] as const).map(tab => (
                 <button
                   key={tab}
@@ -8600,7 +8600,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                   style={{
                     background: 'none', border: 'none', padding: '0.5rem 0', fontSize: '0.9rem', fontWeight: marketingSubTab === tab ? '700' : '400',
                     color: marketingSubTab === tab ? 'var(--color-text)' : 'var(--color-gray)', borderBottom: marketingSubTab === tab ? '2px solid var(--color-text)' : 'none',
-                    cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em'
+                    cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap'
                   }}
                 >
                   {tab === 'promotions' ? 'Discount Code Engine' : tab === 'flash_sale' ? 'Flash Sale Orchestrator' : 'Automation Workflows'}
@@ -8610,7 +8610,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Discount Code Form & List */}
             {marketingSubTab === 'promotions' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+              <div className="admin-grid-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
                 {/* Promo Code list */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Active Promotional Rules</h3>
@@ -8731,7 +8731,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Flash Sale & Promotions Campaign Orchestrator */}
             {marketingSubTab === 'flash_sale' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: '2rem', alignItems: 'start' }}>
+              <div className="admin-grid-split" style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: '2rem', alignItems: 'start' }}>
                 {/* Campaign Creator Form */}
                 <div style={{ backgroundColor: '#fff', padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div>
@@ -9027,7 +9027,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Automation Workflows */}
             {marketingSubTab === 'workflows' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+              <div className="admin-grid-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'start' }}>
                 {/* Automation trigger list */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: 0 }}>Registered Marketing Triggers</h3>
@@ -9213,8 +9213,8 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
       {/* ================= PRODUCT FORM MODAL ================= */}
       {showProductModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
-          <div style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '2.5rem', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-card" style={{ maxWidth: '800px' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.75rem', fontFamily: 'var(--font-heading)', margin: 0 }}>
@@ -9257,7 +9257,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
               {/* TAB 1: GENERAL INFO */}
               {activeFormTab === 'info' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <div className="admin-grid-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: '1 / -1' }}>
                     <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Product Name</span>
                     <input
@@ -9390,7 +9390,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
               {/* TAB 2: PRICING & SIZING */}
               {activeFormTab === 'pricing' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div className="admin-grid-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <span style={{ fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Base Price</span>
                       <div style={{ display: 'flex', gap: '0' }}>
@@ -9594,7 +9594,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch' }}>
+                    <div className="admin-flex-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch' }}>
                       <input
                         type="url"
                         placeholder="Paste image URL here..."
@@ -9712,8 +9712,8 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
       {/* ================= MANAGE SUBCATEGORIES MODAL ================= */}
       {showSubcatModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
-          <div style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)', padding: '2.5rem', width: '100%', maxWidth: '600px', borderRadius: '4px', border: '1px solid var(--color-border)', position: 'relative' }}>
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal-card" style={{ maxWidth: '600px', position: 'relative' }}>
             <button
               onClick={() => setShowSubcatModal(false)}
               style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--color-text)' }}
@@ -9977,22 +9977,9 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
           </div>
 
           {/* Simulator Content Area */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'row',
-            overflow: 'hidden',
-            backgroundColor: '#f5f5f4'
-          }}>
+          <div className="sb-simulator-content">
             {/* Simulator Preview Pane (Left) */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '3rem 1.5rem',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'flex-start'
-            }}>
+            <div className="sb-simulator-preview-pane">
               <div
                 style={{
                   width: previewMode === 'desktop' ? '1280px' : previewMode === 'tablet' ? '768px' : '375px',
@@ -10066,19 +10053,7 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
 
             {/* Config Sidebar Pane (Right) - Only in edit mode and visible */}
             {sandboxMode === 'edit' && showFullscreenSidebar && (
-              <div style={{
-                width: `${fullscreenSidebarWidth}px`,
-                borderLeft: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-bg)',
-                padding: '1.5rem',
-                overflowY: 'auto',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                boxShadow: '-10px 0 30px rgba(0,0,0,0.02)',
-                transition: 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}>
+              <div className="sb-config-sidebar" style={{ width: `${fullscreenSidebarWidth}px` }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem', marginBottom: '0.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
