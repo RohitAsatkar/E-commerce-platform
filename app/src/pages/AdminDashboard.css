@@ -479,7 +479,7 @@
 }
 
 .multi-item-slide-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Rokkitt', serif;
   font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.2;
@@ -495,6 +495,7 @@
 }
 
 .multi-item-slide-subtitle {
+  font-family: 'Lusitana', serif;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;

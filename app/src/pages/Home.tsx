@@ -140,10 +140,10 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasDraggedRef = useRef(false);
 
   // Sync visibility state of the page (to pause autoplay when page is in background)
   useEffect(() => {
@@ -164,12 +164,12 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
 
   // Autoplay Effect
   useEffect(() => {
-    if (!autoplayEnabled || isDragging || isHovered || slides.length === 0 || !isVisible) return;
+    if (!autoplayEnabled || isDragging || slides.length === 0 || !isVisible) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev: number) => prev + 1);
     }, autoplaySpeed);
     return () => clearInterval(interval);
-  }, [autoplayEnabled, autoplaySpeed, isDragging, isHovered, slides.length, isVisible]);
+  }, [autoplayEnabled, autoplaySpeed, isDragging, slides.length, isVisible]);
 
   // Safety bounds check to prevent visual vanishing if index goes out of range
   useEffect(() => {
@@ -193,21 +193,31 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
   const virtualSlides = [...slides, ...slides, ...slides];
   const N = slides.length;
 
-  const handleDragStart = (clientX: number) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
     setIsDragging(true);
-    setStartX(clientX);
+    setStartX(e.clientX);
     setDragOffset(0);
+    wasDraggedRef.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
-  const handleDragMove = (clientX: number) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    const diff = clientX - startX;
+    const diff = e.clientX - startX;
     setDragOffset(diff);
+    if (Math.abs(diff) > 10) {
+      wasDraggedRef.current = true;
+    }
   };
 
-  const handleDragEnd = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {}
 
     // Swipe threshold to change slides (e.g. 50px)
     const threshold = 50;
@@ -217,6 +227,15 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
       setCurrentIndex((prev: number) => prev - 1);
     }
     setDragOffset(0);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setDragOffset(0);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {}
   };
 
   // Handle instant jump when wrapping to simulate infinite loop
@@ -249,21 +268,15 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
       className={`multi-hero-carousel-container ${manualHeight ? 'has-manual-height' : ''}`}
       style={{
         cursor: isDragging ? 'grabbing' : 'grab',
+        touchAction: 'pan-y',
         '--slide-gap': `${slideGap}px`,
         ...(manualHeight ? { '--hero-manual-height': `${manualHeight}px` } as React.CSSProperties : {}),
         ...style
       } as React.CSSProperties}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        handleDragEnd();
-      }}
-      onMouseDown={(e) => handleDragStart(e.clientX)}
-      onMouseMove={(e) => handleDragMove(e.clientX)}
-      onMouseUp={handleDragEnd}
-      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-      onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
-      onTouchEnd={handleDragEnd}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
     >
       <div
         ref={containerRef}
@@ -280,9 +293,11 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
               key={idx}
               to={sanitizeUrl(slide.cta_url) || '/shop/all'}
               className="multi-item-slide"
+              draggable="false"
+              onDragStart={(e) => e.preventDefault()}
               onClick={(e) => {
                 // If it was a drag gesture, prevent the router from navigating
-                if (Math.abs(dragOffset) > 10) {
+                if (wasDraggedRef.current) {
                   e.preventDefault();
                 }
               }}
@@ -685,6 +700,7 @@ const CmsHeroSlider = ({ block, style }: { block: any; style?: React.CSSProperti
 const Home = () => {
   const { products } = useProducts();
   const [pageConfig, setPageConfig] = useState<any>(null);
+  const [activeFeaturedCategory, setActiveFeaturedCategory] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -999,24 +1015,30 @@ const Home = () => {
                       <Link
                         key={cIdx}
                         to={`/shop/${slug}`}
-                        className={`cms-cat-card animate-fade-up aspect-${aspect}`}
+                        className="cms-cat-item-wrapper animate-fade-up"
                         style={{
-                          backgroundColor: catObj.image ? 'transparent' : '#f5f5f4',
                           animationDelay: `${cIdx * 0.04}s`
                         }}
                       >
-                        {catObj.image && (
-                          <div
-                            className="cms-cat-bg"
-                            style={{
-                              backgroundImage: `url(${catObj.image})`
-                            }}
-                          />
-                        )}
-                        {catObj.image && <div className="cms-cat-overlay"></div>}
-                        <span className="cms-cat-name animate-fade-up">
-                          {catObj.name}
-                        </span>
+                        <div
+                          className={`cms-cat-card aspect-${aspect}`}
+                          style={{
+                            backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
+                          }}
+                        >
+                          {catObj.image && (
+                            <div
+                              className="cms-cat-bg"
+                              style={{
+                                backgroundImage: `url(${catObj.image})`
+                              }}
+                            />
+                          )}
+                        </div>
+                        <div className="cms-cat-info">
+                          <span className="cms-cat-number">{(cIdx + 1).toString().padStart(2, '0')}</span>
+                          <span className="cms-cat-title-text">{catObj.name}</span>
+                        </div>
                       </Link>
                     );
                   })}
@@ -1027,19 +1049,50 @@ const Home = () => {
         }
 
         if (block.block_type === 'FeaturedProducts') {
-          const displayLimit = block.data.limit || 4;
-          const displayList = products.slice(0, displayLimit);
+          const rows = typeof block.data.rows === 'number' ? block.data.rows : 2;
+          const displayLimit = dskCols * rows;
+
+          const uniqueCats = Array.from(new Set(products.map((p: any) => p.category).filter(Boolean))).sort();
+          const activeState = activeFeaturedCategory[block.id] || 'ALL';
+          const filteredProducts = activeState === 'ALL'
+            ? products
+            : products.filter((p: any) => p.category?.toLowerCase() === activeState.toLowerCase());
+
+          const displayList = filteredProducts.slice(0, displayLimit);
 
           return (
             <section key={key} className={`section new-arrivals ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
               <div className={`container ${widthClass}`} style={containerStyle}>
-                <div className="section-header mb-8 animate-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
+                <div className="section-header mb-8 animate-fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.5rem' }}>
                   <h2 className="section-title" style={{ margin: 0 }}>
                     {block.data.title || 'Curated Classics'}
                   </h2>
                   <Link to="/shop/all" className="view-all-link">
                     {block.data.cta_text || 'View All Collection'}
                   </Link>
+                </div>
+
+                <div className="featured-category-toggles animate-fade-up">
+                  <div className="featured-category-toggles-inner">
+                    <button
+                      onClick={() => setActiveFeaturedCategory(prev => ({ ...prev, [block.id]: 'ALL' }))}
+                      className={`featured-cat-toggle-btn ${activeState === 'ALL' ? 'active' : ''}`}
+                    >
+                      ALL PIECES
+                    </button>
+                    {uniqueCats.map((cat: string) => {
+                      const normalized = cat.toLowerCase();
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setActiveFeaturedCategory(prev => ({ ...prev, [block.id]: normalized }))}
+                          className={`featured-cat-toggle-btn ${activeState === normalized ? 'active' : ''}`}
+                        >
+                          {cat.toUpperCase()}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div

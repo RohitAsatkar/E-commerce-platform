@@ -75,10 +75,10 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasDraggedRef = useRef(false);
 
   // Sync visibility state of the page (to pause autoplay when page is in background)
   useEffect(() => {
@@ -99,12 +99,12 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
 
   // Autoplay Effect
   useEffect(() => {
-    if (!autoplayEnabled || isDragging || isHovered || slides.length === 0 || !isVisible) return;
+    if (!autoplayEnabled || isDragging || slides.length === 0 || !isVisible) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev: number) => prev + 1);
     }, autoplaySpeed);
     return () => clearInterval(interval);
-  }, [autoplayEnabled, autoplaySpeed, isDragging, isHovered, slides.length, isVisible]);
+  }, [autoplayEnabled, autoplaySpeed, isDragging, slides.length, isVisible]);
 
   // Safety bounds check to prevent visual vanishing if index goes out of range
   useEffect(() => {
@@ -128,21 +128,31 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
   const virtualSlides = [...slides, ...slides, ...slides];
   const N = slides.length;
 
-  const handleDragStart = (clientX: number) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
     setIsDragging(true);
-    setStartX(clientX);
+    setStartX(e.clientX);
     setDragOffset(0);
+    wasDraggedRef.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
-  const handleDragMove = (clientX: number) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-    const diff = clientX - startX;
+    const diff = e.clientX - startX;
     setDragOffset(diff);
+    if (Math.abs(diff) > 10) {
+      wasDraggedRef.current = true;
+    }
   };
 
-  const handleDragEnd = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {}
 
     // Swipe threshold to change slides (e.g. 50px)
     const threshold = 50;
@@ -152,6 +162,15 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
       setCurrentIndex((prev: number) => prev - 1);
     }
     setDragOffset(0);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setDragOffset(0);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (err) {}
   };
 
   // Handle instant jump when wrapping to simulate infinite loop
@@ -184,21 +203,15 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
       className={`multi-hero-carousel-container ${manualHeight ? 'has-manual-height' : ''}`}
       style={{
         cursor: isDragging ? 'grabbing' : 'grab',
+        touchAction: 'pan-y',
         '--slide-gap': `${slideGap}px`,
         ...(manualHeight ? { '--hero-manual-height': `${manualHeight}px` } as React.CSSProperties : {}),
         ...style
       } as React.CSSProperties}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        handleDragEnd();
-      }}
-      onMouseDown={(e) => handleDragStart(e.clientX)}
-      onMouseMove={(e) => handleDragMove(e.clientX)}
-      onMouseUp={handleDragEnd}
-      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-      onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
-      onTouchEnd={handleDragEnd}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
     >
       <div
         ref={containerRef}
@@ -216,6 +229,8 @@ const CmsMultiHeroCarousel = ({ block, style }: { block: any; style?: React.CSSP
               href={slide.cta_url || '#'}
               onClick={(e) => e.preventDefault()}
               className="multi-item-slide"
+              draggable="false"
+              onDragStart={(e) => e.preventDefault()}
               style={{
                 backgroundImage: `url(${slide.image_url})`,
                 display: 'block',
@@ -603,6 +618,7 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'cms' | 'marketing'>('overview');
+  const [activeFeaturedCategory, setActiveFeaturedCategory] = useState<Record<string, string>>({});
 
   // ==========================================
   // CMS & MARKETING STATE DEFINITIONS
@@ -2484,23 +2500,27 @@ const AdminDashboard = () => {
                       return (
                         <div
                           key={cIdx}
-                          className={`cms-cat-card aspect-${aspect}`}
-                          style={{
-                            backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
-                          }}
+                          className="cms-cat-item-wrapper"
                         >
-                          {catObj.image && (
-                            <div
-                              className="cms-cat-bg"
-                              style={{
-                                backgroundImage: `url(${catObj.image})`
-                              }}
-                            />
-                          )}
-                          {catObj.image && <div className="cms-cat-overlay"></div>}
-                          <span className="cms-cat-name">
-                            {catObj.name}
-                          </span>
+                          <div
+                            className={`cms-cat-card aspect-${aspect}`}
+                            style={{
+                              backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
+                            }}
+                          >
+                            {catObj.image && (
+                              <div
+                                className="cms-cat-bg"
+                                style={{
+                                  backgroundImage: `url(${catObj.image})`
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div className="cms-cat-info">
+                            <span className="cms-cat-number">{(cIdx + 1).toString().padStart(2, '0')}</span>
+                            <span className="cms-cat-title-text">{catObj.name}</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -2509,18 +2529,55 @@ const AdminDashboard = () => {
               </section>
             );
           } else if (block.block_type === 'FeaturedProducts') {
-            const displayLimit = block.data.limit || 4;
-            const displayList = products.slice(0, displayLimit);
+            const rows = typeof block.data.rows === 'number' ? block.data.rows : 2;
+            const displayLimit = dskCols * rows;
+
+            const uniqueCats = Array.from(new Set(products.map((p: any) => p.category).filter(Boolean))).sort();
+            const activeState = activeFeaturedCategory[block.id] || 'ALL';
+            const filteredProducts = activeState === 'ALL'
+              ? products
+              : products.filter((p: any) => p.category?.toLowerCase() === activeState.toLowerCase());
+
+            const displayList = filteredProducts.slice(0, displayLimit);
             blockContent = (
               <section className={`section new-arrivals ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
                 <div className={`container ${widthClass}`} style={containerStyle}>
-                  <div className="section-header mb-8" style={{ display: 'flex', flexDirection: 'column', alignItems: block.data.textAlign === 'center' ? 'center' : block.data.textAlign === 'right' ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
+                  <div className="section-header mb-8" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.5rem' }}>
                     <h2 className="section-title" style={{ margin: 0 }}>
                       {block.data.title || 'Curated Classics'}
                     </h2>
                     <span className="view-all-link">
                       {block.data.cta_text || 'View All Collection'}
                     </span>
+                  </div>
+
+                  <div className="featured-category-toggles">
+                    <div className="featured-category-toggles-inner">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveFeaturedCategory(prev => ({ ...prev, [block.id]: 'ALL' }));
+                        }}
+                        className={`featured-cat-toggle-btn ${activeState === 'ALL' ? 'active' : ''}`}
+                      >
+                        ALL PIECES
+                      </button>
+                      {uniqueCats.map((cat: string) => {
+                        const normalized = cat.toLowerCase();
+                        return (
+                          <button
+                            key={cat}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveFeaturedCategory(prev => ({ ...prev, [block.id]: normalized }));
+                            }}
+                            className={`featured-cat-toggle-btn ${activeState === normalized ? 'active' : ''}`}
+                          >
+                            {cat.toUpperCase()}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div
@@ -3886,22 +3943,27 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                           return (
                                             <div
                                               key={cIdx}
-                                              className={`cms-cat-card aspect-${aspect}`}
-                                              style={{
-                                                backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
-                                              }}
+                                              className="cms-cat-item-wrapper"
                                             >
-                                              {catObj.image && (
-                                                <div
-                                                  className="cms-cat-bg"
-                                                  style={{
-                                                    backgroundImage: `url(${catObj.image})`,
-                                                    backgroundSize: fit
-                                                  }}
-                                                />
-                                              )}
-                                              {catObj.image && <div className="cms-cat-overlay"></div>}
-                                              <span className="cms-cat-name">{catObj.name}</span>
+                                              <div
+                                                className={`cms-cat-card aspect-${aspect}`}
+                                                style={{
+                                                  backgroundColor: catObj.image ? 'transparent' : '#f5f5f4'
+                                                }}
+                                              >
+                                                {catObj.image && (
+                                                  <div
+                                                    className="cms-cat-bg"
+                                                    style={{
+                                                      backgroundImage: `url(${catObj.image})`
+                                                    }}
+                                                  />
+                                                )}
+                                              </div>
+                                              <div className="cms-cat-info">
+                                                <span className="cms-cat-number">{(cIdx + 1).toString().padStart(2, '0')}</span>
+                                                <span className="cms-cat-title-text">{catObj.name}</span>
+                                              </div>
                                             </div>
                                           );
                                         })}
@@ -3910,12 +3972,49 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                   </section>
                                 );
                               } else if (block.block_type === 'FeaturedProducts') {
-                                const limit = block.data.limit || 4;
-                                const displayList = products.slice(0, limit);
+                                const rows = typeof block.data.rows === 'number' ? block.data.rows : 2;
+                                const displayLimit = dskCols * rows;
+
+                                const uniqueCats = Array.from(new Set(products.map((p: any) => p.category).filter(Boolean))).sort();
+                                const activeState = activeFeaturedCategory[block.id] || 'ALL';
+                                const filteredProducts = activeState === 'ALL'
+                                  ? products
+                                  : products.filter((p: any) => p.category?.toLowerCase() === activeState.toLowerCase());
+
+                                const displayList = filteredProducts.slice(0, displayLimit);
                                 blockContent = (
                                   <section className={`section new-arrivals ${padClass} ${padHClass} ${themeClass} ${alignClass}`} style={sectionStyle}>
                                     <div className={`container ${widthClass}`} style={containerStyle}>
-                                      <h2 className="section-title" style={{ fontFamily: 'var(--font-heading)', marginBottom: '1.5rem' }}>{block.data.title || 'Curated Classics'}</h2>
+                                      <h2 className="section-title" style={{ fontFamily: 'var(--font-heading)', marginBottom: '1.5rem', textAlign: 'center' }}>{block.data.title || 'Curated Classics'}</h2>
+
+                                      <div className="featured-category-toggles">
+                                        <div className="featured-category-toggles-inner">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setActiveFeaturedCategory(prev => ({ ...prev, [block.id]: 'ALL' }));
+                                            }}
+                                            className={`featured-cat-toggle-btn ${activeState === 'ALL' ? 'active' : ''}`}
+                                          >
+                                            ALL PIECES
+                                          </button>
+                                          {uniqueCats.map((cat: string) => {
+                                            const normalized = cat.toLowerCase();
+                                            return (
+                                              <button
+                                                key={cat}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setActiveFeaturedCategory(prev => ({ ...prev, [block.id]: normalized }));
+                                                }}
+                                                className={`featured-cat-toggle-btn ${activeState === normalized ? 'active' : ''}`}
+                                              >
+                                                {cat.toUpperCase()}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
 
                                       <div
                                         className={`product-grid ${gapClass} ${hoverClass}`}
@@ -4865,61 +4964,111 @@ CREATE POLICY "Admins can update storefront config" ON public.storefront_config
                                 )}
 
                                 {block.block_type === 'FeaturedProducts' && (
-                                  <>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                      <span style={{ fontWeight: 600 }}>Featured Section Title</span>
-                                      <input
-                                        type="text"
-                                        value={block.data.title || ''}
-                                        onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
-                                        className="admin-input"
-                                      />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                      <span style={{ fontWeight: 600 }}>Products Display Limit</span>
-                                      <input
-                                        type="number"
-                                        min={1}
-                                        max={20}
-                                        value={block.data.limit || 4}
-                                        onChange={e => handleUpdateBlockData(block.id, 'limit', Number(e.target.value))}
-                                        className="admin-input"
-                                      />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                      <span style={{ fontWeight: 600 }}>Filter By Category</span>
-                                      <select
-                                        value={block.data.filter_category || 'all'}
-                                        onChange={e => handleUpdateBlockData(block.id, 'filter_category', e.target.value)}
-                                        className="admin-select"
-                                      >
-                                        <option value="all">All Products</option>
-                                        <option value="men">Men's Collection</option>
-                                        <option value="accessories">Accessories</option>
-                                      </select>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
-                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA Button Text</span>
-                                        <input
-                                          type="text"
-                                          value={block.data.cta_text || ''}
-                                          onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)}
-                                          className="admin-input"
-                                        />
-                                      </label>
-                                      <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                        <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA Button Link</span>
-                                        <input
-                                          type="text"
-                                          value={block.data.cta_url || ''}
-                                          onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)}
-                                          className="admin-input"
-                                        />
-                                      </label>
-                                    </div>
-                                  </>
-                                )}
+                                   <>
+                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                       <span style={{ fontWeight: 600 }}>Featured Section Title</span>
+                                       <input
+                                         type="text"
+                                         value={block.data.title || ''}
+                                         onChange={e => handleUpdateBlockData(block.id, 'title', e.target.value)}
+                                         className="admin-input"
+                                       />
+                                     </div>
+
+                                     {(() => {
+                                       const gc = block.layout_configuration?.grid_setup || { columns_mobile: 1, columns_tablet: 2, columns_desktop: 4 };
+                                       const rowsVal = typeof block.data.rows === 'number' ? block.data.rows : 2;
+                                       return (
+                                         <>
+                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                                               <span style={{ fontWeight: 600 }}>Grid Rows (2 to 4)</span>
+                                               <span style={{ fontWeight: 'bold' }}>{rowsVal}</span>
+                                             </div>
+                                             <input
+                                               type="range" min="2" max="4"
+                                               value={rowsVal}
+                                               onChange={e => {
+                                                 const newRows = Number(e.target.value);
+                                                 handleUpdateBlockData(block.id, 'rows', newRows);
+                                                 handleUpdateBlockData(block.id, 'limit', gc.columns_desktop * newRows);
+                                               }}
+                                               style={{ width: '100%', cursor: 'ew-resize' }}
+                                             />
+                                           </div>
+
+                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                                               <span style={{ fontWeight: 600 }}>Desktop Columns (3 to 8)</span>
+                                               <span style={{ fontWeight: 'bold' }}>{gc.columns_desktop}</span>
+                                             </div>
+                                             <input
+                                               type="range" min="3" max="8"
+                                               value={gc.columns_desktop}
+                                               onChange={e => {
+                                                 const newCols = Number(e.target.value);
+                                                 handleUpdateBlockLayout(block.id, 'grid_setup', { ...gc, columns_desktop: newCols });
+                                                 handleUpdateBlockData(block.id, 'limit', newCols * rowsVal);
+                                               }}
+                                               style={{ width: '100%', cursor: 'ew-resize' }}
+                                             />
+                                           </div>
+
+                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                                               <span style={{ fontWeight: 600 }}>Tablet Columns (2 to 6)</span>
+                                               <span style={{ fontWeight: 'bold' }}>{gc.columns_tablet}</span>
+                                             </div>
+                                             <input
+                                               type="range" min="2" max="6"
+                                               value={gc.columns_tablet}
+                                               onChange={e => {
+                                                 handleUpdateBlockLayout(block.id, 'grid_setup', { ...gc, columns_tablet: Number(e.target.value) });
+                                               }}
+                                               style={{ width: '100%', cursor: 'ew-resize' }}
+                                             />
+                                           </div>
+
+                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                                               <span style={{ fontWeight: 600 }}>Mobile Columns (1 to 4)</span>
+                                               <span style={{ fontWeight: 'bold' }}>{gc.columns_mobile}</span>
+                                             </div>
+                                             <input
+                                               type="range" min="1" max="4"
+                                               value={gc.columns_mobile}
+                                               onChange={e => {
+                                                 handleUpdateBlockLayout(block.id, 'grid_setup', { ...gc, columns_mobile: Number(e.target.value) });
+                                               }}
+                                               style={{ width: '100%', cursor: 'ew-resize' }}
+                                             />
+                                           </div>
+                                         </>
+                                       );
+                                     })()}
+
+                                     <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--color-border)', paddingTop: '0.5rem' }}>
+                                       <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                         <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA Button Text</span>
+                                         <input
+                                           type="text"
+                                           value={block.data.cta_text || ''}
+                                           onChange={e => handleUpdateBlockData(block.id, 'cta_text', e.target.value)}
+                                           className="admin-input"
+                                         />
+                                       </label>
+                                       <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                         <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>CTA Button Link</span>
+                                         <input
+                                           type="text"
+                                           value={block.data.cta_url || ''}
+                                           onChange={e => handleUpdateBlockData(block.id, 'cta_url', e.target.value)}
+                                           className="admin-input"
+                                         />
+                                       </label>
+                                     </div>
+                                   </>
+                                 )}
 
                                 {block.block_type === 'BrandStory' && (
                                   <>
