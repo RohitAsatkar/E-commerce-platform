@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard.tsx';
 import BrandStory from './pages/BrandStory.tsx';
 import Auth from './pages/Auth.tsx';
 import CustomDynamicPage from './pages/CustomDynamicPage.tsx';
+import SearchPage from './pages/Search.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import './index.css';
 
@@ -47,10 +48,11 @@ function App() {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/account" element={<UserAccount />} />
+               <Route path="/account" element={<UserAccount />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/story" element={<BrandStory />} />
               <Route path="/page/:slug" element={<CustomDynamicPage />} />
+              <Route path="/search" element={<SearchPage />} />
             </Routes>
           </main>
           <Footer />

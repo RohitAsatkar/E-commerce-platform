@@ -38,6 +38,11 @@ const UserAccount = () => {
   });
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Address PIN lookup states
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isPinAutofilled, setIsPinAutofilled] = useState(false);
+
   // Password change
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -249,6 +254,9 @@ const UserAccount = () => {
 
   const startEditingAddress = (addr: any) => {
     setEditingAddressId(addr.id);
+    setPinError(null);
+    setPinLoading(false);
+    setIsPinAutofilled(!!addr.postal_code && addr.postal_code.trim().length === 6);
     setAddressForm({
       recipient_name: addr.recipient_name || '',
       phone: addr.phone || '',
@@ -264,6 +272,9 @@ const UserAccount = () => {
 
   const startAddingAddress = () => {
     setEditingAddressId('new');
+    setPinError(null);
+    setPinLoading(false);
+    setIsPinAutofilled(false);
     setAddressForm({
       recipient_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
       phone: '',
@@ -275,6 +286,51 @@ const UserAccount = () => {
       address_type: 'Home',
       is_default: false
     });
+  };
+
+  const handlePostalCodeChange = async (pincode: string) => {
+    const sanitized = pincode.replace(/\D/g, '').slice(0, 6);
+    setAddressForm(prev => ({ ...prev, postal_code: sanitized }));
+    setPinError(null);
+
+    if (sanitized.length === 6) {
+      setPinLoading(true);
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+        const data = await res.json();
+
+        if (data && data[0] && data[0].Status === 'Success') {
+          const postOfficeArray = data[0].PostOffice;
+          if (postOfficeArray && postOfficeArray.length > 0) {
+            const district = postOfficeArray[0].District;
+            const state = postOfficeArray[0].State;
+            setAddressForm(prev => ({
+              ...prev,
+              city: district,
+              state: state
+            }));
+            setIsPinAutofilled(true);
+            setPinError(null);
+          } else {
+            setPinError('Invalid PIN code.');
+            setIsPinAutofilled(false);
+            setAddressForm(prev => ({ ...prev, city: '', state: '' }));
+          }
+        } else {
+          setPinError('Invalid PIN code.');
+          setIsPinAutofilled(false);
+          setAddressForm(prev => ({ ...prev, city: '', state: '' }));
+        }
+      } catch (err) {
+        setPinError('Invalid PIN code.');
+        setIsPinAutofilled(false);
+        setAddressForm(prev => ({ ...prev, city: '', state: '' }));
+      } finally {
+        setPinLoading(false);
+      }
+    } else {
+      setIsPinAutofilled(false);
+    }
   };
 
   const handleChangePassword = async () => {
@@ -577,78 +633,87 @@ const UserAccount = () => {
                       </h2>
                     </div>
 
-                    <div className="form-card animate-fade-in" style={{ marginTop: '1rem' }}>
-                      <div className="form-grid">
-                        <label className="form-label">Recipient Name *
-                          <input 
-                            type="text" 
-                            value={addressForm.recipient_name} 
-                            onChange={e => setAddressForm({...addressForm, recipient_name: e.target.value})} 
-                            className="form-input" 
-                            placeholder="John Doe" 
-                            required 
-                          />
-                        </label>
-                        <label className="form-label">Phone Number
-                          <input 
-                            type="text" 
-                            value={addressForm.phone} 
-                            onChange={e => setAddressForm({...addressForm, phone: e.target.value})} 
-                            className="form-input" 
-                            placeholder="+91 98765 43210" 
-                          />
-                        </label>
-                        <label className="form-label full-width">Street Address *
-                          <input 
-                            type="text" 
-                            value={addressForm.street_address} 
-                            onChange={e => setAddressForm({...addressForm, street_address: e.target.value})} 
-                            className="form-input" 
-                            placeholder="Flat/House No., Building, Street Name" 
-                            required 
-                          />
-                        </label>
-                        <label className="form-label">City *
-                          <input 
-                            type="text" 
-                            value={addressForm.city} 
-                            onChange={e => setAddressForm({...addressForm, city: e.target.value})} 
-                            className="form-input" 
-                            placeholder="Mumbai" 
-                            required 
-                          />
-                        </label>
-                        <label className="form-label">State / Region
-                          <input 
-                            type="text" 
-                            value={addressForm.state} 
-                            onChange={e => setAddressForm({...addressForm, state: e.target.value})} 
-                            className="form-input" 
-                            placeholder="Maharashtra" 
-                          />
-                        </label>
-                        <label className="form-label">Postal Code *
-                          <input 
-                            type="text" 
-                            value={addressForm.postal_code} 
-                            onChange={e => setAddressForm({...addressForm, postal_code: e.target.value})} 
-                            className="form-input" 
-                            placeholder="400001" 
-                            required 
-                          />
-                        </label>
-                        <label className="form-label">Country
-                          <input 
-                            type="text" 
-                            value={addressForm.country} 
-                            onChange={e => setAddressForm({...addressForm, country: e.target.value})} 
-                            className="form-input" 
-                            placeholder="India" 
-                          />
-                        </label>
-                        
-                        <div className="form-label full-width" style={{ marginTop: '0.5rem' }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', display: 'block' }}>Address Type</span>
+                     <div className="form-card animate-fade-in" style={{ marginTop: '1rem' }}>
+                       <div className="form-grid">
+                         <label className="form-label">Recipient Name *
+                           <input 
+                             type="text" 
+                             value={addressForm.recipient_name} 
+                             onChange={e => setAddressForm({...addressForm, recipient_name: e.target.value})} 
+                             className="form-input" 
+                             placeholder="John Doe" 
+                             required 
+                           />
+                         </label>
+                         <label className="form-label">Phone Number
+                           <input 
+                             type="text" 
+                             value={addressForm.phone} 
+                             onChange={e => setAddressForm({...addressForm, phone: e.target.value})} 
+                             className="form-input" 
+                             placeholder="+91 98765 43210" 
+                           />
+                         </label>
+
+                         <label className="form-label" style={{ position: 'relative' }}>PIN Code *
+                           <input 
+                             type="text" 
+                             value={addressForm.postal_code} 
+                             onChange={e => handlePostalCodeChange(e.target.value)} 
+                             className={`form-input ${pinError ? 'error' : ''}`}
+                             placeholder="e.g. 400001" 
+                             maxLength={6}
+                             required 
+                           />
+                           {pinLoading && <span className="pin-status-msg loading">Fetching details...</span>}
+                           {pinError && <span className="pin-status-msg error">{pinError}</span>}
+                         </label>
+                         <label className="form-label">Country
+                           <input 
+                             type="text" 
+                             value={addressForm.country} 
+                             onChange={e => setAddressForm({...addressForm, country: e.target.value})} 
+                             className="form-input" 
+                             placeholder="India" 
+                           />
+                         </label>
+
+                         <label className="form-label">City *
+                           <input 
+                             type="text" 
+                             value={addressForm.city} 
+                             onChange={e => !isPinAutofilled && setAddressForm({...addressForm, city: e.target.value})} 
+                             className={`form-input ${isPinAutofilled ? 'readonly' : ''}`}
+                             placeholder={pinLoading ? "Fetching..." : "Mumbai"}
+                             readOnly={isPinAutofilled}
+                             required 
+                           />
+                           {isPinAutofilled && <span className="pin-autofill-hint">Autofilled from PIN</span>}
+                         </label>
+                         <label className="form-label">State / Region
+                           <input 
+                             type="text" 
+                             value={addressForm.state} 
+                             onChange={e => !isPinAutofilled && setAddressForm({...addressForm, state: e.target.value})} 
+                             className={`form-input ${isPinAutofilled ? 'readonly' : ''}`}
+                             placeholder={pinLoading ? "Fetching..." : "Maharashtra"}
+                             readOnly={isPinAutofilled}
+                           />
+                           {isPinAutofilled && <span className="pin-autofill-hint">Autofilled from PIN</span>}
+                         </label>
+
+                         <label className="form-label full-width">Street Address *
+                           <input 
+                             type="text" 
+                             value={addressForm.street_address} 
+                             onChange={e => setAddressForm({...addressForm, street_address: e.target.value})} 
+                             className="form-input" 
+                             placeholder="Flat/House No., Building, Street Name" 
+                             required 
+                           />
+                         </label>
+                          <div className="form-label full-width" style={{ marginTop: '0.5rem' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', display: 'block' }}>Address Type</span>
                           <div style={{ display: 'flex', gap: '0.75rem' }}>
                             {(['Home', 'Work', 'Other'] as const).map(type => (
                               <button
@@ -726,10 +791,11 @@ const UserAccount = () => {
                         </button>
                       </div>
                     ) : (
-                      <div className="addresses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
+                      <div className="addresses-grid">
                         {getParsedAddresses().map((addr: any) => (
                           <div 
                             key={addr.id} 
+                            className={`address-card ${addr.is_default ? 'default-address' : ''}`}
                             style={{ 
                               border: '1px solid var(--color-border)', 
                               borderRadius: '6px', 
@@ -743,29 +809,11 @@ const UserAccount = () => {
                           >
                             <div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                                <span style={{ 
-                                  fontSize: '0.7rem', 
-                                  fontWeight: 700, 
-                                  textTransform: 'uppercase', 
-                                  letterSpacing: '0.05em',
-                                  padding: '0.2rem 0.5rem',
-                                  borderRadius: '3px',
-                                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                                  color: 'var(--color-text)'
-                                }}>
+                                <span className="address-card-badge type">
                                   {addr.address_type || 'Home'}
                                 </span>
                                 {addr.is_default && (
-                                  <span style={{ 
-                                    fontSize: '0.7rem', 
-                                    fontWeight: 700, 
-                                    textTransform: 'uppercase', 
-                                    letterSpacing: '0.05em',
-                                    padding: '0.2rem 0.5rem',
-                                    borderRadius: '3px',
-                                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                                    color: '#2e7d32'
-                                  }}>
+                                  <span className="address-card-badge default">
                                     Default
                                   </span>
                                 )}
@@ -837,6 +885,7 @@ const UserAccount = () => {
 
                         <div 
                           onClick={startAddingAddress}
+                          className="address-card"
                           style={{ 
                             border: '1px dashed var(--color-border)', 
                             borderRadius: '6px', 

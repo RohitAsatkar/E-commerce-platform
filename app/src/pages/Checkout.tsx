@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useProducts } from '../lib/useProducts';
 import { getProductCurrency } from '../lib/currency';
+import { Mail, MapPin, Banknote, ShieldCheck, Lock, Loader2 } from 'lucide-react';
+import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -13,10 +15,14 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [addressInfo, setAddressInfo] = useState({ firstName: '', lastName: '', address: '', city: '', postal: '', email: '' });
+  const [addressInfo, setAddressInfo] = useState({ firstName: '', lastName: '', address: '', city: '', state: '', postal: '', email: '' });
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [giftWrap, setGiftWrap] = useState(false);
+
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isPinAutofilled, setIsPinAutofilled] = useState(false);
 
   useEffect(() => {
     const promo = localStorage.getItem('cart_promo_code');
@@ -68,15 +74,20 @@ const Checkout = () => {
             lastName: names.slice(1).join(' ') || '',
             address: defaultAddr.street_address || '',
             city: defaultAddr.city || '',
+            state: defaultAddr.state || '',
             postal: defaultAddr.postal_code || '',
             email: profileData.email || user.email || ''
           });
+          if (defaultAddr.postal_code && defaultAddr.city && defaultAddr.state) {
+            setIsPinAutofilled(true);
+          }
         } else {
           setAddressInfo({
             firstName: profileData.first_name || '',
             lastName: profileData.last_name || '',
             address: profileData.address || '',
             city: profileData.city || '',
+            state: profileData.state || '',
             postal: profileData.postal_code || '',
             email: profileData.email || user.email || ''
           });
@@ -125,7 +136,7 @@ const Checkout = () => {
 
     try {
       // 1. Create order
-      const shippingAddress = `${addressInfo.firstName} ${addressInfo.lastName}, ${addressInfo.address}, ${addressInfo.city}, ${addressInfo.postal}`;
+      const shippingAddress = `${addressInfo.firstName} ${addressInfo.lastName}, ${addressInfo.address}, ${addressInfo.city}, ${addressInfo.state}, ${addressInfo.postal}`;
       const { data: orderData, error: orderError } = await supabase.from('orders').insert({
         user_id: user.id,
         total: finalTotal,
@@ -160,37 +171,95 @@ const Checkout = () => {
     }
   };
 
-  const inputStyle = {
-    padding: '1rem', border: '1px solid var(--color-border)',
-    backgroundColor: 'transparent', color: 'var(--color-text)', outline: 'none',
-    fontFamily: 'inherit', fontSize: '0.95rem', width: '100%'
+  const handlePostalCodeChange = async (pincode: string) => {
+    const sanitized = pincode.replace(/\D/g, '').slice(0, 6);
+    setAddressInfo(prev => ({ ...prev, postal: sanitized }));
+    setPinError(null);
+
+    if (sanitized.length === 6) {
+      setPinLoading(true);
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+        const data = await res.json();
+
+        if (data && data[0] && data[0].Status === 'Success') {
+          const postOfficeArray = data[0].PostOffice;
+          if (postOfficeArray && postOfficeArray.length > 0) {
+            const district = postOfficeArray[0].District;
+            const state = postOfficeArray[0].State;
+            setAddressInfo(prev => ({
+              ...prev,
+              city: district,
+              state: state
+            }));
+            setIsPinAutofilled(true);
+            setPinError(null);
+          } else {
+            setPinError('Invalid PIN code.');
+            setIsPinAutofilled(false);
+            setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
+          }
+        } else {
+          setPinError('Invalid PIN code.');
+          setIsPinAutofilled(false);
+          setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
+        }
+      } catch (err) {
+        setPinError('Invalid PIN code.');
+        setIsPinAutofilled(false);
+        setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
+      } finally {
+        setPinLoading(false);
+      }
+    } else {
+      setIsPinAutofilled(false);
+    }
   };
 
   if (loading) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Loading checkout...</div>;
   if (cartItems.length === 0) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Your cart is empty.</div>;
 
   return (
-    <div className="section" style={{ paddingTop: '120px', minHeight: '80vh' }}>
-      <div className="container" style={{ maxWidth: '900px' }}>
-        <h1 className="mb-8" style={{ fontSize: '2.5rem' }}>Checkout</h1>
+    <div className="checkout-page">
+      <div className="container" style={{ maxWidth: '1100px' }}>
+        <div className="checkout-title-wrap">
+          <h1 className="checkout-title">Checkout</h1>
+        </div>
         
-        <div className="flex" style={{ gap: '3rem', flexWrap: 'wrap' }}>
+        <div className="checkout-grid">
           {/* Left - Form */}
-          <div style={{ flex: '1 1 55%' }}>
-            <form onSubmit={handlePlaceOrder} style={{ display: 'grid', gap: '2rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Contact Information</h2>
-                <input type="email" placeholder="Email" value={addressInfo.email} onChange={e => setAddressInfo({...addressInfo, email: e.target.value})} required style={inputStyle} />
+          <div>
+            <form onSubmit={handlePlaceOrder} className="checkout-form-grid">
+              
+              {/* Contact Information */}
+              <div className="checkout-section">
+                <div className="checkout-section-header">
+                  <Mail size={18} />
+                  <h2>Contact Information</h2>
+                </div>
+                <div className="checkout-input-wrapper">
+                  <input 
+                    type="email" 
+                    placeholder="Email Address *" 
+                    value={addressInfo.email} 
+                    onChange={e => setAddressInfo({...addressInfo, email: e.target.value})} 
+                    required 
+                    className="checkout-input" 
+                  />
+                </div>
               </div>
               
-              <div>
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Shipping Address</h2>
+              {/* Shipping Address */}
+              <div className="checkout-section">
+                <div className="checkout-section-header">
+                  <MapPin size={18} />
+                  <h2>Shipping Address</h2>
+                </div>
+
                 {savedAddresses.length > 0 && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                      Select a Saved Address
-                    </p>
-                    <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                  <div className="mb-4">
+                    <span className="checkout-address-label">Select a Saved Address</span>
+                    <div className="checkout-address-scroll">
                       {savedAddresses.map((addr) => {
                         const isSelected = 
                           addressInfo.address === addr.street_address && 
@@ -208,125 +277,225 @@ const Checkout = () => {
                                 lastName: names.slice(1).join(' ') || '',
                                 address: addr.street_address,
                                 city: addr.city,
+                                state: addr.state || '',
                                 postal: addr.postal_code,
                                 email: addressInfo.email
                               });
+                              if (addr.postal_code && addr.city && addr.state) {
+                                setIsPinAutofilled(true);
+                              } else {
+                                setIsPinAutofilled(false);
+                              }
                             }}
-                            style={{
-                              padding: '0.75rem 1rem',
-                              fontSize: '0.85rem',
-                              borderRadius: '4px',
-                              border: '1px solid',
-                              borderColor: isSelected ? 'var(--color-text)' : 'var(--color-border)',
-                              backgroundColor: isSelected ? 'rgba(0, 0, 0, 0.02)' : 'transparent',
-                              color: 'var(--color-text)',
-                              textAlign: 'left',
-                              cursor: 'pointer',
-                              minWidth: '200px',
-                              flexShrink: 0,
-                              transition: 'all 0.15s'
-                            }}
+                            className={`checkout-address-tile ${isSelected ? 'selected' : ''}`}
                           >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>
-                              <span>{addr.recipient_name}</span>
-                              <span style={{ color: 'var(--color-gray)', fontSize: '0.7rem' }}>{addr.address_type}</span>
+                            <div className="checkout-tile-header">
+                              <span className="checkout-tile-name">{addr.recipient_name}</span>
+                              <span className="checkout-tile-type">{addr.address_type}</span>
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--color-gray)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {addr.street_address}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>
+                            <div className="checkout-tile-details">
+                              {addr.street_address}<br />
                               {addr.city}, {addr.postal_code}
                             </div>
+                            {isSelected && <div className="checkout-tile-selected-indicator" />}
                           </button>
                         );
                       })}
                     </div>
                   </div>
                 )}
+
                 {addressInfo.firstName && addressInfo.address && (
-                  <p style={{ fontSize: '0.8rem', color: '#2e7d32', marginBottom: '1rem', padding: '0.5rem 0.75rem', backgroundColor: '#e8f5e9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="checkout-alert-banner success">
                     <span>✓ Shipping form is populated. You can edit details below if needed.</span>
-                    <button type="button" onClick={() => setAddressInfo({ firstName: '', lastName: '', address: '', city: '', postal: '', email: addressInfo.email })} style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}>Clear All</button>
-                  </p>
+                    <button 
+                      type="button" 
+                      onClick={() => { 
+                        setAddressInfo({ firstName: '', lastName: '', address: '', city: '', state: '', postal: '', email: addressInfo.email }); 
+                        setIsPinAutofilled(false); 
+                        setPinError(null); 
+                      }} 
+                      className="checkout-clear-btn"
+                    >
+                      Clear All
+                    </button>
+                  </div>
                 )}
-                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr' }}>
-                  <input type="text" placeholder="First Name" value={addressInfo.firstName} onChange={e => setAddressInfo({...addressInfo, firstName: e.target.value})} required style={inputStyle} />
-                  <input type="text" placeholder="Last Name" value={addressInfo.lastName} onChange={e => setAddressInfo({...addressInfo, lastName: e.target.value})} required style={inputStyle} />
-                  <input type="text" placeholder="Address" value={addressInfo.address} onChange={e => setAddressInfo({...addressInfo, address: e.target.value})} required style={{ ...inputStyle, gridColumn: 'span 2' }} />
-                  <input type="text" placeholder="City" value={addressInfo.city} onChange={e => setAddressInfo({...addressInfo, city: e.target.value})} required style={inputStyle} />
-                  <input type="text" placeholder="Postal Code" value={addressInfo.postal} onChange={e => setAddressInfo({...addressInfo, postal: e.target.value})} required style={inputStyle} />
-                </div>
-              </div>
-              
-              <div>
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Payment</h2>
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                  <input type="text" placeholder="Card Number" required style={inputStyle} />
-                  <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr' }}>
-                    <input type="text" placeholder="MM/YY" required style={inputStyle} />
-                    <input type="text" placeholder="CVC" required style={inputStyle} />
+
+                <div className="checkout-form-grid-2">
+                  <div className="checkout-input-wrapper">
+                    <input 
+                      type="text" 
+                      placeholder="First Name *" 
+                      value={addressInfo.firstName} 
+                      onChange={e => setAddressInfo({...addressInfo, firstName: e.target.value})} 
+                      required 
+                      className="checkout-input" 
+                    />
+                  </div>
+                  <div className="checkout-input-wrapper">
+                    <input 
+                      type="text" 
+                      placeholder="Last Name *" 
+                      value={addressInfo.lastName} 
+                      onChange={e => setAddressInfo({...addressInfo, lastName: e.target.value})} 
+                      required 
+                      className="checkout-input" 
+                    />
+                  </div>
+                  
+                  <div className="checkout-input-wrapper" style={{ gridColumn: 'span 2' }}>
+                    <input 
+                      type="text" 
+                      placeholder="PIN Code *" 
+                      value={addressInfo.postal} 
+                      onChange={e => handlePostalCodeChange(e.target.value)} 
+                      maxLength={6}
+                      required 
+                      className={`checkout-input ${pinError ? 'error' : ''}`}
+                    />
+                    {pinLoading && <span className="checkout-input-status loading">Fetching...</span>}
+                    {pinError && <span className="checkout-input-status error">{pinError}</span>}
+                  </div>
+
+                  <div className="checkout-input-wrapper" style={{ gridColumn: 'span 2' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Address (Street, Area) *" 
+                      value={addressInfo.address} 
+                      onChange={e => setAddressInfo({...addressInfo, address: e.target.value})} 
+                      required 
+                      className="checkout-input" 
+                    />
+                  </div>
+                  
+                  <div className="checkout-input-wrapper">
+                    <input 
+                      type="text" 
+                      placeholder={pinLoading ? "Fetching..." : "City *"} 
+                      value={addressInfo.city} 
+                      onChange={e => !isPinAutofilled && setAddressInfo({...addressInfo, city: e.target.value})} 
+                      readOnly={isPinAutofilled}
+                      required 
+                      className={`checkout-input ${isPinAutofilled ? 'readonly' : ''}`}
+                    />
+                    {isPinAutofilled && <span className="checkout-input-autofill-badge">Autofilled</span>}
+                  </div>
+
+                  <div className="checkout-input-wrapper">
+                    <input 
+                      type="text" 
+                      placeholder={pinLoading ? "Fetching..." : "State / Region *"} 
+                      value={addressInfo.state} 
+                      onChange={e => !isPinAutofilled && setAddressInfo({...addressInfo, state: e.target.value})} 
+                      readOnly={isPinAutofilled}
+                      required 
+                      className={`checkout-input ${isPinAutofilled ? 'readonly' : ''}`}
+                    />
+                    {isPinAutofilled && <span className="checkout-input-autofill-badge">Autofilled</span>}
                   </div>
                 </div>
               </div>
               
-              <button type="submit" className="btn btn-primary" disabled={processing} style={{ marginTop: '1rem', padding: '1rem' }}>
-                {processing ? 'Processing...' : `Place Order — ${currSymbol}${finalTotal.toFixed(2)}`}
+              {/* Payment Section */}
+              <div className="checkout-section">
+                <div className="checkout-section-header">
+                  <Banknote size={18} />
+                  <h2>Payment Method</h2>
+                </div>
+                <div className="checkout-payment-option">
+                  <input 
+                    type="radio" 
+                    id="cod-payment" 
+                    name="payment-method" 
+                    className="checkout-payment-radio" 
+                    defaultChecked 
+                    disabled 
+                  />
+                  <div className="checkout-payment-details">
+                    <label htmlFor="cod-payment" className="checkout-payment-title">Cash on Delivery (COD)</label>
+                    <p className="checkout-payment-desc">
+                      Pay with cash upon delivery. Please keep exact change ready when your order is delivered.
+                    </p>
+                    <div className="checkout-payment-badge">
+                      <ShieldCheck size={12} />
+                      <span>Verified COD Option</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              
+              <button type="submit" className="checkout-submit-btn" disabled={processing}>
+                {processing ? (
+                  <>
+                    <Loader2 size={16} />
+                    <span>Processing Order...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={16} />
+                    <span>Place Order — {currSymbol}{finalTotal.toFixed(2)}</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
 
           {/* Right - Order Summary */}
-          <div style={{ flex: '1 1 35%', alignSelf: 'flex-start', position: 'sticky', top: '120px' }}>
-            <div style={{ border: '1px solid var(--color-border)', padding: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Order Summary</h2>
+          <div className="checkout-summary-wrap">
+            <div className="checkout-summary-card">
+              <h2 className="checkout-summary-heading">Order Summary</h2>
               
               {cartItems.map((item) => (
-                <div key={item.id} className="flex gap-4 mb-4" style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <img src={item.product.image} alt={item.product.name} style={{ width: '56px', height: '70px', objectFit: 'cover' }} />
-                    <span style={{ position: 'absolute', top: '-6px', right: '-6px', backgroundColor: 'var(--color-text)', color: 'var(--color-bg)', borderRadius: '50%', width: '18px', height: '18px', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.quantity}</span>
+                <div key={item.id} className="checkout-product-item">
+                  <div className="checkout-product-img-wrap">
+                    <img src={item.product.image} alt={item.product.name} className="checkout-product-img" />
+                    <span className="checkout-product-qty-badge">{item.quantity}</span>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-gray)' }}>Size: {item.size}</p>
+                  <div className="checkout-product-info">
+                    <p className="checkout-product-name">{item.product.name}</p>
+                    <p className="checkout-product-size">Size: {item.size}</p>
                   </div>
-                  <p style={{ fontSize: '0.9rem', fontWeight: '500', flexShrink: 0 }}>{getProductCurrency(item.product)}{(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="checkout-product-price">{getProductCurrency(item.product)}{(item.product.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
 
-              <div className="flex justify-between mb-2" style={{ marginTop: '1rem' }}>
-                <span style={{ color: 'var(--color-gray)', fontSize: '0.9rem' }}>Subtotal</span>
-                <span style={{ fontSize: '0.9rem' }}>{currSymbol}{subtotal.toFixed(2)}</span>
-              </div>
-              
-              {discount > 0 && (
-                <div className="flex justify-between mb-2" style={{ color: '#2e7d32', fontSize: '0.9rem', fontWeight: 500 }}>
-                  <span>Discount ({appliedPromo})</span>
-                  <span>-{currSymbol}{discount.toFixed(2)}</span>
+              <div className="checkout-calc-block">
+                <div className="checkout-calc-row">
+                  <span className="checkout-calc-label">Subtotal</span>
+                  <span className="checkout-calc-value">{currSymbol}{subtotal.toFixed(2)}</span>
                 </div>
-              )}
+                
+                {discount > 0 && (
+                  <div className="checkout-calc-row discount">
+                    <span className="checkout-calc-label">Discount ({appliedPromo})</span>
+                    <span className="checkout-calc-value">-{currSymbol}{discount.toFixed(2)}</span>
+                  </div>
+                )}
 
-              {giftWrap && (
-                <div className="flex justify-between mb-2" style={{ fontSize: '0.9rem' }}>
-                  <span style={{ color: 'var(--color-gray)' }}>Gift Wrapping</span>
-                  <span>+{currSymbol}{giftWrapCost.toFixed(2)}</span>
+                {giftWrap && (
+                  <div className="checkout-calc-row">
+                    <span className="checkout-calc-label">Gift Wrapping</span>
+                    <span className="checkout-calc-value">+{currSymbol}{giftWrapCost.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <div className="checkout-calc-row">
+                  <span className="checkout-calc-label">Shipping</span>
+                  <span className="checkout-calc-value">
+                    {subtotal >= freeShippingThreshold ? (
+                      <span style={{ color: '#2e7d32', fontWeight: 500 }}>Free Express</span>
+                    ) : (
+                      <span>Free</span>
+                    )}
+                  </span>
                 </div>
-              )}
-
-              <div className="flex justify-between mb-4">
-                <span style={{ color: 'var(--color-gray)', fontSize: '0.9rem' }}>Shipping</span>
-                <span style={{ fontSize: '0.9rem' }}>
-                  {subtotal >= freeShippingThreshold ? (
-                    <span style={{ color: '#2e7d32', fontWeight: 500 }}>Free Express</span>
-                  ) : (
-                    <span>Free</span>
-                  )}
-                </span>
-              </div>
-              
-              <div className="flex justify-between" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                <span>Total</span>
-                <span>{currSymbol}{finalTotal.toFixed(2)}</span>
+                
+                <div className="checkout-calc-row total">
+                  <span>Total</span>
+                  <span>{currSymbol}{finalTotal.toFixed(2)}</span>
+                </div>
               </div>
             </div>
           </div>

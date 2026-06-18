@@ -5,22 +5,23 @@ const supabaseAnonKey = 'sb_publishable_TPKx7bgD1BXS15Bo8bd2Mw_LeYUBbVf';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-async function inspectProfiles() {
-  console.log("Fetching profiles from Supabase...");
+async function inspectProducts() {
+  console.log("Fetching products from Supabase...");
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*');
+      .from('products')
+      .select('*')
+      .limit(1);
     
     if (error) {
-      console.error("Error fetching profiles:", error);
+      console.error("Error fetching products:", error);
       return;
     }
-    console.log("Profiles list:");
-    console.log(JSON.stringify(data, null, 2));
+    console.log("Product fields:");
+    console.log(JSON.stringify(data[0], null, 2));
   } catch (e) {
     console.error("Exception occurred:", e);
   }
 }
 
-inspectProfiles();
+inspectProducts();

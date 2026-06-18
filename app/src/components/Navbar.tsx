@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, User, Menu, X, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../lib/useProducts';
 import { formatPrice } from '../lib/currency';
 import { supabase } from '../lib/supabase';
+import { searchProducts } from '../lib/searchEngine';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -12,14 +13,125 @@ const Navbar = () => {
   const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [cartCount, setCartCount] = useState(0);
   const { products } = useProducts();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const searchResults = searchQuery.trim() === '' 
-    ? [] 
-    : products.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 5);
+  const popularSearches = ['Linen', 'Overshirts', 'Cargo Pants', 'Footwear'];
+
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setCartCount(0);
+      return;
+    }
+
+    const fetchCartCount = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cart_items')
+          .select('quantity')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        
+        const total = data ? data.reduce((sum, item: any) => sum + (item.quantity || 1), 0) : 0;
+        setCartCount(total);
+      } catch (err) {
+        console.error("Failed to fetch cart count:", err);
+      }
+    };
+
+    fetchCartCount();
+
+    // Subscribe to realtime changes on cart_items table for this user
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cart_items',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchCartCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        isSearchOpen &&
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchOpen(false);
+        setSearchQuery('');
+        if (searchInputRef.current) {
+          searchInputRef.current.blur();
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isSearchOpen]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchQuery.trim();
+    if (trimmed === '') return;
+
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      setDebouncedQuery('');
+      setSearchResults([]);
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      setDebouncedQuery(trimmed);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (debouncedQuery === '') {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    // Execute the backend-like normalized fuzzy search pipeline
+    const results = searchProducts(products, debouncedQuery);
+    setSearchResults(results.slice(0, 5));
+    setSearchLoading(false);
+  }, [debouncedQuery, products]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,8 +141,13 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
   const location = useLocation();
-  const { user } = useAuth();
   const isHome = location.pathname === '/';
   const isSolid = isScrolled || !isHome;
 
@@ -190,56 +307,96 @@ const Navbar = () => {
           </div>
 
           <div className="nav-right">
-            <div className="nav-search-container">
-              {!isSearchOpen ? (
-                <button className="icon-btn" onClick={() => setIsSearchOpen(true)}><Search size={20} /></button>
-              ) : (
-                <div className="minimal-search-wrapper">
-                  <Search size={16} className="minimal-search-icon" />
-                  <input 
-                    type="text" 
-                    className="minimal-search-input" 
-                    placeholder="Search..." 
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    autoFocus
-                  />
-                  <button className="minimal-search-close" onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}><X size={16} /></button>
-                  
-                  {searchQuery.trim() !== '' && (
-                    <div className="minimal-search-dropdown">
-                      {searchResults.length > 0 ? (
-                        searchResults.map(product => (
-                          <Link 
-                            key={product.id} 
-                            to={`/product/${product.id}`} 
-                            className="minimal-result-item"
-                            onClick={() => {
-                              setIsSearchOpen(false);
-                              setSearchQuery('');
-                            }}
-                          >
-                            <img src={product.image} alt={product.name} />
-                            <div className="minimal-result-info">
-                              <h4>{product.name}</h4>
-                              <p>{formatPrice(product)}</p>
-                            </div>
-                          </Link>
-                        ))
-                      ) : (
-                        <div className="minimal-no-results">
-                          No products found.
+            <div ref={searchContainerRef} className="nav-search-container">
+              <button 
+                className={`icon-btn search-trigger-btn ${isSearchOpen ? 'hide' : ''}`} 
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Search size={20} />
+              </button>
+              
+              <form onSubmit={handleSearchSubmit} className={`minimal-search-wrapper ${isSearchOpen ? 'open' : ''}`}>
+                <Search size={16} className="minimal-search-icon" />
+                <input 
+                  ref={searchInputRef}
+                  type="text" 
+                  className="minimal-search-input" 
+                  placeholder="Search..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+                <button type="submit" style={{ display: 'none' }} />
+                <button type="button" className="minimal-search-close" onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}><X size={16} /></button>
+                
+                {isSearchOpen && (
+                  <div className="minimal-search-dropdown">
+                    {searchQuery.trim() === '' ? (
+                      <div className="minimal-search-suggestions">
+                        <span className="suggestions-title">Popular Searches</span>
+                        <div className="suggestions-pills">
+                          {popularSearches.map(tag => (
+                            <button
+                              key={tag}
+                              type="button"
+                              className="suggestion-pill"
+                              onClick={() => {
+                                setSearchQuery(tag);
+                              }}
+                            >
+                              {tag}
+                            </button>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                      </div>
+                    ) : searchQuery.trim().length < 2 ? (
+                      <div className="minimal-no-results" style={{ fontSize: '0.8rem', color: 'var(--color-gray)' }}>
+                        Type at least 2 characters...
+                      </div>
+                    ) : searchLoading ? (
+                      <div className="minimal-skeleton-container">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="minimal-skeleton-item">
+                            <div className="skeleton-image shimmer" />
+                            <div className="skeleton-info">
+                              <div className="skeleton-line title shimmer" />
+                              <div className="skeleton-line price shimmer" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      searchResults.map(product => (
+                        <Link 
+                          key={product.id} 
+                          to={`/product/${product.id}`} 
+                          className="minimal-result-item"
+                          onClick={() => {
+                            setIsSearchOpen(false);
+                            setSearchQuery('');
+                          }}
+                        >
+                          <div className="result-img-wrapper">
+                            <img src={product.image} alt={product.name} />
+                          </div>
+                          <div className="minimal-result-info">
+                            <h4>{product.name}</h4>
+                            <p>{formatPrice(product)}</p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="minimal-no-results">
+                        No products found.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </form>
             </div>
             <Link to={user ? "/account" : "/auth"} className="icon-btn"><User size={20} /></Link>
             <Link to="/cart" className="icon-btn cart-btn">
               <ShoppingBag size={20} />
-              <span className="cart-count">2</span>
+              {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
             </Link>
           </div>
         </div>

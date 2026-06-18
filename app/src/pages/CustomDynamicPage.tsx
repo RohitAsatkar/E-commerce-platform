@@ -449,6 +449,149 @@ const CustomDynamicPageContent = () => {
 
   return (
     <div style={{ minHeight: '90vh', paddingBottom: '4rem', backgroundColor: theme.bodyBg, color: theme.textColor, fontFamily: theme.fontFamily, transition: 'all 0.3s ease' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .editorial-offset-banner {
+            grid-template-columns: 1fr !important;
+            min-height: auto !important;
+            padding: 1.5rem 1rem !important;
+            gap: 1.5rem !important;
+          }
+          .editorial-offset-banner > div:first-child {
+            padding: 2rem 1.5rem !important;
+          }
+          .editorial-offset-banner h1 {
+            font-size: 1.8rem !important;
+          }
+          .editorial-offset-banner h2 {
+            font-size: 1.05rem !important;
+          }
+          .editorial-offset-banner p {
+            font-size: 0.85rem !important;
+          }
+
+          .overlay-bold-banner-container {
+            flex-direction: column !important;
+            min-height: auto !important;
+            background-color: var(--color-bg) !important;
+          }
+          .overlay-bold-banner-image {
+            position: relative !important;
+            max-height: 320px !important;
+            border: none !important;
+          }
+          .overlay-bold-banner-overlay,
+          .overlay-bold-banner-border {
+            display: none !important;
+          }
+          .overlay-bold-banner-text {
+            position: relative !important;
+            padding: 2rem 1rem !important;
+            color: var(--color-text) !important;
+          }
+          .overlay-bold-banner-text h1 {
+            font-size: 2.2rem !important;
+            color: var(--color-text) !important;
+            text-shadow: none !important;
+          }
+          .overlay-bold-banner-text h2 {
+            font-size: 1.1rem !important;
+            text-shadow: none !important;
+          }
+          .overlay-bold-banner-text p {
+            font-size: 0.85rem !important;
+            color: var(--color-gray) !important;
+            text-shadow: none !important;
+          }
+
+          .split-banner-grid {
+            grid-template-columns: 1fr !important;
+            min-height: auto !important;
+          }
+          .split-banner-grid > div:first-child {
+            padding: 2rem 1.5rem !important;
+          }
+          .split-banner-grid h1 {
+            font-size: 1.8rem !important;
+          }
+          .split-banner-grid h2 {
+            font-size: 1.05rem !important;
+          }
+          .split-banner-grid p {
+            font-size: 0.85rem !important;
+          }
+
+          .glass-banner-container {
+            flex-direction: column !important;
+            min-height: auto !important;
+            background-color: var(--color-bg) !important;
+          }
+          .glass-banner-image {
+            position: relative !important;
+            max-height: 320px !important;
+          }
+          .glass-banner-overlay {
+            display: none !important;
+          }
+          .glass-banner-text {
+            position: relative !important;
+            padding: 2rem 1.25rem !important;
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(8px) !important;
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-bottom: 1px solid var(--color-border) !important;
+            border-top: 1px solid var(--color-border) !important;
+            color: var(--color-text) !important;
+            box-shadow: none !important;
+            max-width: 100% !important;
+            transform: none !important;
+          }
+          .glass-banner-text h1 {
+            font-size: 1.8rem !important;
+            color: var(--color-text) !important;
+          }
+          .glass-banner-text h2 {
+            font-size: 1rem !important;
+          }
+          .glass-banner-text p {
+            font-size: 0.8rem !important;
+            color: var(--color-gray) !important;
+          }
+
+          .minimal-banner-container {
+            flex-direction: column !important;
+            min-height: auto !important;
+            background-color: var(--color-bg) !important;
+          }
+          .minimal-banner-image {
+            position: relative !important;
+            max-height: 320px !important;
+          }
+          .minimal-banner-overlay {
+            display: none !important;
+          }
+          .minimal-banner-text {
+            position: relative !important;
+            padding: 2rem 1.25rem !important;
+            color: var(--color-text) !important;
+          }
+          .minimal-banner-text h1 {
+            font-size: 1.8rem !important;
+            color: var(--color-text) !important;
+            text-shadow: none !important;
+          }
+          .minimal-banner-text h2 {
+            font-size: 1rem !important;
+          }
+          .minimal-banner-text p {
+            font-size: 0.8rem !important;
+            color: var(--color-gray) !important;
+          }
+        }
+      `}</style>
+
       {/* Banner Block */}
       {page.bannerHideText ? (
         /* HIDE TEXT MODE: Showcase only banner image without any text overlay */
@@ -456,15 +599,23 @@ const CustomDynamicPageContent = () => {
           style={{
             position: 'relative',
             width: '100%',
-            height: bannerStyle === 'overlay-bold' ? '480px' : bannerStyle === 'split' ? '380px' : '320px',
             marginTop: '60px',
             backgroundColor: bannerBg,
-            backgroundImage: hasBannerImage ? `url(${page.bannerImage})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            boxShadow: 'inset 0 0 100px rgba(0,0,0,0.2)'
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'hidden'
           }}
         >
+          {hasBannerImage ? (
+            <img 
+              src={page.bannerImage} 
+              alt={page.title} 
+              style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '550px', objectFit: 'contain' }} 
+            />
+          ) : (
+            <div style={{ height: '200px' }} />
+          )}
           {/* Visually hidden H1 for SEO crawlers and screen readers */}
           <h1 style={{
             position: 'absolute',
@@ -554,44 +705,67 @@ const CustomDynamicPageContent = () => {
           </div>
           <div
             style={{
-              backgroundImage: `url(${page.bannerImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
               height: '100%',
-              minHeight: '380px',
-              border: '10px solid rgba(255, 255, 255, 0.05)',
-              boxShadow: '10px 10px 30px rgba(0,0,0,0.25)'
+              minHeight: '320px'
             }}
-          />
+          >
+            {hasBannerImage && (
+              <img 
+                src={page.bannerImage} 
+                alt={page.title} 
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '450px',
+                  objectFit: 'contain',
+                  border: '10px solid rgba(255, 255, 255, 0.05)',
+                  boxShadow: '10px 10px 30px rgba(0,0,0,0.25)',
+                  display: 'block',
+                  margin: '0 auto'
+                }}
+              />
+            )}
+          </div>
         </div>
       ) : bannerStyle === 'overlay-bold' && hasBannerImage ? (
         /* 2. Bold Avant-Garde Overlay Layout */
         <div
+          className="overlay-bold-banner-container"
           style={{
             position: 'relative',
-            padding: '8rem 2rem',
-            backgroundImage: `url(${page.bannerImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            color: '#ffffff',
+            width: '100%',
+            marginTop: '60px',
+            backgroundColor: bannerBg,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: '480px',
-            marginTop: '60px',
+            overflow: 'hidden'
           }}
         >
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', zIndex: 1 }} />
-          <div style={{ position: 'absolute', top: '20px', left: '20px', right: '20px', bottom: '20px', border: '1px solid rgba(255,255,255,0.2)', pointerEvents: 'none', zIndex: 2 }} />
+          <img 
+            src={page.bannerImage} 
+            alt={page.title} 
+            className="overlay-bold-banner-image"
+            style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '600px', objectFit: 'cover' }}
+          />
+          <div className="overlay-bold-banner-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', zIndex: 1 }} />
+          <div className="overlay-bold-banner-border" style={{ position: 'absolute', top: '20px', left: '20px', right: '20px', bottom: '20px', border: '1px solid rgba(255,255,255,0.2)', pointerEvents: 'none', zIndex: 2 }} />
           <div
+            className="overlay-bold-banner-text"
             style={{
-              position: 'relative',
+              position: 'absolute',
               zIndex: 3,
               maxWidth: '850px',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
+              padding: '2rem'
             }}
           >
             <span style={{
@@ -674,29 +848,41 @@ const CustomDynamicPageContent = () => {
               </a>
             )}
           </div>
-          <div style={{ backgroundImage: `url(${page.bannerImage})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '260px' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', minHeight: '260px' }}>
+            <img 
+              src={page.bannerImage} 
+              alt={page.title} 
+              style={{ width: '100%', height: '100%', maxHeight: '450px', objectFit: 'cover', display: 'block' }} 
+            />
+          </div>
         </div>
       ) : bannerStyle === 'glass' && hasBannerImage ? (
         /* 4. Glassmorphism Card Layout Overlay (Improved) */
         <div
+          className="glass-banner-container"
           style={{
             position: 'relative',
-            padding: '6rem 2rem',
-            backgroundImage: `url(${page.bannerImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            color: '#ffffff',
+            width: '100%',
+            marginTop: '60px',
+            backgroundColor: bannerBg,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: '360px',
-            marginTop: '60px',
+            overflow: 'hidden'
           }}
         >
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.35)', zIndex: 1 }} />
+          <img 
+            src={page.bannerImage} 
+            alt={page.title} 
+            className="glass-banner-image"
+            style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '600px', objectFit: 'cover' }}
+          />
+          <div className="glass-banner-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.35)', zIndex: 1 }} />
           <div
+            className="glass-banner-text"
             style={{
-              position: 'relative',
+              position: 'absolute',
               zIndex: 2,
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               backdropFilter: 'blur(16px)',
@@ -731,53 +917,82 @@ const CustomDynamicPageContent = () => {
       ) : (
         /* 5. Minimal / Immersive Layouts (Improved) */
         <div
+          className="minimal-banner-container"
           style={{
             position: 'relative',
-            padding: '6rem 2rem',
+            width: '100%',
+            marginTop: '60px',
             backgroundColor: bannerBg,
-            backgroundImage: hasBannerImage ? `linear-gradient(rgba(0, 0, 0, ${bannerStyle === 'immersive' ? 0.65 : 0.4}), rgba(0, 0, 0, ${bannerStyle === 'immersive' ? 0.65 : 0.4})), url(${page.bannerImage})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            color: '#ffffff',
-            textAlign: 'center',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: '300px',
-            marginTop: '60px',
-            boxShadow: 'inset 0 0 100px rgba(0,0,0,0.2)'
+            overflow: 'hidden'
           }}
         >
-          <span
+          {hasBannerImage && (
+            <img 
+              src={page.bannerImage} 
+              alt={page.title} 
+              className="minimal-banner-image"
+              style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '600px', objectFit: 'cover' }}
+            />
+          )}
+          <div 
+            className="minimal-banner-overlay"
+            style={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0, 
+              backgroundColor: hasBannerImage ? `rgba(0, 0, 0, ${bannerStyle === 'immersive' ? 0.65 : 0.4})` : 'transparent', 
+              zIndex: 1 
+            }} 
+          />
+          <div
+            className="minimal-banner-text"
             style={{
-              fontSize: '0.8rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.2em',
-              color: subtitleColor,
-              fontFamily: subtitleFont,
-              fontWeight: 'bold',
-              marginBottom: '1rem'
+              position: hasBannerImage ? 'absolute' : 'relative',
+              zIndex: 2,
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2rem'
             }}
           >
-            {pageTypeMap[page.type] || 'Brand Showcase'}
-          </span>
-          <h1 style={{ fontSize: '3rem', fontFamily: titleFont, color: titleColor, margin: '0 0 0.5rem 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{page.title}</h1>
-          {page.bannerTitle && (
-            <h2 style={{ fontSize: '1.25rem', fontFamily: subtitleFont, fontWeight: 600, color: subtitleColor, margin: '0 0 0.75rem 0', letterSpacing: '0.05em' }}>
-              {page.bannerTitle}
-            </h2>
-          )}
-          {page.bannerDesc && (
-            <p style={{ maxWidth: '600px', margin: page.ctaText ? '0 0 1.5rem 0' : '0', fontSize: '0.95rem', color: descColor, lineHeight: '1.6' }}>
-              {page.bannerDesc}
-            </p>
-          )}
-          {page.ctaText && (
-            <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-              {page.ctaText}
-            </a>
-          )}
+            <span
+              style={{
+                fontSize: '0.8rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                color: subtitleColor,
+                fontFamily: subtitleFont,
+                fontWeight: 'bold',
+                marginBottom: '1rem'
+              }}
+            >
+              {pageTypeMap[page.type] || 'Brand Showcase'}
+            </span>
+            <h1 style={{ fontSize: '3rem', fontFamily: titleFont, color: titleColor, margin: '0 0 0.5rem 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{page.title}</h1>
+            {page.bannerTitle && (
+              <h2 style={{ fontSize: '1.25rem', fontFamily: subtitleFont, fontWeight: 600, color: subtitleColor, margin: '0 0 0.75rem 0', letterSpacing: '0.05em' }}>
+                {page.bannerTitle}
+              </h2>
+            )}
+            {page.bannerDesc && (
+              <p style={{ maxWidth: '600px', margin: page.ctaText ? '0 0 1.5rem 0' : '0', fontSize: '0.95rem', color: descColor, lineHeight: '1.6' }}>
+                {page.bannerDesc}
+              </p>
+            )}
+            {page.ctaText && (
+              <a href={sanitizeUrl(page.ctaUrl) || '#products'} style={{ display: 'inline-block', padding: '0.75rem 2rem', backgroundColor: page.ctaColor || '#ffffff', color: '#000000', fontWeight: 'bold', textDecoration: 'none', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '0.8rem', borderRadius: '2px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                {page.ctaText}
+              </a>
+            )}
+          </div>
         </div>
       )}
 
