@@ -23,10 +23,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const isCallback = 
+      window.location.hash.includes('access_token=') || 
+      window.location.hash.includes('id_token=') || 
+      window.location.search.includes('code=');
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (!isCallback) {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -35,7 +42,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    let timeoutId: any;
+    if (isCallback) {
+      timeoutId = setTimeout(() => {
+        setLoading(false);
+      }, 2500);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   const signOut = async () => {
