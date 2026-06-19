@@ -179,7 +179,12 @@ const Checkout = () => {
     if (sanitized.length === 6) {
       setPinLoading(true);
       try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+        let res;
+        try {
+          res = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+        } catch (e) {
+          res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.postalpincode.in/pincode/${sanitized}`)}`);
+        }
         const data = await res.json();
 
         if (data && data[0] && data[0].Status === 'Success') {
@@ -205,9 +210,8 @@ const Checkout = () => {
           setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
         }
       } catch (err) {
-        setPinError('Invalid PIN code.');
+        setPinError('Lookup failed. Enter manually.');
         setIsPinAutofilled(false);
-        setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
       } finally {
         setPinLoading(false);
       }
