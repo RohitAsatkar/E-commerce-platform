@@ -216,6 +216,7 @@ const ProductDetail = () => {
       });
       if (error) throw error;
       setCartAddedToast(true);
+      window.dispatchEvent(new Event('cart-change'));
       setTimeout(() => setCartAddedToast(false), 3000);
     } catch (err: any) {
       alert('Error adding to cart: ' + err.message);

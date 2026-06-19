@@ -50,6 +50,12 @@ const Navbar = () => {
 
     fetchCartCount();
 
+    const handleCartChange = () => {
+      fetchCartCount();
+    };
+
+    window.addEventListener('cart-change', handleCartChange);
+
     // Subscribe to realtime changes on cart_items table for this user
     const channel = supabase
       .channel('schema-db-changes')
@@ -68,6 +74,7 @@ const Navbar = () => {
       .subscribe();
 
     return () => {
+      window.removeEventListener('cart-change', handleCartChange);
       supabase.removeChannel(channel);
     };
   }, [user]);

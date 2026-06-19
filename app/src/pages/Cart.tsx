@@ -97,6 +97,7 @@ const Cart = () => {
       setCartItems(prev => prev.map(item =>
         item.id === itemId ? { ...item, quantity: newQty } : item
       ));
+      window.dispatchEvent(new Event('cart-change'));
     } catch (err: any) {
       alert('Error updating quantity: ' + err.message);
     } finally {
@@ -111,6 +112,7 @@ const Cart = () => {
       const { error } = await supabase.from('cart_items').delete().eq('id', itemId).eq('user_id', user.id);
       if (error) throw error;
       setCartItems(prev => prev.filter(item => item.id !== itemId));
+      window.dispatchEvent(new Event('cart-change'));
     } catch (err: any) {
       alert('Error removing item: ' + err.message);
     } finally {

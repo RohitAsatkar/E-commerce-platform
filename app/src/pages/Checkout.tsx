@@ -159,6 +159,7 @@ const Checkout = () => {
 
       // 3. Clear cart and storage promo settings
       await supabase.from('cart_items').delete().eq('user_id', user.id);
+      window.dispatchEvent(new Event('cart-change'));
       localStorage.removeItem('cart_promo_code');
       localStorage.removeItem('cart_gift_wrap');
 
