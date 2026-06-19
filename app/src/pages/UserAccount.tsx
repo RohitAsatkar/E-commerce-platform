@@ -10,7 +10,7 @@ import './UserAccount.css';
 type Section = 'overview' | 'orders' | 'profile' | 'addresses' | 'security';
 
 const UserAccount = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { products } = useProducts();
   const [orders, setOrders] = useState<any[]>([]);
@@ -49,6 +49,7 @@ const UserAccount = () => {
   const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { navigate('/auth'); return; }
 
     const fetchProfile = async () => {
@@ -388,6 +389,7 @@ const UserAccount = () => {
     });
   };
 
+  if (authLoading) return <div className="account-page"><div className="container text-center" style={{ paddingTop: '100px' }}>Loading account details...</div></div>;
   if (!user) return null;
 
   const totalSpent = orders.reduce((s, o) => s + Number(o.total), 0);

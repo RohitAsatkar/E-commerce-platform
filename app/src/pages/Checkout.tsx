@@ -10,7 +10,7 @@ import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { products, loading: productsLoading } = useProducts();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +32,7 @@ const Checkout = () => {
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate('/auth');
       return;
@@ -239,7 +240,7 @@ const Checkout = () => {
     }
   };
 
-  if (loading) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Loading checkout...</div>;
+  if (authLoading || loading) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Loading checkout...</div>;
   if (cartItems.length === 0) return <div className="section container text-center" style={{ paddingTop: '120px' }}>Your cart is empty.</div>;
 
   return (
