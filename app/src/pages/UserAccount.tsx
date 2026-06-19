@@ -127,6 +127,12 @@ const UserAccount = () => {
       return;
     }
 
+    if (addressForm.postal_code.replace(/\D/g, '').length !== 6 || pinError) {
+      setPinError('Invalid PIN');
+      showToast('Please enter a valid 6-digit PIN code.', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
       const currentList = getParsedAddresses();
@@ -340,12 +346,12 @@ const UserAccount = () => {
         }
 
         if (!resolved) {
-          setPinError('Invalid PIN code.');
+          setPinError('Invalid PIN');
           setIsPinAutofilled(false);
           setAddressForm(prev => ({ ...prev, city: '', state: '' }));
         }
       } catch (err) {
-        setPinError('Invalid PIN code.');
+        setPinError('Invalid PIN');
         setIsPinAutofilled(false);
         setAddressForm(prev => ({ ...prev, city: '', state: '' }));
       } finally {
@@ -353,6 +359,9 @@ const UserAccount = () => {
       }
     } else {
       setIsPinAutofilled(false);
+      if (sanitized.length > 0) {
+        setPinError('Invalid PIN');
+      }
     }
   };
 

@@ -15,7 +15,7 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [addressInfo, setAddressInfo] = useState({ firstName: '', lastName: '', address: '', city: '', state: '', postal: '', email: '' });
+  const [addressInfo, setAddressInfo] = useState({ firstName: '', lastName: '', address: '', city: '', state: '', postal: '', email: '', phone: '' });
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [giftWrap, setGiftWrap] = useState(false);
@@ -23,6 +23,7 @@ const Checkout = () => {
   const [pinLoading, setPinLoading] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [isPinAutofilled, setIsPinAutofilled] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   useEffect(() => {
     const promo = localStorage.getItem('cart_promo_code');
@@ -70,6 +71,7 @@ const Checkout = () => {
         const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
         if (defaultAddr) {
           const names = (defaultAddr.recipient_name || '').split(' ');
+          const phoneVal = (defaultAddr.phone || '').replace(/\D/g, '');
           setAddressInfo({
             firstName: names[0] || '',
             lastName: names.slice(1).join(' ') || '',
@@ -77,8 +79,14 @@ const Checkout = () => {
             city: defaultAddr.city || '',
             state: defaultAddr.state || '',
             postal: defaultAddr.postal_code || '',
-            email: profileData.email || user.email || ''
+            email: profileData.email || user.email || '',
+            phone: phoneVal
           });
+          if (phoneVal && phoneVal.length !== 10) {
+            setPhoneError('Invalid number');
+          } else {
+            setPhoneError(null);
+          }
           if (defaultAddr.postal_code && defaultAddr.city && defaultAddr.state) {
             setIsPinAutofilled(true);
           }
@@ -90,7 +98,8 @@ const Checkout = () => {
             city: profileData.city || '',
             state: profileData.state || '',
             postal: profileData.postal_code || '',
-            email: profileData.email || user.email || ''
+            email: profileData.email || user.email || '',
+            phone: ''
           });
         }
       } else {
@@ -133,11 +142,26 @@ const Checkout = () => {
   const handlePlaceOrder = async (e: FormEvent) => {
     e.preventDefault();
     if (!user || cartItems.length === 0) return;
+    
+    if (addressInfo.phone.replace(/\D/g, '').length !== 10) {
+      setPhoneError('Invalid number');
+      alert('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (addressInfo.postal.replace(/\D/g, '').length !== 6 || pinError) {
+      setPinError('Invalid PIN');
+      alert('Please enter a valid 6-digit PIN code.');
+      return;
+    }
+    if (!addressInfo.address.trim()) {
+      alert('Please enter your shipping address.');
+      return;
+    }
     setProcessing(true);
 
     try {
       // 1. Create order
-      const shippingAddress = `${addressInfo.firstName} ${addressInfo.lastName}, ${addressInfo.address}, ${addressInfo.city}, ${addressInfo.state}, ${addressInfo.postal}`;
+      const shippingAddress = `${addressInfo.firstName} ${addressInfo.lastName}, ${addressInfo.address}, ${addressInfo.city}, ${addressInfo.state}, ${addressInfo.postal}, Phone: ${addressInfo.phone}`;
       const { data: orderData, error: orderError } = await supabase.from('orders').insert({
         user_id: user.id,
         total: finalTotal,
@@ -170,6 +194,16 @@ const Checkout = () => {
       alert('Failed to place order: ' + err.message);
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    const sanitized = val.replace(/\D/g, '').slice(0, 15);
+    setAddressInfo(prev => ({ ...prev, phone: sanitized }));
+    if (sanitized.length > 0 && sanitized.length !== 10) {
+      setPhoneError('Invalid number');
+    } else {
+      setPhoneError(null);
     }
   };
 
@@ -224,12 +258,12 @@ const Checkout = () => {
         }
 
         if (!resolved) {
-          setPinError('Invalid PIN code.');
+          setPinError('Invalid PIN');
           setIsPinAutofilled(false);
           setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
         }
       } catch (err) {
-        setPinError('Invalid PIN code.');
+        setPinError('Invalid PIN');
         setIsPinAutofilled(false);
         setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
       } finally {
@@ -237,6 +271,9 @@ const Checkout = () => {
       }
     } else {
       setIsPinAutofilled(false);
+      if (sanitized.length > 0) {
+        setPinError('Invalid PIN');
+      }
     }
   };
 
@@ -261,15 +298,28 @@ const Checkout = () => {
                   <Mail size={18} />
                   <h2>Contact Information</h2>
                 </div>
-                <div className="checkout-input-wrapper">
-                  <input 
-                    type="email" 
-                    placeholder="Email Address *" 
-                    value={addressInfo.email} 
-                    onChange={e => setAddressInfo({...addressInfo, email: e.target.value})} 
-                    required 
-                    className="checkout-input" 
-                  />
+                <div className="checkout-form-grid-2">
+                  <div className="checkout-input-wrapper">
+                    <input 
+                      type="email" 
+                      placeholder="Email Address *" 
+                      value={addressInfo.email} 
+                      onChange={e => setAddressInfo({...addressInfo, email: e.target.value})} 
+                      required 
+                      className="checkout-input" 
+                    />
+                  </div>
+                  <div className="checkout-input-wrapper">
+                    <input 
+                      type="tel" 
+                      placeholder="Mobile Number *" 
+                      value={addressInfo.phone} 
+                      onChange={e => handlePhoneChange(e.target.value)} 
+                      required 
+                      className={`checkout-input ${phoneError ? 'error' : ''}`}
+                    />
+                    {phoneError && <span className="checkout-input-status error">{phoneError}</span>}
+                  </div>
                 </div>
               </div>
               
@@ -296,6 +346,7 @@ const Checkout = () => {
                             type="button"
                             onClick={() => {
                               const names = (addr.recipient_name || '').split(' ');
+                              const phoneVal = (addr.phone || '').replace(/\D/g, '');
                               setAddressInfo({
                                 firstName: names[0] || '',
                                 lastName: names.slice(1).join(' ') || '',
@@ -303,8 +354,14 @@ const Checkout = () => {
                                 city: addr.city,
                                 state: addr.state || '',
                                 postal: addr.postal_code,
-                                email: addressInfo.email
+                                email: addressInfo.email,
+                                phone: phoneVal
                               });
+                              if (phoneVal && phoneVal.length !== 10) {
+                                setPhoneError('Invalid number');
+                              } else {
+                                setPhoneError(null);
+                              }
                               if (addr.postal_code && addr.city && addr.state) {
                                 setIsPinAutofilled(true);
                               } else {
@@ -335,9 +392,10 @@ const Checkout = () => {
                     <button 
                       type="button" 
                       onClick={() => { 
-                        setAddressInfo({ firstName: '', lastName: '', address: '', city: '', state: '', postal: '', email: addressInfo.email }); 
+                        setAddressInfo({ firstName: '', lastName: '', address: '', city: '', state: '', postal: '', email: addressInfo.email, phone: '' }); 
                         setIsPinAutofilled(false); 
                         setPinError(null); 
+                        setPhoneError(null);
                       }} 
                       className="checkout-clear-btn"
                     >
@@ -368,7 +426,7 @@ const Checkout = () => {
                     />
                   </div>
                   
-                  <div className="checkout-input-wrapper" style={{ gridColumn: 'span 2' }}>
+                  <div className="checkout-input-wrapper span-2">
                     <input 
                       type="text" 
                       placeholder="PIN Code *" 
@@ -382,7 +440,7 @@ const Checkout = () => {
                     {pinError && <span className="checkout-input-status error">{pinError}</span>}
                   </div>
 
-                  <div className="checkout-input-wrapper" style={{ gridColumn: 'span 2' }}>
+                  <div className="checkout-input-wrapper span-2">
                     <input 
                       type="text" 
                       placeholder="Address (Street, Area) *" 
