@@ -296,27 +296,33 @@ const UserAccount = () => {
     if (sanitized.length === 6) {
       setPinLoading(true);
       try {
-        // Try apibharat.com first (CORS support on production origins)
-        const res = await fetch(`https://api.apibharat.com/v1/pincode/${sanitized}`);
-        const data = await res.json();
+        let resolved = false;
+        
+        // Try api.apibharat.com first (CORS and HTTPS friendly for production)
+        try {
+          const res = await fetch(`https://api.apibharat.com/v1/pincode/${sanitized}`);
+          const data = await res.json();
+          if (data && data.success && data.data) {
+            setAddressForm(prev => ({
+              ...prev,
+              city: data.data.district,
+              state: data.data.state
+            }));
+            setIsPinAutofilled(true);
+            setPinError(null);
+            resolved = true;
+          }
+        } catch (apiBharatErr) {
+          console.warn('apibharat lookup failed, falling back to postalpincode.in', apiBharatErr);
+        }
 
-        if (data && data.success && data.data) {
-          const district = data.data.district;
-          const state = data.data.state;
-          setAddressForm(prev => ({
-            ...prev,
-            city: district,
-            state: state
-          }));
-          setIsPinAutofilled(true);
-          setPinError(null);
-        } else {
-          // Fallback to postalpincode.in
-          const fallbackRes = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
-          const fallbackData = await fallbackRes.json();
+        // Fallback to postalpincode.in (mostly works in localhost)
+        if (!resolved) {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+          const data = await res.json();
 
-          if (fallbackData && fallbackData[0] && fallbackData[0].Status === 'Success') {
-            const postOfficeArray = fallbackData[0].PostOffice;
+          if (data && data[0] && data[0].Status === 'Success') {
+            const postOfficeArray = data[0].PostOffice;
             if (postOfficeArray && postOfficeArray.length > 0) {
               const district = postOfficeArray[0].District;
               const state = postOfficeArray[0].State;
@@ -327,50 +333,20 @@ const UserAccount = () => {
               }));
               setIsPinAutofilled(true);
               setPinError(null);
-            } else {
-              setPinError('Invalid PIN code.');
-              setIsPinAutofilled(false);
-              setAddressForm(prev => ({ ...prev, city: '', state: '' }));
+              resolved = true;
             }
-          } else {
-            setPinError('Invalid PIN code.');
-            setIsPinAutofilled(false);
-            setAddressForm(prev => ({ ...prev, city: '', state: '' }));
           }
         }
-      } catch (err) {
-        // Fallback to postalpincode.in if apibharat fails
-        try {
-          const fallbackRes = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
-          const fallbackData = await fallbackRes.json();
 
-          if (fallbackData && fallbackData[0] && fallbackData[0].Status === 'Success') {
-            const postOfficeArray = fallbackData[0].PostOffice;
-            if (postOfficeArray && postOfficeArray.length > 0) {
-              const district = postOfficeArray[0].District;
-              const state = postOfficeArray[0].State;
-              setAddressForm(prev => ({
-                ...prev,
-                city: district,
-                state: state
-              }));
-              setIsPinAutofilled(true);
-              setPinError(null);
-            } else {
-              setPinError('Invalid PIN code.');
-              setIsPinAutofilled(false);
-              setAddressForm(prev => ({ ...prev, city: '', state: '' }));
-            }
-          } else {
-            setPinError('Invalid PIN code.');
-            setIsPinAutofilled(false);
-            setAddressForm(prev => ({ ...prev, city: '', state: '' }));
-          }
-        } catch (fallbackErr) {
+        if (!resolved) {
           setPinError('Invalid PIN code.');
           setIsPinAutofilled(false);
           setAddressForm(prev => ({ ...prev, city: '', state: '' }));
         }
+      } catch (err) {
+        setPinError('Invalid PIN code.');
+        setIsPinAutofilled(false);
+        setAddressForm(prev => ({ ...prev, city: '', state: '' }));
       } finally {
         setPinLoading(false);
       }
