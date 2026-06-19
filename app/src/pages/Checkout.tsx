@@ -179,39 +179,81 @@ const Checkout = () => {
     if (sanitized.length === 6) {
       setPinLoading(true);
       try {
-        let res;
-        try {
-          res = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
-        } catch (e) {
-          res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.postalpincode.in/pincode/${sanitized}`)}`);
-        }
+        // Try apibharat.com first (CORS support on production origins)
+        const res = await fetch(`https://api.apibharat.com/v1/pincode/${sanitized}`);
         const data = await res.json();
 
-        if (data && data[0] && data[0].Status === 'Success') {
-          const postOfficeArray = data[0].PostOffice;
-          if (postOfficeArray && postOfficeArray.length > 0) {
-            const district = postOfficeArray[0].District;
-            const state = postOfficeArray[0].State;
-            setAddressInfo(prev => ({
-              ...prev,
-              city: district,
-              state: state
-            }));
-            setIsPinAutofilled(true);
-            setPinError(null);
+        if (data && data.success && data.data) {
+          const district = data.data.district;
+          const state = data.data.state;
+          setAddressInfo(prev => ({
+            ...prev,
+            city: district,
+            state: state
+          }));
+          setIsPinAutofilled(true);
+          setPinError(null);
+        } else {
+          // Fallback to postalpincode.in
+          const fallbackRes = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+          const fallbackData = await fallbackRes.json();
+
+          if (fallbackData && fallbackData[0] && fallbackData[0].Status === 'Success') {
+            const postOfficeArray = fallbackData[0].PostOffice;
+            if (postOfficeArray && postOfficeArray.length > 0) {
+              const district = postOfficeArray[0].District;
+              const state = postOfficeArray[0].State;
+              setAddressInfo(prev => ({
+                ...prev,
+                city: district,
+                state: state
+              }));
+              setIsPinAutofilled(true);
+              setPinError(null);
+            } else {
+              setPinError('Invalid PIN code.');
+              setIsPinAutofilled(false);
+              setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
+            }
           } else {
             setPinError('Invalid PIN code.');
             setIsPinAutofilled(false);
             setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
           }
-        } else {
+        }
+      } catch (err) {
+        // Fallback to postalpincode.in if apibharat fails
+        try {
+          const fallbackRes = await fetch(`https://api.postalpincode.in/pincode/${sanitized}`);
+          const fallbackData = await fallbackRes.json();
+
+          if (fallbackData && fallbackData[0] && fallbackData[0].Status === 'Success') {
+            const postOfficeArray = fallbackData[0].PostOffice;
+            if (postOfficeArray && postOfficeArray.length > 0) {
+              const district = postOfficeArray[0].District;
+              const state = postOfficeArray[0].State;
+              setAddressInfo(prev => ({
+                ...prev,
+                city: district,
+                state: state
+              }));
+              setIsPinAutofilled(true);
+              setPinError(null);
+            } else {
+              setPinError('Invalid PIN code.');
+              setIsPinAutofilled(false);
+              setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
+            }
+          } else {
+            setPinError('Invalid PIN code.');
+            setIsPinAutofilled(false);
+            setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
+          }
+        } catch (fallbackErr) {
           setPinError('Invalid PIN code.');
           setIsPinAutofilled(false);
           setAddressInfo(prev => ({ ...prev, city: '', state: '' }));
         }
-      } catch (err) {
-        setPinError('Lookup failed. Enter manually.');
-        setIsPinAutofilled(false);
       } finally {
         setPinLoading(false);
       }
